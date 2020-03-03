@@ -131,19 +131,6 @@ SCTV4 <-
   select(c("avatar_id", "date_of_bmt")) %>% 
   `colnames<-`(c("avatar_id", "date_of_first_bmt"))
 #-----------------------------------------------------------------------------------------------------------------
-##################################################################################################  I'  ## Before merging
-PatientInV1 <- unique(MM_history$avatar_id)
-PatientInV2 <- unique(MM_historyV2$avatar_id)
-PatientInV4 <- unique(MM_historyV4$avatar_id)
-VitalsInV1 <- unique(Vitals$avatar_id)
-VitalsInV2 <- unique(VitalsV2$avatar_id)
-VitalsInV4 <- unique(VitalsV4$avatar_id)
-SctInV1 <- unique(SCT$avatar_id)
-SctInV2 <- unique(SCTV2$avatar_id)
-SctInV4 <- unique(SCTV4$avatar_id)
-TreatmentInV1 <- unique(Treatment$avatar_id)
-TreatmentInV2 <- unique(TreatmentV2$avatar_id)
-TreatmentInV4 <- unique(TreatmentV4$avatar_id)
 
 ##################################################################################################  II  ## Bind ### Align duplicated ID
 

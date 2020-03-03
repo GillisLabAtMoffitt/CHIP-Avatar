@@ -7,8 +7,8 @@ library(data.table)
 path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Cassin", "CHIP in Avatar")
 #-----------------------------------------------------------------------------------------------------------------
 Demo_RedCap_V4ish <-
-  readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Avatar_Demographics_All_MM_OUT_02072020.xlsx")) %>%
-  select(c("Avatar_ID","TCC_ID","Date_of_Birth", "Gender"))
+  readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Avatar_Demographics_All_MM_OUT_03022020.xlsx")) %>%
+  select(c("avatar_id","TCC_ID","Date_of_Birth", "Gender"))
 #-----------------------------------------------------------------------------------------------------------------
 Germ <- 
   readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx"))
@@ -245,8 +245,23 @@ d <- merge.data.frame(c, SCT, by.x = "avatar_id", by.y = "avatar_id",
 e <- merge.data.frame(d, Treatment, by.x = "avatar_id", by.y = "avatar_id", 
                       all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
 
-Global_data <- merge.data.frame(Demo_RedCap_V4ish, e, by.x = "Avatar_ID", by.y = "avatar_id", all.x = FALSE, all.y = TRUE)
+Global_data <- merge.data.frame(Demo_RedCap_V4ish, e, by.x = "avatar_id", by.y = "avatar_id", all.x = FALSE, all.y = TRUE)
 # write.csv(Global_data, paste0(path, "/Global_data.csv"))
 rm(b,c,d,e)
 
+# tempory dataframe for the time to plot simply
+f <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
+                    "number_of_bonemarrow_transplant_1", "number_of_bonemarrow_transplant_2","date_of_first_bmt_1", "date_of_second_bmt_1", "date_of_third_bmt_1", 
+                    
+                    "collectiondt.germline", "Disease_Status.germline",
+                    
+                    "date_death_1", "date_death_2",
+                    "date_last_follow_up_1", "date_last_follow_up_2", "vital_status_1", "vital_status_2", 
+                    
+                    "prior_treatment_1", "prior_treatment_2",
+                    "drug_start_date_1",
+                    
+                    "smoking_status_1", "smoking_status_2", "current_smoker_1", "current_smoker_2", "alcohol_use_1", "alcohol_use_2",
+                    
+                    "bmi_at_dx_v2_1", "Gender")]
 

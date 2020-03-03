@@ -5,6 +5,8 @@
 _library/*
 data*
 .DS_Store
+.log
+.png
 
 # Ignore data directory or data dir if it is a symlink
 data/*

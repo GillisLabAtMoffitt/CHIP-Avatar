@@ -23,7 +23,17 @@ Sequencing <-
     "SLID_germline", "SLID_tumor" , "moffitt_sample_id_tumor", "moffitt_sample_id_germline",
     "BaitSet", "ClinicalSpecimenLinkage_WES.Batch", "moffitt_sample_id"))
 #-----------------------------------------------------------------------------------------------------------------
-ClinicalCap_V1 <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Cassin", "CHIP in Avatar", "Raghu MM", "extracted Avatar V124 data and dict", "V1")
+ClinicalCap_V1 <-
+  fs::path(
+    "",
+    "Volumes",
+    "Gillis_Research",
+    "Christelle Colin-Cassin",
+    "CHIP in Avatar",
+    "Raghu MM",
+    "extracted Avatar V124 data and dict",
+    "V1"
+  )
 #-----------------------------------------------------------------------------------------------------------------
 Vitals <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
@@ -66,9 +76,18 @@ SCT <-
 #-----------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------------------------
-ClinicalCap_V2 <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Cassin", "CHIP in Avatar", "Raghu MM", "extracted Avatar V124 data and dict", "V2")
-# "G code and data/G data/G Raghu MM/extracted V1 V2 data and dict/V2/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx"
-#-----------------------------------------------------------------------------------------------------------------
+  ClinicalCap_V2 <-
+    fs::path(
+      "",
+      "Volumes",
+      "Gillis_Research",
+      "Christelle Colin-Cassin",
+      "CHIP in Avatar",
+      "Raghu MM",
+      "extracted Avatar V124 data and dict",
+      "V2"
+    )
+  #-----------------------------------------------------------------------------------------------------------------
 VitalsV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
                     sheet = "Vitals") %>%
@@ -92,9 +111,18 @@ SCTV2 <-
 #-----------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------------------------
-ClinicalCap_V4 <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Cassin", "CHIP in Avatar", "Raghu MM", "extracted Avatar V124 data and dict", "V4")
-# "G code and data/G data/G Raghu MM/extracted V1 V2 data and dict/V4/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx"
-#-----------------------------------------------------------------------------------------------------------------
+  ClinicalCap_V4 <-
+    fs::path(
+      "",
+      "Volumes",
+      "Gillis_Research",
+      "Christelle Colin-Cassin",
+      "CHIP in Avatar",
+      "Raghu MM",
+      "extracted Avatar V124 data and dict",
+      "V4"
+    )
+  #-----------------------------------------------------------------------------------------------------------------
 VitalsV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
                     sheet = "Vitals") %>%

@@ -7,7 +7,7 @@ colors4 <- c(viridis::inferno(n = 4))
 # Patient who had Drugs and BMT
 venn.diagram(
   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id),
-  category.names = c("MM_history" , "Treatment" , "BMT"),
+  category.names = c("Clinical data" , "Treatment" , "BMT"),
   filename = 'Drugs and BMT.png',
   output=TRUE,
   
@@ -40,7 +40,7 @@ venn.diagram(
 
 venn.diagram(
   x = list(MM_history$avatar_id, Germ$avatar_id),
-  category.names = c("Clinical patients" , "Germline Patients"),
+  category.names = c("Clinical data" , "Germline data"),
   filename = 'Patient who had germlime sequenced.png',
   output=TRUE,
   
@@ -70,7 +70,7 @@ venn.diagram(
 
 venn.diagram(
   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germ$avatar_id),
-  category.names = c("MM_history" , "Treatment" , "BMT", "Germline Patients"),
+  category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data"),
   filename = 'Patient who had Drugs, BMT and Germlime sequenced.png',
   output=TRUE,
   

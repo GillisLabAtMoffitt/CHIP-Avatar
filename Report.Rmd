@@ -1,0 +1,69 @@
+---
+title: "report on CHIP-Avatar"
+author: "Christelle Colin-Leitzinger"
+date: "3/6/2020"
+output: html_document:
+  toc: true
+  toc_float: true
+---
+
+```{r include=FALSE}
+library(tidyverse)
+library(data.table)
+library(VennDiagram)
+library(viridis)
+```
+
+## Data
+
+Moffitt Avatar
+Demographics
+Clinical
+Germline
+WES
+
+```{r cars}
+data.table(NROW(MM_history)+NROW(MM_historyV2))etc
+```
+But we obeserved multiple duplicated ID with different date of diagnosis, vitals, etc
+
+```{r Global_data, include= FALSE}
+colors4 <- c(viridis::inferno(n = 4))
+venn.diagram(
+  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germ$avatar_id),
+  category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data"),
+  filename = 'Patient who had Drugs, BMT and Germlime sequenced.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 1000 , 
+  width = 1000 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = colors4,
+  margin = 0.2,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  ext.percent = 5,
+  cat.pos = c(-38, 30, -30, 30),
+  cat.dist = c(0.28, 0.25, 0.15, 0.15)
+  
+)
+```
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

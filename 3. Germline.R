@@ -40,9 +40,13 @@ f <- f %>%
   mutate(GandBmt1BEFOREdrug = case_when(
     date_of_first_bmt_1 < drug_start_date_1 &
       collectiondt.germline < drug_start_date_1 ~ "OK"
+  )) %>% 
+  mutate(GermBFtumorWES = case_when(
+    collectiondt.germline < collectiondt_1 ~ "Germ first",
+    collectiondt.germline > collectiondt_1 ~ "tumorWES first"
   ))
-write.csv(f, paste0(path, "/compared germline dates and Demographics.csv"))
-
+# write.csv(f, paste0(path, "/compared germline dates and Demographics.csv"))
+table(f$GermBFtumorWES)
 #------------------------------------------------------------- Table
 
 f$last_date_deathorfollowup  <-  coalesce(f$date_death_1, f$date_last_follow_up_1)
@@ -62,7 +66,7 @@ germline_compared_dates <-matrix(
   ncol = 10, byrow=TRUE)
 germline_compared_dates <- as.table(table)
 germline_compared_dates
-write.csv(germline_compared_dates, paste0(path, "table compared germline dates and Demographics.csv"))
+# write.csv(germline_compared_dates, paste0(path, "table compared germline dates and Demographics.csv"))
 
 rm(b,c,d,e, germline_compared_dates)
 
@@ -81,19 +85,27 @@ venn.diagram(
   
   # Output features
   imagetype="png" ,
-  height = 480 , 
-  width = 480 , 
+  height = 700 , 
+  width = 700 , 
   resolution = 300,
   compression = "lzw",
   
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = colors2
+  fill = colors2,
+  margin = 0.09,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  cat.pos = c(-20, 165),
+  cat.dist = c(0.045, 0.045),
+  cat.cex = .8
 )
 
-color2 <- c(viridis::magma(n = 2))
-color3 <- c(viridis::cividis(n = 3))
+color3 <- c(viridis::magma(n = 3))
 germ_BF_drugs <- f[which(f$germlineBFdrugs =="OK"),]
 germ_BF_bmt1 <- f[which(f$germlineBFbmt1 == "OK"),]
 germ_BF_drugsBMT <- f[which(f$germBEFOREdrugsBMT == "OK"),]
@@ -107,15 +119,30 @@ venn.diagram(
   
   # Output features
   imagetype="png" ,
-  height = 480 , 
-  width = 480 , 
+  height = 700 , 
+  width = 700 , 
   resolution = 300,
   compression = "lzw",
   
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = color3
+  fill = c("lightblue", "#B63679FF", "red"),
+  margin = 0.09,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  
+  # Set names
+  cat.cex = 0.6,
+  cat.fontface = "bold",
+  cat.default.pos = "outer",
+  cat.pos = c(-30, 27, 150),
+  cat.dist = c(0.075, 0.045, 0.045),
+  cat.fontfamily = "sans",
+  rotation = 1
 )
 #################################################################################################  II  ### Disease status when Germline collection
 
@@ -181,12 +208,16 @@ disease_stat_germVStreatment <- matrix(
 disease_stat_germVStreatment <- as.table(disease_stat_germVStreatment)
 disease_stat_germVStreatment
 
-write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germline dates.csv"))
+# write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germline dates.csv"))
 
 ###########################################################################################################################################
 
 temp <- germ_BF_drugs[(germ_BF_drugs$Disease_Status.germline == "Early Relapse Multiple Myeloma"), c("avatar_id", "Date_of_Birth", "date_of_diagnosis_1",
-                                                                                             "date_of_first_bmt_1", "collectiondt.germline",
-                                                                                             "Disease_Status.germline", "date_death_1", "date_last_follow_up_1",
+                                                                                             "date_of_first_bmt_1", 
+                                                                                             "collectiondt.germline","Disease_Status.germline", 
+                                                                                             "collectiondt_1", "Disease_Status_1",
+                                                                                             "date_death_1", "date_last_follow_up_1",
                                                                                              "date_last_follow_up_2", "drug_start_date_1")]
 write.csv(temp, paste0(path, "/temp file.csv"))
+
+

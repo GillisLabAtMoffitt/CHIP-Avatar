@@ -42,6 +42,7 @@ NROW(which(!is.na(drugINgerm$date_of_first_bmt))) # same
 
 
 myCol1 <- brewer.pal(3, "Pastel1")
+myCol2 <- brewer.pal(3, "Pastel2")
 
 draw.triple.venn(nrow(germ_available), 
                  nrow(bmtINgerm),

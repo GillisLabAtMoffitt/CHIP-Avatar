@@ -12,9 +12,216 @@ library(tidyverse)
 library(data.table)
 library(VennDiagram)
 library(viridis)
+
+##################################################################################################  I  ### Load data
+path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Cassin", "CHIP in Avatar")
+#-----------------------------------------------------------------------------------------------------------------
+Demo_RedCap_V4ish <-
+  readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Avatar_Demographics_All_MM_OUT_03022020.xlsx")) %>%
+  select(c("avatar_id","TCC_ID","Date_of_Birth", "Gender"))
+#-----------------------------------------------------------------------------------------------------------------
+Germ <- 
+  readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx"))
+#-----------------------------------------------------------------------------------------------------------------
+WES <-
+  readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_WES_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
+  select(c("avatar_id", "moffitt_sample_id", "Disease_Status", "collectiondt"))
+#-----------------------------------------------------------------------------------------------------------------
+Sequencing <-
+  read.delim(paste0(path, "/Jamie/v0.4.3.MM.samples.WESdata01.31.20.txt")) %>% 
+  select(c(
+    "SLID_germline", "SLID_tumor" , "moffitt_sample_id_tumor", "moffitt_sample_id_germline",
+    "BaitSet", "ClinicalSpecimenLinkage_WES.Batch", "moffitt_sample_id"))
+#-----------------------------------------------------------------------------------------------------------------
+ClinicalCap_V1 <-
+  fs::path(
+    "",
+    "Volumes",
+    "Gillis_Research",
+    "Christelle Colin-Cassin",
+    "CHIP in Avatar",
+    "Raghu MM",
+    "extracted Avatar V124 data and dict",
+    "V1"
+  )
+#-----------------------------------------------------------------------------------------------------------------
+Vitals <-
+  readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
+                    sheet = "Vitals") %>%
+  select(c("avatar_id","vital_status","date_death", "date_last_follow_up", "smoking_status","current_smoker","alcohol_use"))
+# Will need to change smoker and alcohol number
+#-----------------------------------------------------------------------------------------------------------------
+MM_history <-
+  readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
+                    sheet = "Myeloma_Disease_History") %>%
+  select(c("avatar_id", "date_of_diagnosis", "disease_stage"))
+# will need to modify date as 2000 then as.Date
+#-----------------------------------------------------------------------------------------------------------------
+Comorbidities <-
+  readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
+                    sheet = "Comorbidities") #%>% 
+#select(c("avatar_id","smoking_status", "alcohol_use"))
+#-----------------------------------------------------------------------------------------------------------------
+# Biopsy <-
+#   readxl::read_xlsx(ClinicalCap_V1,
+#                     sheet = "Biopsy") %>%
+#   arrange(Biopsy$date_bonemarrow_biopsy_results) %>%
+#   select(c("tcc_id" ,"number_of_bonemarrow_biopsies"))
+# Biopsy <- Biopsy[order(Biopsy$date_bonemarrow_biopsy_results),]
+# Biopsy <- Biopsy[,c("tcc_id" ,"number_of_bonemarrow_biopsies")]
+#-----------------------------------------------------------------------------------------------------------------
+Treatment <-
+  readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
+                    sheet = "Treatment") %>%
+  select(c("avatar_id", "number_drugs_regimen","regimen_start_date", "drug1_regimen", "drug2_regimen",
+           "drug3_regimen", "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) #%>% 
+  #mutate(drug_start_date = regimen_start_date) %>% 
+  colnames(Treatment)[which(names(Treatment) == "regimen_start_date")] <- "drug_start_date"
+#-----------------------------------------------------------------------------------------------------------------
+SCT <-
+  readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
+                    sheet = "SCT") %>%
+  select(c("avatar_id", "prior_treatment", "number_of_bonemarrow_transplant","date_of_first_bmt", 
+           "date_of_second_bmt", "date_of_third_bmt"))
+#-----------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------
+  ClinicalCap_V2 <-
+    fs::path(
+      "",
+      "Volumes",
+      "Gillis_Research",
+      "Christelle Colin-Cassin",
+      "CHIP in Avatar",
+      "Raghu MM",
+      "extracted Avatar V124 data and dict",
+      "V2"
+    )
+  #-----------------------------------------------------------------------------------------------------------------
+VitalsV2 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
+                    sheet = "Vitals") %>%
+  select(c("avatar_id","vital_status","date_death","smoking_status","alcohol_use", "bmi_at_dx_v2"))
+
+#-----------------------------------------------------------------------------------------------------------------
+MM_historyV2 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
+                    sheet = "Myeloma_Disease_History") %>%
+  select(c("avatar_id",  "date_of_diagnosis"))
+#-----------------------------------------------------------------------------------------------------------------
+TreatmentV2 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
+                    sheet = "Treatment") %>%
+  select(c("avatar_id", "treatment_line_", "drug_start_date" , "drug_name_"))
+#-----------------------------------------------------------------------------------------------------------------
+SCTV2 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
+                    sheet = "SCT") %>%
+  select(c("avatar_id", "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
+#-----------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------
+  ClinicalCap_V4 <-
+    fs::path(
+      "",
+      "Volumes",
+      "Gillis_Research",
+      "Christelle Colin-Cassin",
+      "CHIP in Avatar",
+      "Raghu MM",
+      "extracted Avatar V124 data and dict",
+      "V4"
+    )
+  #-----------------------------------------------------------------------------------------------------------------
+VitalsV4 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+                    sheet = "Vitals") %>%
+  select(c("avatar_id","vital_status","date_death", "date_of_last_contact")) %>% 
+  `colnames<-`(c("avatar_id","vital_status","date_death", "date_last_follow_up"))
+#-----------------------------------------------------------------------------------------------------------------
+MM_historyV4 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+                    sheet = "Myeloma_Disease_History") %>%
+  select(c("avatar_id", "date_of_diagnosis"))
+# will need to modify date as 2000 then as.Date
+#-----------------------------------------------------------------------------------------------------------------
+ComorbiditiesV4 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+                    sheet = "Comorbidities") %>%
+  select(c("avatar_id","smoking_status", "alcohol_use"))
+#-----------------------------------------------------------------------------------------------------------------
+# BiopsyV4 <-
+#   readxl::read_xlsx(ClinicalCap_V4,
+#                     sheet = "Biopsy") %>%
+#   arrange(Biopsy$date_bonemarrow_biopsy_results) %>%
+#   select(c("tcc_id" ,"number_of_bonemarrow_biopsies"))
+# Biopsy <- Biopsy[order(Biopsy$date_bonemarrow_biopsy_results),]
+# Biopsy <- Biopsy[,c("tcc_id" ,"number_of_bonemarrow_biopsies")]
+#-----------------------------------------------------------------------------------------------------------------
+TreatmentV4 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+                    sheet = "Treatment") %>%
+  select(c("avatar_id", "treatment_line_", "drug_start_date", "drug_name_"))
+#-----------------------------------------------------------------------------------------------------------------
+SCTV4 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+                    sheet = "SCT") %>%
+  select(c("avatar_id", "date_of_bmt")) %>% 
+  `colnames<-`(c("avatar_id", "date_of_first_bmt"))
+#-----------------------------------------------------------------------------------------------------------------
+mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM")
+vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, .id = "versionVit")
+sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT")
+treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat")
+##################################################################################################  II  ## Bind ### Align duplicated ID
+
+MM_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
+  arrange(date_of_diagnosis)
+MM_history <- dcast(setDT(MM_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage")) %>% 
+  select(c("avatar_id", "date_of_diagnosis_1", "disease_stage_1", "date_of_diagnosis_2", "disease_stage_2", "date_of_diagnosis_3", "disease_stage_3",
+           "date_of_diagnosis_4", "disease_stage_4"))
+# write.csv(MM_history,paste0(path, "/MM_history simplify.csv"))
+#-------------------------------------
+Vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, .id = "versionVit") 
+Vitals <- Vitals %>%
+  mutate(last_date = coalesce(Vitals$date_death, Vitals$date_last_follow_up)) %>% 
+  arrange(last_date)
+Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), value.var = c("vital_status", "date_death", "date_last_follow_up", "smoking_status",
+                                                                           "current_smoker", "alcohol_use", "bmi_at_dx_v2"))
+# write.csv(Vitals,paste0(path, "/Vitals simplify.csv"))
+#-------------------------------------
+SCT <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>% 
+  arrange(date_of_first_bmt) %>% 
+  arrange(date_of_second_bmt) %>% 
+  arrange(date_of_third_bmt)
+SCT <- dcast(setDT(SCT), avatar_id ~ rowid(avatar_id), value.var = c("prior_treatment", "number_of_bonemarrow_transplant",
+                                                                     "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
+# write.csv(SCT,paste0(path, "/SCT simplify.csv"))
+#------------------------------------
+Treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
+  arrange(drug_start_date)
+Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), value.var = c("number_drugs_regimen", "drug_start_date", "drug1_regimen",
+                                                                                 "drug2_regimen", "drug3_regimen", "drug4_regimen", "drug5_regimen",
+                                                                                 "drug6_regimen", "drug7_regimen", "treatment_line_", "drug_name_"))
+# write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))
+
+# Cleaning
+rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4)
+
 ```
 
 ## Data
+
+barplot(c(NROW(mm_history), NROW(vitals), 
+          NROW(sct), NROW(treatment)),
+        names.arg = c("desease history" , "vitals" , "sct", "treatment"),
+        main = "Nbr of record in each file tab", sub = "tab"
+) 
+barplot(c(NROW(MM_history), NROW(Vitals), 
+          NROW(SCT), NROW(Treatment)),
+        names.arg = c("Desease History" , "Vitals" , "SCT", "Treatment"),
+        main = "Nbr of record in each file tab", sub = "tab"
+)
 
 Moffitt Avatar
 Demographics

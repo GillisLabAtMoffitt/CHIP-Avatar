@@ -159,14 +159,22 @@ SCTV4 <-
   select(c("avatar_id", "date_of_bmt")) %>% 
   `colnames<-`(c("avatar_id", "date_of_first_bmt"))
 #-----------------------------------------------------------------------------------------------------------------
-
+barplot(height = cbind("Clinical Data" = c(NROW(MM_history), NROW(MM_historyV2), NROW(MM_historyV4)),
+                         "Vitals" = c(NROW(Vitals), NROW(VitalsV2), NROW(VitalsV4)),
+                         "BMT" = c(NROW(SCT), NROW(SCTV2), NROW(SCTV4)),
+                         "Treatment" = c(NROW(Treatment), NROW(TreatmentV2), NROW(TreatmentV4))),
+          beside = FALSE,
+          width = 1,
+        ylim = c(0, 3000),
+          col = c("purple", "orange", "yellow"),
+          legend.text = c("version1", "version2", "version4"),
+          args.legend = list(x = "top"))
 ##################################################################################################  II  ## Bind ### Align duplicated ID
-
 MM_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
   arrange(date_of_diagnosis)
 MM_history <- dcast(setDT(MM_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage")) %>% 
   select(c("avatar_id", "date_of_diagnosis_1", "disease_stage_1", "date_of_diagnosis_2", "disease_stage_2", "date_of_diagnosis_3", "disease_stage_3",
-           "date_of_diagnosis_4", "disease_stage_4"))
+           "date_of_diagnosis_4", "disease_stage_4", "versionMM"))
 # write.csv(MM_history,paste0(path, "/MM_history simplify.csv"))
 #-------------------------------------
 Vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, .id = "versionVit") 
@@ -193,8 +201,17 @@ Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), value.var = c
 # write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))
 
 # Cleaning
-rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4)
-
+rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
+   Comorbidities, ComorbiditiesV4)
+# Plot
+barplot(height = cbind("Desease History" = NROW(MM_history),
+                       "Vitals" = NROW(Vitals),
+                       "BMT" = NROW(SCT),
+                       "Treatment" = NROW(Treatment)),
+        main = "Nbr of record in each file tab", sub = "tab",
+        ylim = c(0, 700),
+        col = "darkblue"
+)
 
 ##################################################################################################  III  # Merge WES and Sequencing
 # Are moffitt_sample_id are equal in WES and Sequencing ?
@@ -260,7 +277,8 @@ colnames(Combined_data_MM)
 
 
 ##################################################################################################  IV  ## Merge
-b <- merge.data.frame(Combined_data_MM[, c("avatar_id", "collectiondt.germline", "Disease_Status.germline")],
+b <- merge.data.frame(Combined_data_MM[, c("avatar_id", "collectiondt.germline", "Disease_Status.germline", 
+                                           "collectiondt_1", "Disease_Status_1")],
                       MM_history, by.x = "avatar_id", by.y = "avatar_id", 
                       all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
 
@@ -281,7 +299,7 @@ rm(b,c,d,e)
 f <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
                     "number_of_bonemarrow_transplant_1", "number_of_bonemarrow_transplant_2","date_of_first_bmt_1", "date_of_second_bmt_1", "date_of_third_bmt_1", 
                     
-                    "collectiondt.germline", "Disease_Status.germline",
+                    "collectiondt.germline", "Disease_Status.germline", "collectiondt_1", "Disease_Status_1",
                     
                     "date_death_1", "date_death_2",
                     "date_last_follow_up_1", "date_last_follow_up_2", "vital_status_1", "vital_status_2", 

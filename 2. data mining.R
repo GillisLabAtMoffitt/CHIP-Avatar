@@ -1,8 +1,64 @@
 library(VennDiagram)
-library(UpSetR)
+#library(UpSetR)
 colors3 <- c(viridis::plasma(n = 3))
 colors2 <- c(viridis::plasma(n = 2))
 colors4 <- c(viridis::inferno(n = 4))
+color4 <- c(viridis::plasma(n = 4))
+color3 <- c(viridis::cividis(n = 3))
+
+venn.diagram(
+  x = list(MM_history$avatar_id, Germ$avatar_id, Demo_RedCap_V4ish$avatar_id),
+  category.names = c("Clinical data" , "Germline data", "Demographics data"),
+  filename = 'Germline and Demo.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 1000 , 
+  width = 1000 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = color3,
+  margin = 0.2,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  ext.percent = 5
+)
+
+venn.diagram(
+  x = list(MM_history$avatar_id, Germ$avatar_id, WES$avatar_id, Demo_RedCap_V4ish$avatar_id),
+  category.names = c("Clinical data" , "Germline data" , "WES data", "Demographics data"),
+  filename = 'Germline, WES and Demo.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 1000 , 
+  width = 1000 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = color4,
+  margin = 0.2,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  ext.percent = 5,
+  cat.pos = c(-38, 30, -30, 30),
+  cat.dist = c(0.28, 0.25, 0.15, 0.15)
+)
 
 # Patient who had Drugs and BMT
 venn.diagram(
@@ -21,7 +77,7 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = colors3,
+  fill = c("#F0F921FF", "#0D0887FF", "#CC4678FF"),
   
   # Numbers
   cex = .6,
@@ -63,7 +119,7 @@ venn.diagram(
   fontfamily = "sans",
   cat.pos = c(-20, 160),
   cat.dist = c(0.055, 0.055),
-  ext.percent = 2,
+  #ext.percent = 2,
   rotation.degree = -90
 
 )
@@ -102,7 +158,7 @@ head(Combined_data_MM)
 Combined_data_MM$Disease_Status.germline
 Disease_status_table <- table(Combined_data_MM$Disease_Status.germline)
 Disease_status_table <- as.table(Disease_status_table)
-write.csv(Disease_status_table, paste0(path, "/Disease status table.csv"))
+# write.csv(Disease_status_table, paste0(path, "/Disease status table.csv"))
 
 
 ################################################################################# TABLE Year of germline sample collection ####

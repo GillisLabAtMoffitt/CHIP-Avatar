@@ -6,13 +6,14 @@ _library/*
 data*
 .DS_Store
 .log
-.png
+*.png
+*.html
 
 # Ignore data directory or data dir if it is a symlink
 data/*
 data
 
-# ---- Default .gitignore From grkmisc ----
+# ---- Default .gitignore
 .Rproj.user
 .Rhistory
 .RData

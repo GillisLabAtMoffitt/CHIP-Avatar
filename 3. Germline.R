@@ -43,10 +43,12 @@ f <- f %>%
   )) %>% 
   mutate(GermBFtumorWES = case_when(
     collectiondt.germline < collectiondt_1 ~ "Germ first",
-    collectiondt.germline > collectiondt_1 ~ "tumorWES first"
+    collectiondt.germline > collectiondt_1 ~ "tumorWES first",
+    collectiondt.germline == collectiondt_1 ~ "same date"
   ))
 # write.csv(f, paste0(path, "/compared germline dates and Demographics.csv"))
-table(f$GermBFtumorWES)
+a <- table(f$GermBFtumorWES)
+barplot(a, main = "Frequency of collection date first observed", ylim = c(0,500))
 #------------------------------------------------------------- Table
 
 f$last_date_deathorfollowup  <-  coalesce(f$date_death_1, f$date_last_follow_up_1)
@@ -213,11 +215,11 @@ disease_stat_germVStreatment
 ###########################################################################################################################################
 
 temp <- germ_BF_drugs[(germ_BF_drugs$Disease_Status.germline == "Early Relapse Multiple Myeloma"), c("avatar_id", "Date_of_Birth", "date_of_diagnosis_1",
-                                                                                             "date_of_first_bmt_1", 
+                                                                                             "date_of_first_bmt_1", "GermBFtumorWES",
                                                                                              "collectiondt.germline","Disease_Status.germline", 
                                                                                              "collectiondt_1", "Disease_Status_1",
                                                                                              "date_death_1", "date_last_follow_up_1",
-                                                                                             "date_last_follow_up_2", "drug_start_date_1")]
-write.csv(temp, paste0(path, "/temp file.csv"))
+                                                                                             "date_last_follow_up_2", "drug_start_date_1", "versionMM_1")]
+# write.csv(temp, paste0(path, "/temp file.csv"))
 
 

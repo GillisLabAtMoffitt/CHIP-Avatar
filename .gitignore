@@ -5,7 +5,7 @@
 _library/*
 data*
 .DS_Store
-.log
+*.log
 *.png
 *.html
 

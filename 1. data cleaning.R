@@ -8,7 +8,7 @@ path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Cassin", "CHIP
 #-----------------------------------------------------------------------------------------------------------------
 Demo_RedCap_V4ish <-
   readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Avatar_Demographics_All_MM_OUT_03022020.xlsx")) %>%
-  select(c("avatar_id","TCC_ID","Date_of_Birth", "Gender"))
+  select(c("avatar_id","TCC_ID","Date_of_Birth", "Gender", "Ethnicity", "Race"))
 #-----------------------------------------------------------------------------------------------------------------
 Germ <- 
   readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx"))
@@ -172,9 +172,9 @@ barplot(height = cbind("Clinical Data" = c(NROW(MM_history), NROW(MM_historyV2),
 ##################################################################################################  II  ## Bind ### Align duplicated ID
 MM_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
   arrange(date_of_diagnosis)
-MM_history <- dcast(setDT(MM_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage")) %>% 
+MM_history <- dcast(setDT(MM_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
   select(c("avatar_id", "date_of_diagnosis_1", "disease_stage_1", "date_of_diagnosis_2", "disease_stage_2", "date_of_diagnosis_3", "disease_stage_3",
-           "date_of_diagnosis_4", "disease_stage_4", "versionMM"))
+           "date_of_diagnosis_4", "disease_stage_4", "versionMM_1", "versionMM_2", "versionMM_3", "versionMM_4"))
 # write.csv(MM_history,paste0(path, "/MM_history simplify.csv"))
 #-------------------------------------
 Vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, .id = "versionVit") 
@@ -259,7 +259,7 @@ WES  <- WES[order(WES$collectiondt_1), ] %>%
   arrange(collectiondt_5) %>%
   arrange(collectiondt_6)
 # write.csv(WES,paste0(path, "/WES germline tumor.csv"))
-
+is.na(Germ$collectiondt.germline)
 colnames(Germ)
 Germ <- Germ[, c("avatar_id","moffitt_sample_id","collectiondt","SpecimenType","WES_HUDSON_ALPHA",
                  "DNASpecimenStatus1", "Disease_Status")] %>% 
@@ -309,5 +309,5 @@ f <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1
                     
                     "smoking_status_1", "smoking_status_2", "current_smoker_1", "current_smoker_2", "alcohol_use_1", "alcohol_use_2",
                     
-                    "bmi_at_dx_v2_1", "Gender")]
+                    "bmi_at_dx_v2_1", "Gender", "Ethnicity", "Race", "versionMM_1")]
 

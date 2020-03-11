@@ -2,18 +2,16 @@
 title: "report on CHIP-Avatar"
 author: "Christelle Colin-Leitzinger"
 date: "3/6/2020"
-output: html_document:
-  toc: true
-  toc_float: true
+output: html_document
+  # toc: true
+  # toc_float: true
 ---
 
-```{r include=FALSE}
+```{r, include=FALSE}
 library(tidyverse)
 library(data.table)
 library(VennDiagram)
 library(viridis)
-
-##################################################################################################  I  ### Load data
 path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Cassin", "CHIP in Avatar")
 #-----------------------------------------------------------------------------------------------------------------
 Demo_RedCap_V4ish <-
@@ -169,12 +167,30 @@ SCTV4 <-
   select(c("avatar_id", "date_of_bmt")) %>% 
   `colnames<-`(c("avatar_id", "date_of_first_bmt"))
 #-----------------------------------------------------------------------------------------------------------------
-mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM")
-vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, .id = "versionVit")
-sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT")
-treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat")
-##################################################################################################  II  ## Bind ### Align duplicated ID
 
+```
+
+## Avatar Data
+
+ORIEN Avatar is a collaboration among leading U.S. cancer hospitals, pharmaceutical companies and M2Gen. The program fosters collaboration among key stakeholders in cancer research, including patients themselves, with the shared goal of discovering and developing novel therapies and ultimately matching patients to the best treatment options.
+To date, we received 3 updated file with patient information, For example: Multiple Myeloma history, Vitals, BMT and Treatment.
+
+
+```{r , echo=FALSE}
+barplot(height = cbind("Clinical Data" = c(NROW(MM_history), NROW(MM_historyV2), NROW(MM_historyV4)),
+                         "Vitals" = c(NROW(Vitals), NROW(VitalsV2), NROW(VitalsV4)),
+                         "BMT" = c(NROW(SCT), NROW(SCTV2), NROW(SCTV4)),
+                         "Treatment" = c(NROW(Treatment), NROW(TreatmentV2), NROW(TreatmentV4))),
+          beside = FALSE,
+          width = 1,
+        ylim = c(0, 3000),
+          col = c("purple", "orange", "yellow"),
+          legend.text = c("version1", "version2", "version4"),
+          args.legend = list(x = "top"))
+```
+But in these data, we observed duplicated ID with multiple date of diagnosis, dates of follow-up, etc
+```{r , echo=FALSE}
+##################################################################################################  II  ## Bind ### Align duplicated ID
 MM_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
   arrange(date_of_diagnosis)
 MM_history <- dcast(setDT(MM_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage")) %>% 
@@ -206,71 +222,36 @@ Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), value.var = c
 # write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))
 
 # Cleaning
-rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4)
-
+rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
+   Comorbidities, ComorbiditiesV4)
+# Plot
+barplot(height = cbind("Desease History" = NROW(MM_history),
+                       "Vitals" = NROW(Vitals),
+                       "BMT" = NROW(SCT),
+                       "Treatment" = NROW(Treatment)),
+        main = "Nbr of record in each file tab", sub = "tab",
+        ylim = c(0, 700),
+        col = "darkblue"
+)
 ```
 
-## Data
+## Including Plots
 
-barplot(c(NROW(mm_history), NROW(vitals), 
-          NROW(sct), NROW(treatment)),
-        names.arg = c("desease history" , "vitals" , "sct", "treatment"),
-        main = "Nbr of record in each file tab", sub = "tab"
-) 
-barplot(c(NROW(MM_history), NROW(Vitals), 
-          NROW(SCT), NROW(Treatment)),
-        names.arg = c("Desease History" , "Vitals" , "SCT", "Treatment"),
-        main = "Nbr of record in each file tab", sub = "tab"
-)
-
-Moffitt Avatar
+You can also embed plots, for example:
 Demographics
 Clinical
 Germline
 WES
 
-```{r cars}
-data.table(NROW(MM_history)+NROW(MM_historyV2))etc
-```
-But we obeserved multiple duplicated ID with different date of diagnosis, vitals, etc
-
-```{r Global_data, include= FALSE}
-colors4 <- c(viridis::inferno(n = 4))
-venn.diagram(
-  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germ$avatar_id),
-  category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data"),
-  filename = 'Patient who had Drugs, BMT and Germlime sequenced.png',
-  output=TRUE,
-  
-  # Output features
-  imagetype="png" ,
-  height = 1000 , 
-  width = 1000 , 
-  resolution = 300,
-  compression = "lzw",
-  
-  # Circles
-  lwd = 2,
-  lty = 'blank',
-  fill = colors4,
-  margin = 0.2,
-  
-  # Numbers
-  cex = .6,
-  fontface = "bold",
-  fontfamily = "sans",
-  ext.percent = 5,
-  cat.pos = c(-38, 30, -30, 30),
-  cat.dist = c(0.28, 0.25, 0.15, 0.15)
-  
+```{r , echo=FALSE}
+barplot(height = cbind("Desease History" = NROW(MM_history),
+                       "Vitals" = NROW(Vitals),
+                       "BMT" = NROW(SCT),
+                       "Treatment" = NROW(Treatment)),
+        main = "Nbr of record in each file tab", sub = "tab",
+        ylim = c(0, 700),
+        col = "darkblue"
 )
 ```
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Note

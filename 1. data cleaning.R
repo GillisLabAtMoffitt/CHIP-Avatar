@@ -208,7 +208,7 @@ SCT <- dcast(setDT(SCT), avatar_id ~ rowid(avatar_id), value.var = c("prior_trea
 #------------------------------------
 Treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
   arrange(drug_start_date)
-Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), value.var = c("number_drugs_regimen", "drug_start_date", "drug1_regimen",
+Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), value.var = c("number_drugs_regimen", "drug_start_date","drug_stop_date", "drug1_regimen",
                                                                                  "drug2_regimen", "drug3_regimen", "drug4_regimen", "drug5_regimen",
                                                                                  "drug6_regimen", "drug7_regimen", "treatment_line_", "drug_name_"))
 # write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))

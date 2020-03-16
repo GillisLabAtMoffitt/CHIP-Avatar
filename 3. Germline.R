@@ -47,12 +47,12 @@ f <- f %>%
   mutate(germlineBFrad1 = case_when(
     collectiondt.germline < rad_start_date_1 ~ "OK",
     collectiondt.germline > rad_start_date_1 ~ "No",
-    collectiondt.germline > rad_start_date_1 ~ "same date"
+    collectiondt.germline == rad_start_date_1 ~ "same date"
   )) %>% 
   mutate(germlineBFrad2 = case_when(
     collectiondt.germline < rad_start_date_2 ~ "OK",
     collectiondt.germline > rad_start_date_2 ~ "No",
-    collectiondt.germline > rad_start_date_2 ~ "same date"
+    collectiondt.germline == rad_start_date_2 ~ "same date"
   )) %>% 
   mutate(germBFdrugsbmt1 = case_when(
     collectiondt.germline < drug_start_date_1 &
@@ -100,7 +100,7 @@ germline_compared_dates <-matrix(
     "drug date available", sum(!is.na(f$drug_start_date_1)),  "",
     "bmt1 date available", sum(!is.na(f$date_of_first_bmt_1)),  "",
     "rad date available", sum(!is.na(f$rad_start_date_1)),  "",
-    "nbr of patients germline before drugs", sum(str_count(f$germlineBFdrugs, "OK"), na.rm = TRUE), "6 patients same date. Should we include them?",
+    "nbr of patients germline before drugs", sum(str_count(f$germlineBFdrugs, "OK"), na.rm = TRUE), "6 patients same date. Should we include them? They would be pretreatment newly diagn",
     "nbr of patients germline before bmt1", sum(str_count(f$germlineBFbmt1, "OK"), na.rm = TRUE), "",
     "nbr of patients germline before bmt2", sum(str_count(f$germlineBFbmt2, "OK"), na.rm = TRUE), "",
     "nbr of patients germline before bmt3", sum(str_count(f$germlineBFbmt3, "OK"), na.rm = TRUE),  "",
@@ -111,10 +111,8 @@ germline_compared_dates <-matrix(
   ncol = 3, byrow=TRUE)
 germline_compared_dates <- as.table(germline_compared_dates)
 germline_compared_dates
-table(f$check_diagBFlastdate)
-f$date_of_diagnosis_1 == f$date_last_follow_up_1
 # write.csv(germline_compared_dates, paste0(path, "table compared germline dates and Demographics.csv"))
-a <- f[, c("check_birthBFdiag", "check_birthBFlastdate", "check_diagBFlastdate", "date_of_diagnosis_1", "last_date_deathorfollowup")]
+
 rm(a,b,c,d,e, germline_compared_dates)
 
 
@@ -153,9 +151,9 @@ venn.diagram(
 )
 
 color3 <- c(viridis::magma(n = 3))
-germ_BF_drugs <- f[which(f$germlineBFdrugs =="OK"),]
-germ_BF_bmt1 <- f[which(f$germlineBFbmt1 == "OK"),]
-germ_BF_drugsBMT <- f[which(f$germBEFOREdrugsBMT == "OK"),]
+# germ_BF_drugs <- f[which(f$germlineBFdrugs =="OK"),]
+# germ_BF_bmt1 <- f[which(f$germlineBFbmt1 == "OK"),]
+# germ_BF_drugsBMT <- f[which(f$germBEFOREdrugsBMT == "OK"),]
 germ_available <-  f[which(!is.na(f$collectiondt.germline)),]
 
 venn.diagram(

@@ -158,7 +158,6 @@ data <- data.frame(
   end = NA
 )
 timevis::timevis(data)
-#############
 a <- list(names = Age_data$avatar_id, level = 1, start = Age_data$Age_at_diagosis, end = Age_data$Age_at_firstdrug)
 
 library(candela)
@@ -166,8 +165,6 @@ candela("GanttChart",
         data = a, label = names, 
         start = "start", end = "end", level = "level", width = "auto", height = "auto")
 
-
-##############
 library(DiagrammeR)
 df <- data.frame(task = c("task1", "task2", "task3"),
                  #status = c("done", "active", "crit"),
@@ -200,7 +197,6 @@ mermaid(
 #   ))
 # ))
 
-################
 library("vistime")  
 
 dat <- data.frame(Position=c(rep("President", 3), rep("Vice", 3)),
@@ -211,7 +207,6 @@ dat <- data.frame(Position=c(rep("President", 3), rep("Vice", 3)),
                   fontcolor = rep("white", 3))
 
 vistime(dat, events="Position", groups="Name", title="Presidents of the USA")
-
 
 # as.Date
 diag <- Global_data[,c("avatar_id", "date_of_diagnosis_1", "date_of_diagnosis_1")]
@@ -278,6 +273,5 @@ drug1$drug <- "drug"
    )
  }
  
- p
-
+ ps
 

@@ -109,7 +109,10 @@ SCTV2 <-
                     sheet = "SCT") %>%
   select(c("avatar_id", "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
 #-----------------------------------------------------------------------------------------------------------------
-
+RadiationV2 <- readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
+                               sheet = "Radiation") %>%
+    select(c("avatar_id", "rad_start_date_v2", "rad_stop_date_v2")) %>% 
+    `colnames<-`(c("avatar_id", "rad_start_date", "rad_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
   ClinicalCap_V4 <-
     fs::path(
@@ -159,16 +162,26 @@ SCTV4 <-
   select(c("avatar_id", "date_of_bmt")) %>% 
   `colnames<-`(c("avatar_id", "date_of_first_bmt"))
 #-----------------------------------------------------------------------------------------------------------------
-barplot(height = cbind("Clinical Data" = c(NROW(MM_history), NROW(MM_historyV2), NROW(MM_historyV4)),
-                         "Vitals" = c(NROW(Vitals), NROW(VitalsV2), NROW(VitalsV4)),
-                         "BMT" = c(NROW(SCT), NROW(SCTV2), NROW(SCTV4)),
-                         "Treatment" = c(NROW(Treatment), NROW(TreatmentV2), NROW(TreatmentV4))),
-          beside = FALSE,
-          width = 1,
-        ylim = c(0, 3000),
-          col = c("purple", "orange", "yellow"),
-          legend.text = c("version1", "version2", "version4"),
-          args.legend = list(x = "top"))
+RadiationV4 <- 
+    readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+                                 sheet = "Radiation") %>%
+    select(c("avatar_id", "rad_start_date", "rad_stop_date"))
+#-----------------------------------------------------------------------------------------------------------------
+  barplot(
+    height = cbind(
+      "Clinical Data" = c(NROW(MM_history), NROW(MM_historyV2), NROW(MM_historyV4)),
+      "Vitals" = c(NROW(Vitals), NROW(VitalsV2), NROW(VitalsV4)),
+      "BMT" = c(NROW(SCT), NROW(SCTV2), NROW(SCTV4)),
+      "Treatment" = c(NROW(Treatment), NROW(TreatmentV2), NROW(TreatmentV4)),
+      "Radiation" = c(0, NROW(RadiationV2), NROW(RadiationV4))
+    ),
+    beside = FALSE,
+    width = 1,
+    ylim = c(0, 3000),
+    col = c("purple", "orange", "yellow"),
+    legend.text = c("version1", "version2", "version4"),
+    args.legend = list(x = "top")
+  )
 ##################################################################################################  II  ## Bind ### Align duplicated ID
 MM_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
   arrange(date_of_diagnosis)
@@ -199,18 +212,28 @@ Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), value.var = c
                                                                                  "drug2_regimen", "drug3_regimen", "drug4_regimen", "drug5_regimen",
                                                                                  "drug6_regimen", "drug7_regimen", "treatment_line_", "drug_name_"))
 # write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))
-
+#------------------------------------
+Radiation <- bind_rows(RadiationV2, RadiationV4, .id = "versionRad") %>% 
+  arrange(rad_start_date)
+Radiation <- dcast(setDT(Radiation), avatar_id ~ rowid(avatar_id), value.var = 
+                     c("rad_start_date", "rad_stop_date"))
+#------------------------------------
 # Cleaning
 rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
-   Comorbidities, ComorbiditiesV4)
+   Comorbidities, ComorbiditiesV4, RadiationV2, RadiationV4)
 # Plot
-barplot(height = cbind("Desease History" = NROW(MM_history),
-                       "Vitals" = NROW(Vitals),
-                       "BMT" = NROW(SCT),
-                       "Treatment" = NROW(Treatment)),
-        main = "Nbr of record in each file tab", sub = "tab",
-        ylim = c(0, 700),
-        col = "darkblue"
+barplot(
+  height = cbind(
+    "Desease History" = NROW(MM_history),
+    "Vitals" = NROW(Vitals),
+    "BMT" = NROW(SCT),
+    "Treatment" = NROW(Treatment),
+    "Radiation" = NROW(Radiation)
+  ),
+  main = "Nbr of record in each file tab",
+  sub = "tab",
+  ylim = c(0, 700),
+  col = "darkblue"
 )
 
 ##################################################################################################  III  # Merge WES and Sequencing
@@ -291,9 +314,12 @@ d <- merge.data.frame(c, SCT, by.x = "avatar_id", by.y = "avatar_id",
 e <- merge.data.frame(d, Treatment, by.x = "avatar_id", by.y = "avatar_id", 
                       all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
 
-Global_data <- merge.data.frame(Demo_RedCap_V4ish, e, by.x = "avatar_id", by.y = "avatar_id", all.x = FALSE, all.y = TRUE)
+f <- merge.data.frame(e, Radiation,by.x = "avatar_id", by.y = "avatar_id", 
+                      all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
+
+Global_data <- merge.data.frame(Demo_RedCap_V4ish, f, by.x = "avatar_id", by.y = "avatar_id", all.x = FALSE, all.y = TRUE)
 # write.csv(Global_data, paste0(path, "/Global_data.csv"))
-rm(b,c,d,e)
+rm(b,c,d,e,f)
 
 # tempory dataframe for the time to plot simply
 f <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
@@ -306,6 +332,8 @@ f <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1
                     
                     "prior_treatment_1", "prior_treatment_2",
                     "drug_start_date_1",
+                    
+                    "rad_start_date_1", "rad_start_date_2", "rad_stop_date_1", "rad_stop_date_2",                  
                     
                     "smoking_status_1", "smoking_status_2", "current_smoker_1", "current_smoker_2", "alcohol_use_1", "alcohol_use_2",
                     

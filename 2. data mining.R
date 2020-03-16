@@ -94,6 +94,40 @@ venn.diagram(
   rotation = 1
 )
 
+# Patient who had Drugs and BMT
+venn.diagram(
+  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Radiation$avatar_id),
+  category.names = c("Clinical data" , "Treatment" , "BMT", "Radiation"),
+  filename = 'Drugs, Radiation and BMT.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 700 , 
+  width = 700 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = c("#F0F921FF", "#0D0887FF", "#CC4678FF"),
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  
+  # Set names
+  cat.cex = 0.6,
+  cat.fontface = "bold",
+  cat.default.pos = "outer",
+  cat.pos = c(-27, 27, 135),
+  cat.dist = c(0.055, 0.055, 0.015),
+  cat.fontfamily = "sans",
+  rotation = 1
+)
+
 venn.diagram(
   x = list(MM_history$avatar_id, Germ$avatar_id),
   category.names = c("Clinical data" , "Germline data"),
@@ -128,6 +162,35 @@ venn.diagram(
   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germ$avatar_id),
   category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data"),
   filename = 'Patient who had Drugs, BMT and Germlime sequenced.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 1000 , 
+  width = 1000 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = colors4,
+  margin = 0.2,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  ext.percent = 5,
+  cat.pos = c(-38, 30, -30, 30),
+  cat.dist = c(0.28, 0.25, 0.15, 0.15)
+  
+)
+
+venn.diagram(
+  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germ$avatar_id, Radiation$avatar_id),
+  category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data", "Radiation"),
+  filename = 'Patient who had Drugs, BMT, Radiation and Germlime sequenced.png',
   output=TRUE,
   
   # Output features

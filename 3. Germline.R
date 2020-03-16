@@ -2,40 +2,74 @@ library(VennDiagram)
 
 
 ##################################################################################################  I  ### Germline date VS other
+f$last_date_deathorfollowup  <-  coalesce(f$date_death_1, f$date_last_follow_up_1)
 
 f <- f %>% 
-  mutate(check_birthBFdeath = case_when(
-    date_death_1 > Date_of_Birth |
-      date_last_follow_up_1 > Date_of_Birth ~ "OK"
+  mutate(check_birthBFlastdate = case_when(
+    last_date_deathorfollowup > Date_of_Birth ~ "OK",
+    last_date_deathorfollowup == Date_of_Birth |
+      last_date_deathorfollowup < Date_of_Birth ~ "not good"
   )) %>% 
-  mutate(check_diagBF_birthANDdeath = case_when(
+  mutate(check_birthBFdiag = case_when(
+    date_of_diagnosis_1 > Date_of_Birth ~ "OK",
+    date_of_diagnosis_1 == Date_of_Birth |
+      date_of_diagnosis_1 > Date_of_Birth ~ "not good"
+  )) %>% 
+  mutate(check_diagBFlastdate = case_when(
+    last_date_deathorfollowup > date_of_diagnosis_1 ~ "OK",
+    last_date_deathorfollowup == date_of_diagnosis_1 |
+      last_date_deathorfollowup < date_of_diagnosis_1~ "not good"
+  ))%>% 
+  mutate(check_diag_birthANDdeath = case_when(
     date_of_diagnosis_1 > Date_of_Birth &
-      (date_of_diagnosis_1 < date_death_1 |
-         date_of_diagnosis_1 < date_last_follow_up_1) ~ "OK!!"
+      date_of_diagnosis_1 < last_date_deathorfollowup  ~ "OK"
   )) %>% 
   mutate(germlineBFdrugs = case_when(
     collectiondt.germline > drug_start_date_1 ~ ":(",
-    collectiondt.germline < drug_start_date_1 ~ "OK"
+    collectiondt.germline < drug_start_date_1 ~ "OK",
+    collectiondt.germline == drug_start_date_1 ~ "same date"
   )) %>% 
   mutate(germlineBFbmt1 = case_when(
     collectiondt.germline > date_of_first_bmt_1  ~ ":(",
     collectiondt.germline < date_of_first_bmt_1  ~ "OK",
+    collectiondt.germline == date_of_first_bmt_1 ~ "same date"
   )) %>% 
   mutate(germlineBFbmt2 = case_when(
     collectiondt.germline > date_of_second_bmt_1  ~ ":(",
     collectiondt.germline < date_of_second_bmt_1  ~ "OK",
+    collectiondt.germline == date_of_second_bmt_1 ~ "same date"
   )) %>% 
   mutate(germlineBFbmt3 = case_when(
     collectiondt.germline > date_of_third_bmt_1 ~ ":(",
     collectiondt.germline < date_of_third_bmt_1 ~ "OK",
+    collectiondt.germline == date_of_third_bmt_1 ~ "same date"
   )) %>% 
-  mutate(germBEFOREdrugsBMT1 = case_when(
+  mutate(germlineBFrad1 = case_when(
+    collectiondt.germline < rad_start_date_1 ~ "OK",
+    collectiondt.germline > rad_start_date_1 ~ "No",
+    collectiondt.germline > rad_start_date_1 ~ "same date"
+  )) %>% 
+  mutate(germlineBFrad2 = case_when(
+    collectiondt.germline < rad_start_date_2 ~ "OK",
+    collectiondt.germline > rad_start_date_2 ~ "No",
+    collectiondt.germline > rad_start_date_2 ~ "same date"
+  )) %>% 
+  mutate(germBFdrugsbmt1 = case_when(
     collectiondt.germline < drug_start_date_1 &
       collectiondt.germline < date_of_first_bmt_1  ~ "OK"
   )) %>% 
-  mutate(bmt1_BF_treat = case_when(
+  mutate(germBFdbr = case_when(
+    collectiondt.germline < drug_start_date_1 &
+      collectiondt.germline < date_of_first_bmt_1 &
+      collectiondt.germline < rad_start_date_1 ~ "OK"
+  )) %>% 
+  mutate(bmt1_BF_drug = case_when(
     date_of_first_bmt_1 < drug_start_date_1 ~ "OK",
     date_of_first_bmt_1 > drug_start_date_1 ~ "No"
+  )) %>% 
+  mutate(rad_BF_drugbmt1 = case_when(
+    rad_start_date_1 < date_of_first_bmt_1 &
+    rad_start_date_1 < drug_start_date_1 ~ "OK"
   )) %>% 
   mutate(GandBmt1BEFOREdrug = case_when(
     date_of_first_bmt_1 < drug_start_date_1 &
@@ -46,31 +80,42 @@ f <- f %>%
     collectiondt.germline > collectiondt_1 ~ "tumorWES first",
     collectiondt.germline == collectiondt_1 ~ "same date"
   ))
+
 # write.csv(f, paste0(path, "/compared germline dates and Demographics.csv"))
 a <- table(f$GermBFtumorWES)
 barplot(a, main = "Frequency of collection date first observed", ylim = c(0,500))
+
+
 #------------------------------------------------------------- Table
 
-f$last_date_deathorfollowup  <-  coalesce(f$date_death_1, f$date_last_follow_up_1)
-b <- f$last_date_deathorfollowup[!is.na(f$last_date_deathorfollowup)]
-c <- f$Date_of_Birth[!is.na(f$Date_of_Birth)]
-d <- f$drug_start_date_1[!is.na(f$drug_start_date_1)]
 
 germline_compared_dates <-matrix(
-  c("nbr of patients born before death", "nbr of patients diag before death", "nbr of patients germline before drugs",
-    "nbr of patients germline before bmt1","nbr of patients germline before bmt2", "nbr of patients germline before bmt3",
-    "nbr of patients germline before drugs and bmt1", "last date available", "birth date available","drug date available",
-    sum(str_count(f$check_birthBFdeath, "OK"), na.rm = TRUE),sum(str_count(f$check_diagBF_birthANDdeath, "OK"), na.rm = TRUE),
-    sum(str_count(f$germlineBFdrugs, "OK"), na.rm = TRUE),
-    sum(str_count(f$germlineBFbmt1, "OK"), na.rm = TRUE),sum(str_count(f$germlineBFbmt2, "OK"), na.rm = TRUE),
-    sum(str_count(f$germlineBFbmt3, "OK"), na.rm = TRUE),sum(str_count(f$germBEFOREdrugsBMT, "OK"), na.rm = TRUE), NROW(b),
-    NROW(c),NROW(d)),
-  ncol = 10, byrow=TRUE)
-germline_compared_dates <- as.table(table)
+  c("Category", "nbr", "comments",
+    "birth date available", sum(!is.na(f$Date_of_Birth)), "",
+    "diagnosis date available", sum(!is.na(f$date_of_diagnosis_1)),  "",
+    "last date available", sum(!is.na(f$last_date_deathorfollowup)),  "", "death date available", sum(!is.na(f$date_death_1)), "",
+    "nbr of patients born before last date", sum(str_count(f$check_birthBFlastdate, "OK"), na.rm = TRUE), "",
+    "nbr of patients diag before last date", sum(str_count(f$check_diagBFlastdate, "OK"), na.rm = TRUE), "3 patients present same date diagnosis/last day",
+    "germline date available", sum(!is.na(f$collectiondt.germline)),  "",
+    "drug date available", sum(!is.na(f$drug_start_date_1)),  "",
+    "bmt1 date available", sum(!is.na(f$date_of_first_bmt_1)),  "",
+    "rad date available", sum(!is.na(f$rad_start_date_1)),  "",
+    "nbr of patients germline before drugs", sum(str_count(f$germlineBFdrugs, "OK"), na.rm = TRUE), "6 patients same date. Should we include them?",
+    "nbr of patients germline before bmt1", sum(str_count(f$germlineBFbmt1, "OK"), na.rm = TRUE), "",
+    "nbr of patients germline before bmt2", sum(str_count(f$germlineBFbmt2, "OK"), na.rm = TRUE), "",
+    "nbr of patients germline before bmt3", sum(str_count(f$germlineBFbmt3, "OK"), na.rm = TRUE),  "",
+    "nbr of patients germline before radiation", sum(str_count(f$germlineBFrad1, "OK"), na.rm = TRUE), "",
+    "nbr of patients germline before drugs and bmt1", sum(str_count(f$germBFdrugsbmt1, "OK"), na.rm = TRUE),  "up to 42 if include =drug date",
+    "nbr of patients germline before drugs, bmt1 and radiation", sum(str_count(f$germBFdbr, "OK"), na.rm = TRUE), ""
+    ),
+  ncol = 3, byrow=TRUE)
+germline_compared_dates <- as.table(germline_compared_dates)
 germline_compared_dates
+table(f$check_diagBFlastdate)
+f$date_of_diagnosis_1 == f$date_last_follow_up_1
 # write.csv(germline_compared_dates, paste0(path, "table compared germline dates and Demographics.csv"))
-
-rm(b,c,d,e, germline_compared_dates)
+a <- f[, c("check_birthBFdiag", "check_birthBFlastdate", "check_diagBFlastdate", "date_of_diagnosis_1", "last_date_deathorfollowup")]
+rm(a,b,c,d,e, germline_compared_dates)
 
 
 #------------------------------------------------------------- Venn
@@ -219,7 +264,7 @@ temp <- germ_BF_drugs[(germ_BF_drugs$Disease_Status.germline == "Early Relapse M
                                                                                              "collectiondt.germline","Disease_Status.germline", 
                                                                                              "collectiondt_1", "Disease_Status_1",
                                                                                              "date_death_1", "date_last_follow_up_1",
-                                                                                             "date_last_follow_up_2", "drug_start_date_1", "versionMM_1")]
+                                                                                             "date_last_follow_up_2", "drug_start_date_1",
+                                                                                             "rad_start_date_1", "versionMM_1")]
 # write.csv(temp, paste0(path, "/temp file.csv"))
-
 

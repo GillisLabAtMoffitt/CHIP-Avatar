@@ -371,7 +371,7 @@ f <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1
                     
                     "collectiondt.germline", "Disease_Status.germline", "collectiondt_1", "Disease_Status_1",
                     
-                    "date_death", "date_last_follow_up", "vital_status",
+                    "vital_status", "date_death", "date_last_follow_up", "last_date_available", 
                     
                     "prior_treatment_1", "prior_treatment_2",
                     "drug_start_date_1",

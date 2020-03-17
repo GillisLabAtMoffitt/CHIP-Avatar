@@ -190,15 +190,15 @@ RadiationV4 <-
     args.legend = list(x = "top")
   )
 ##################################################################################################  II  ## Bind ### Align duplicated ID
-MM_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
+mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
   arrange(date_of_diagnosis)
-MM_history <- dcast(setDT(MM_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
+MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
   select(c("avatar_id", "date_of_diagnosis_1", "disease_stage_1", "date_of_diagnosis_2", "disease_stage_2", "date_of_diagnosis_3", "disease_stage_3",
            "date_of_diagnosis_4", "disease_stage_4", "versionMM_1", "versionMM_2", "versionMM_3", "versionMM_4"))
 # write.csv(MM_history,paste0(path, "/MM_history simplify.csv"))
 #-------------------------------------
-Vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, Alc_SmoV4, .id = "versionVit")
-Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), value.var = c("vital_status", "date_death", "date_last_follow_up", "smoking_status",
+vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, Alc_SmoV4, .id = "versionVit")
+Vitals <- dcast(setDT(vitals), avatar_id ~ rowid(avatar_id), value.var = c("vital_status", "date_death", "date_last_follow_up", "smoking_status",
                                                                            "current_smoker", "alcohol_use", "bmi_at_dx_v2"))%>%
   mutate(date_death = coalesce(date_death_1, date_death_2)) %>% 
   mutate(date_last_follow_up = coalesce(date_last_follow_up_2, date_last_follow_up_1)) %>%
@@ -231,24 +231,24 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), value.var = c("vita
 
 # write.csv(Vitals,paste0(path, "/Vitals simplify.csv"))
 #-------------------------------------
-SCT <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>% 
+sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>% 
   arrange(date_of_first_bmt) %>% 
   arrange(date_of_second_bmt) %>% 
   arrange(date_of_third_bmt)
-SCT <- dcast(setDT(SCT), avatar_id ~ rowid(avatar_id), value.var = c("prior_treatment", "number_of_bonemarrow_transplant",
+SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), value.var = c("prior_treatment", "number_of_bonemarrow_transplant",
                                                                      "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
 # write.csv(SCT,paste0(path, "/SCT simplify.csv"))
 #------------------------------------
-Treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
+treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
   arrange(drug_start_date)
-Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), value.var = c("number_drugs_regimen", "drug_start_date","drug_stop_date", "drug1_regimen",
+Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), value.var = c("number_drugs_regimen", "drug_start_date","drug_stop_date", "drug1_regimen",
                                                                                  "drug2_regimen", "drug3_regimen", "drug4_regimen", "drug5_regimen",
                                                                                  "drug6_regimen", "drug7_regimen", "treatment_line_", "drug_name_"))
 # write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))
 #------------------------------------
-Radiation <- bind_rows(RadiationV2, RadiationV4, .id = "versionRad") %>% 
+radiation <- bind_rows(RadiationV2, RadiationV4, .id = "versionRad") %>% 
   arrange(rad_start_date)
-Radiation <- dcast(setDT(Radiation), avatar_id ~ rowid(avatar_id), value.var = 
+Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
                      c("rad_start_date", "rad_stop_date"))
 #------------------------------------
 # Cleaning

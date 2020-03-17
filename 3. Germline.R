@@ -2,13 +2,12 @@ library(VennDiagram)
 
 
 ##################################################################################################  I  ### Germline date VS other
-f$last_date_deathorfollowup  <-  coalesce(f$date_death_1, f$date_last_follow_up_1)
 
 f <- f %>% 
   mutate(check_birthBFlastdate = case_when(
-    last_date_deathorfollowup > Date_of_Birth ~ "OK",
-    last_date_deathorfollowup == Date_of_Birth |
-      last_date_deathorfollowup < Date_of_Birth ~ "not good"
+    last_date_available > Date_of_Birth ~ "OK",
+    last_date_available == Date_of_Birth |
+      last_date_available < Date_of_Birth ~ "not good"
   )) %>% 
   mutate(check_birthBFdiag = case_when(
     date_of_diagnosis_1 > Date_of_Birth ~ "OK",
@@ -16,18 +15,17 @@ f <- f %>%
       date_of_diagnosis_1 > Date_of_Birth ~ "not good"
   )) %>% 
   mutate(check_diagBFlastdate = case_when(
-    last_date_deathorfollowup > date_of_diagnosis_1 ~ "OK",
-    last_date_deathorfollowup == date_of_diagnosis_1 |
-      last_date_deathorfollowup < date_of_diagnosis_1~ "not good"
+    last_date_available > date_of_diagnosis_1 ~ "OK",
+    last_date_available == date_of_diagnosis_1 |
+      last_date_available < date_of_diagnosis_1~ "not good"
   ))%>% 
   mutate(check_diag_birthANDdeath = case_when(
     date_of_diagnosis_1 > Date_of_Birth &
-      date_of_diagnosis_1 < last_date_deathorfollowup  ~ "OK"
+      date_of_diagnosis_1 < last_date_available  ~ "OK"
   )) %>% 
   mutate(germlineBFdrugs = case_when(
     collectiondt.germline > drug_start_date_1 ~ ":(",
-    collectiondt.germline < drug_start_date_1 ~ "OK",
-    collectiondt.germline == drug_start_date_1 ~ "same date"
+    collectiondt.germline <= drug_start_date_1 ~ "OK"
   )) %>% 
   mutate(germlineBFbmt1 = case_when(
     collectiondt.germline > date_of_first_bmt_1  ~ ":(",
@@ -55,7 +53,7 @@ f <- f %>%
     collectiondt.germline == rad_start_date_2 ~ "same date"
   )) %>% 
   mutate(germBFdrugsbmt1 = case_when(
-    collectiondt.germline < drug_start_date_1 &
+    collectiondt.germline <= drug_start_date_1 &
       collectiondt.germline < date_of_first_bmt_1  ~ "OK"
   )) %>% 
   mutate(germBFdbr = case_when(
@@ -93,14 +91,14 @@ germline_compared_dates <-matrix(
   c("Category", "nbr", "comments",
     "birth date available", sum(!is.na(f$Date_of_Birth)), "",
     "diagnosis date available", sum(!is.na(f$date_of_diagnosis_1)),  "",
-    "last date available", sum(!is.na(f$last_date_deathorfollowup)),  "", "death date available", sum(!is.na(f$date_death_1)), "",
+    "last date available", sum(!is.na(f$last_date_available)),  "", "death date available", sum(!is.na(f$date_death_1)), "",
     "nbr of patients born before last date", sum(str_count(f$check_birthBFlastdate, "OK"), na.rm = TRUE), "",
     "nbr of patients diag before last date", sum(str_count(f$check_diagBFlastdate, "OK"), na.rm = TRUE), "3 patients present same date diagnosis/last day",
     "germline date available", sum(!is.na(f$collectiondt.germline)),  "",
     "drug date available", sum(!is.na(f$drug_start_date_1)),  "",
     "bmt1 date available", sum(!is.na(f$date_of_first_bmt_1)),  "",
     "rad date available", sum(!is.na(f$rad_start_date_1)),  "",
-    "nbr of patients germline before drugs", sum(str_count(f$germlineBFdrugs, "OK"), na.rm = TRUE), "6 patients same date. Should we include them? They would be pretreatment newly diagn",
+    "nbr of patients germline before drugs", sum(str_count(f$germlineBFdrugs, "OK"), na.rm = TRUE), "6 patients same date. They would be pretreatment newly diagn",
     "nbr of patients germline before bmt1", sum(str_count(f$germlineBFbmt1, "OK"), na.rm = TRUE), "",
     "nbr of patients germline before bmt2", sum(str_count(f$germlineBFbmt2, "OK"), na.rm = TRUE), "",
     "nbr of patients germline before bmt3", sum(str_count(f$germlineBFbmt3, "OK"), na.rm = TRUE),  "",

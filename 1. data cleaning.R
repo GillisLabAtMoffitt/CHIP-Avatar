@@ -63,10 +63,13 @@ Comorbidities <-
 Treatment <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", "number_drugs_regimen","regimen_start_date", "drug1_regimen", "drug2_regimen",
-           "drug3_regimen", "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) #%>% 
-  #mutate(drug_start_date = regimen_start_date) %>% 
-  colnames(Treatment)[which(names(Treatment) == "regimen_start_date")] <- "drug_start_date"
+  select(c("avatar_id", "number_drugs_regimen","regimen_start_date", "regimen_end_date",
+           "drug1_regimen", "drug2_regimen", "drug3_regimen", 
+           "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) 
+
+colnames(Treatment)[which(names(Treatment) == "regimen_start_date")] <- "drug_start_date" 
+colnames(Treatment)[which(names(Treatment) == "regimen_end_date")] <- "drug_stop_date"
+    
 #-----------------------------------------------------------------------------------------------------------------
 SCT <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
@@ -102,7 +105,7 @@ MM_historyV2 <-
 TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", "treatment_line_", "drug_start_date" , "drug_name_"))
+  select(c("avatar_id", "treatment_line_", "drug_start_date" , "drug_name_", "drug_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
 SCTV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
@@ -138,10 +141,14 @@ MM_historyV4 <-
   select(c("avatar_id", "date_of_diagnosis"))
 # will need to modify date as 2000 then as.Date
 #-----------------------------------------------------------------------------------------------------------------
-ComorbiditiesV4 <-
-  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
-                    sheet = "Comorbidities") %>%
-  select(c("avatar_id","smoking_status", "alcohol_use"))
+  # ComorbiditiesV4 <-
+  #   readxl::read_xlsx((paste0(ClinicalCap_V4,"/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+  #                     sheet = "Comorbidities") %>%
+  #   select(c("avatar_id", ))
+  Alc_SmoV4 <-
+    readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+                      sheet = "Comorbidities") %>%
+    select(c("avatar_id","smoking_status", "alcohol_use"))
 #-----------------------------------------------------------------------------------------------------------------
 # BiopsyV4 <-
 #   readxl::read_xlsx(ClinicalCap_V4,
@@ -154,7 +161,7 @@ ComorbiditiesV4 <-
 TreatmentV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", "treatment_line_", "drug_start_date", "drug_name_"))
+  select(c("avatar_id", "treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
 SCTV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
@@ -190,12 +197,39 @@ MM_history <- dcast(setDT(MM_history), avatar_id ~ rowid(avatar_id), value.var =
            "date_of_diagnosis_4", "disease_stage_4", "versionMM_1", "versionMM_2", "versionMM_3", "versionMM_4"))
 # write.csv(MM_history,paste0(path, "/MM_history simplify.csv"))
 #-------------------------------------
-Vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, .id = "versionVit") 
-Vitals <- Vitals %>%
-  mutate(last_date = coalesce(Vitals$date_death, Vitals$date_last_follow_up)) %>% 
-  arrange(last_date)
+Vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, Alc_SmoV4, .id = "versionVit")
 Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), value.var = c("vital_status", "date_death", "date_last_follow_up", "smoking_status",
-                                                                           "current_smoker", "alcohol_use", "bmi_at_dx_v2"))
+                                                                           "current_smoker", "alcohol_use", "bmi_at_dx_v2"))%>%
+  mutate(date_death = coalesce(date_death_1, date_death_2)) %>% 
+  mutate(date_last_follow_up = coalesce(date_last_follow_up_2, date_last_follow_up_1)) %>%
+  mutate(last_date_available = coalesce(date_death_1, date_last_follow_up_1)) %>% 
+  mutate(vital_status = case_when(
+    !is.na(date_death_1) ~ "Dead",
+    !is.na(date_last_follow_up_1) ~ "Alive"
+  )) %>% 
+  mutate(bmi_at_dx_v2 = coalesce(bmi_at_dx_v2_1, bmi_at_dx_v2_2)) %>% 
+  mutate(alcohol_use = coalesce(alcohol_use_3, alcohol_use_2, alcohol_use_1)) %>% 
+  mutate(alcohol_use = case_when(
+    alcohol_use %in% c(0,3) ~ "never",
+    alcohol_use == 2 ~ "former",
+    alcohol_use == 1 ~ "current",
+    TRUE ~ NA_character_
+  )) %>% 
+  mutate(smoking_status = coalesce(smoking_status_3, smoking_status_2, current_smoker_1, smoking_status_1)) %>% 
+  mutate(smoking_status = case_when(
+    smoking_status %in% c(0,3) ~ "never",
+    smoking_status == 2 ~ "former",
+    smoking_status == 1 ~ "current",
+    TRUE ~ NA_character_
+  )) %>% 
+  select(c("avatar_id","vital_status", "date_death", "date_last_follow_up", "last_date_available",
+           "bmi_at_dx_v2", "alcohol_use", "smoking_status"))
+
+# Note for smoking
+# A000409 said 3 in V2 and 11 in V1
+# A000509 said 3 in V2 and 12 in V1
+
+
 # write.csv(Vitals,paste0(path, "/Vitals simplify.csv"))
 #-------------------------------------
 SCT <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>% 
@@ -220,7 +254,7 @@ Radiation <- dcast(setDT(Radiation), avatar_id ~ rowid(avatar_id), value.var =
 #------------------------------------
 # Cleaning
 rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
-   Comorbidities, ComorbiditiesV4, RadiationV2, RadiationV4)
+   Comorbidities, Alc_SmoV4, RadiationV2, RadiationV4)
 # Plot
 barplot(
   height = cbind(
@@ -327,15 +361,14 @@ f <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1
                     
                     "collectiondt.germline", "Disease_Status.germline", "collectiondt_1", "Disease_Status_1",
                     
-                    "date_death_1", "date_death_2",
-                    "date_last_follow_up_1", "date_last_follow_up_2", "vital_status_1", "vital_status_2", 
+                    "date_death", "date_last_follow_up", "vital_status",
                     
                     "prior_treatment_1", "prior_treatment_2",
                     "drug_start_date_1",
                     
                     "rad_start_date_1", "rad_start_date_2", "rad_stop_date_1", "rad_stop_date_2",                  
                     
-                    "smoking_status_1", "smoking_status_2", "current_smoker_1", "current_smoker_2", "alcohol_use_1", "alcohol_use_2",
+                    "smoking_status", "alcohol_use",
                     
-                    "bmi_at_dx_v2_1", "Gender", "Ethnicity", "Race", "versionMM_1")]
+                    "bmi_at_dx_v2", "Gender", "Ethnicity", "Race", "versionMM_1")]
 

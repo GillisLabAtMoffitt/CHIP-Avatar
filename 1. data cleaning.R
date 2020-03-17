@@ -190,12 +190,14 @@ MM_history <- dcast(setDT(MM_history), avatar_id ~ rowid(avatar_id), value.var =
            "date_of_diagnosis_4", "disease_stage_4", "versionMM_1", "versionMM_2", "versionMM_3", "versionMM_4"))
 # write.csv(MM_history,paste0(path, "/MM_history simplify.csv"))
 #-------------------------------------
-Vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, .id = "versionVit") 
-Vitals <- Vitals %>%
-  mutate(last_date = coalesce(Vitals$date_death, Vitals$date_last_follow_up)) %>% 
-  arrange(last_date)
+Vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, .id = "versionVit")
 Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), value.var = c("vital_status", "date_death", "date_last_follow_up", "smoking_status",
-                                                                           "current_smoker", "alcohol_use", "bmi_at_dx_v2"))
+                                                                           "current_smoker", "alcohol_use", "bmi_at_dx_v2"))%>%
+  mutate(date_death_1 = coalesce(date_death_1, date_death_2)) %>% 
+  mutate(date_last_follow_up_1 = coalesce(date_last_follow_up_2, date_last_follow_up_1)) %>%
+  mutate(last_date_available = coalesce(date_death_1, date_last_follow_up_1)) %>% 
+  arrange(last_date_available)
+
 # write.csv(Vitals,paste0(path, "/Vitals simplify.csv"))
 #-------------------------------------
 SCT <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>% 

@@ -8,15 +8,15 @@ output: html_document
 ---
 ## Data available in version 1, 2 and 4
 ```{r, include=FALSE}
+# import library
 library(tidyverse)
 library(data.table)
-library(VennDiagram)
-library(viridis)
+
 path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Cassin", "CHIP in Avatar")
 #-----------------------------------------------------------------------------------------------------------------
 Demo_RedCap_V4ish <-
   readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Avatar_Demographics_All_MM_OUT_03022020.xlsx")) %>%
-  select(c("avatar_id","TCC_ID","Date_of_Birth", "Gender"))
+  select(c("avatar_id","TCC_ID","Date_of_Birth", "Gender", "Ethnicity", "Race"))
 #-----------------------------------------------------------------------------------------------------------------
 Germ <- 
   readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx"))
@@ -71,10 +71,13 @@ Comorbidities <-
 Treatment <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", "number_drugs_regimen","regimen_start_date", "drug1_regimen", "drug2_regimen",
-           "drug3_regimen", "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) #%>% 
-  #mutate(drug_start_date = regimen_start_date) %>% 
-  colnames(Treatment)[which(names(Treatment) == "regimen_start_date")] <- "drug_start_date"
+  select(c("avatar_id", "number_drugs_regimen","regimen_start_date", "regimen_end_date",
+           "drug1_regimen", "drug2_regimen", "drug3_regimen", 
+           "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) 
+
+colnames(Treatment)[which(names(Treatment) == "regimen_start_date")] <- "drug_start_date" 
+colnames(Treatment)[which(names(Treatment) == "regimen_end_date")] <- "drug_stop_date"
+    
 #-----------------------------------------------------------------------------------------------------------------
 SCT <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
@@ -110,14 +113,17 @@ MM_historyV2 <-
 TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", "treatment_line_", "drug_start_date" , "drug_name_"))
+  select(c("avatar_id", "treatment_line_", "drug_start_date" , "drug_name_", "drug_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
 SCTV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
                     sheet = "SCT") %>%
   select(c("avatar_id", "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
 #-----------------------------------------------------------------------------------------------------------------
-
+RadiationV2 <- readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
+                               sheet = "Radiation") %>%
+    select(c("avatar_id", "rad_start_date_v2", "rad_stop_date_v2")) %>% 
+    `colnames<-`(c("avatar_id", "rad_start_date", "rad_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
   ClinicalCap_V4 <-
     fs::path(
@@ -143,10 +149,14 @@ MM_historyV4 <-
   select(c("avatar_id", "date_of_diagnosis"))
 # will need to modify date as 2000 then as.Date
 #-----------------------------------------------------------------------------------------------------------------
-ComorbiditiesV4 <-
-  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
-                    sheet = "Comorbidities") %>%
-  select(c("avatar_id","smoking_status", "alcohol_use"))
+  # ComorbiditiesV4 <-
+  #   readxl::read_xlsx((paste0(ClinicalCap_V4,"/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+  #                     sheet = "Comorbidities") %>%
+  #   select(c("avatar_id", ))
+  Alc_SmoV4 <-
+    readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+                      sheet = "Comorbidities") %>%
+    select(c("avatar_id","smoking_status", "alcohol_use"))
 #-----------------------------------------------------------------------------------------------------------------
 # BiopsyV4 <-
 #   readxl::read_xlsx(ClinicalCap_V4,
@@ -159,7 +169,7 @@ ComorbiditiesV4 <-
 TreatmentV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", "treatment_line_", "drug_start_date", "drug_name_"))
+  select(c("avatar_id", "treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
 SCTV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
@@ -167,6 +177,10 @@ SCTV4 <-
   select(c("avatar_id", "date_of_bmt")) %>% 
   `colnames<-`(c("avatar_id", "date_of_first_bmt"))
 #-----------------------------------------------------------------------------------------------------------------
+RadiationV4 <- 
+    readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+                                 sheet = "Radiation") %>%
+    select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 
 ```
 
@@ -224,15 +238,7 @@ Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), value.var = c
 # Cleaning
 rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
    Comorbidities, ComorbiditiesV4)
-# Plot
-barplot(height = cbind("Desease History" = NROW(MM_history),
-                       "Vitals" = NROW(Vitals),
-                       "BMT" = NROW(SCT),
-                       "Treatment" = NROW(Treatment)),
-        main = "Nbr of record in each file tab", sub = "tab",
-        ylim = c(0, 700),
-        col = "darkblue"
-)
+
 ```
 
 ## Including Plots
@@ -244,14 +250,269 @@ Germline
 WES
 
 ```{r , echo=FALSE}
-barplot(height = cbind("Desease History" = NROW(MM_history),
-                       "Vitals" = NROW(Vitals),
-                       "BMT" = NROW(SCT),
-                       "Treatment" = NROW(Treatment)),
-        main = "Nbr of record in each file tab", sub = "tab",
-        ylim = c(0, 700),
-        col = "darkblue"
-)
+# Plot
+par(mar=c(4.1, 6.1, 4.1, 2.1)) # bottom left top right
+barplot(
+  height = cbind(
+    "Desease History" = NROW(MM_history),
+    "Vitals" = NROW(Vitals),
+    "BMT" = NROW(SCT),
+    "Treatment" = NROW(Treatment),
+    "Radiation" = NROW(Radiation)
+  ), horiz=TRUE, 
+  las = 1, 
+  main = "Nbr of record in each file tab",
+  xlim = c(0, 700),
+  col = "#69b3a2",
+  cex.axis = .8,
+  cex.names = .8
+  )
 ```
 
-Note
+## Venn
+```{r , echo=FALSE}
+library(VennDiagram)
+#library(UpSetR)
+colors3 <- c(viridis::plasma(n = 3))
+colors2 <- c(viridis::plasma(n = 2))
+colors4 <- c(viridis::inferno(n = 4))
+color4 <- c(viridis::plasma(n = 4))
+color3 <- c(viridis::cividis(n = 3))
+
+venn.diagram(
+  x = list(MM_history$avatar_id, Germ$avatar_id, Demo_RedCap_V4ish$avatar_id),
+  category.names = c("Clinical data" , "Germline data", "Demographics data"),
+  filename = 'Germline and Demo.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 1000 , 
+  width = 1000 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = color3,
+  margin = 0.2,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  ext.percent = 5
+)
+
+venn.diagram(
+  x = list(MM_history$avatar_id, Germ$avatar_id, WES$avatar_id, Demo_RedCap_V4ish$avatar_id),
+  category.names = c("Clinical data" , "Germline data" , "WES data", "Demographics data"),
+  filename = 'Germline, WES and Demo.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 1000 , 
+  width = 1000 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = color4,
+  margin = 0.2,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  ext.percent = 5,
+  cat.pos = c(-38, 30, -30, 30),
+  cat.dist = c(0.28, 0.25, 0.15, 0.15)
+)
+
+# Patient who had Drugs and BMT
+venn.diagram(
+  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id),
+  category.names = c("Clinical data" , "Treatment" , "BMT"),
+  filename = 'Drugs and BMT.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 700 , 
+  width = 700 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = c("#F0F921FF", "#0D0887FF", "#CC4678FF"),
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  
+  # Set names
+  cat.cex = 0.6,
+  cat.fontface = "bold",
+  cat.default.pos = "outer",
+  cat.pos = c(-27, 27, 135),
+  cat.dist = c(0.055, 0.055, 0.015),
+  cat.fontfamily = "sans",
+  rotation = 1
+)
+
+# Patient who had Drugs and BMT
+venn.diagram(
+  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Radiation$avatar_id),
+  category.names = c("Clinical data" , "Treatment" , "BMT", "Radiation"),
+  filename = 'Drugs, Radiation and BMT.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 1000 , 
+  width = 1000 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = color4,
+  margin = 0.2,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  ext.percent = 5,
+  cat.pos = c(-38, 30, -30, 30),
+  cat.dist = c(0.28, 0.25, 0.15, 0.15)
+)
+
+venn.diagram(
+  x = list(MM_history$avatar_id, Germ$avatar_id),
+  category.names = c("Clinical data" , "Germline data"),
+  filename = 'Patient who had germlime sequenced.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 700 , 
+  width = 700 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = colors2,
+  margin = 0.05,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  cat.pos = c(-20, 160),
+  cat.dist = c(0.055, 0.055),
+  #ext.percent = 2,
+  rotation.degree = -90
+
+)
+
+venn.diagram(
+  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germ$avatar_id),
+  category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data"),
+  filename = 'Patient who had Drugs, BMT and Germlime sequenced.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 1000 , 
+  width = 1000 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = colors4,
+  margin = 0.2,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  ext.percent = 5,
+  cat.pos = c(-38, 30, -30, 30),
+  cat.dist = c(0.28, 0.25, 0.15, 0.15)
+  
+)
+
+venn.diagram(
+  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germ$avatar_id, Radiation$avatar_id),
+  category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data", "Radiation"),
+  filename = 'Patient who had Drugs, BMT, Radiation and Germlime sequenced.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 1000 , 
+  width = 1000 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = viridis::cividis(n=5),
+  margin = 0.2,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  ext.percent = 5,
+  #cat.pos = c(-38, 30, -30, 30),
+  #cat.dist = c(0.28, 0.25, 0.15, 0.15)
+)
+
+venn.diagram(
+  x = list(Treatment$avatar_id, SCT$avatar_id, Germ$avatar_id),
+  category.names = c("Treatment" , "BMT", "Germline data"),
+  filename = 'Patient who had Drugs, BMT and Germlime sequenced 2.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 700 , 
+  width = 700 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = viridis::cividis(n=3) ,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  
+  # Set names
+  cat.cex = 0.6,
+  cat.fontface = "bold",
+  cat.default.pos = "outer",
+  cat.pos = c(-27, 27, 135),
+  cat.dist = c(0.055, 0.055, 0.015),
+  cat.fontfamily = "sans",
+  rotation = 1
+)
+```

@@ -4,20 +4,21 @@ library(RColorBrewer)
 # Restart from the Global_data
 # Who had BMT or/and drugs in the germline available patient samples
 colnames(Global_data)
-Global_venn <- Global_data[,c("Avatar_ID", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
+Global_venn <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
                               "number_of_bonemarrow_transplant_1", "number_of_bonemarrow_transplant_2","date_of_first_bmt_1", "date_of_second_bmt_1", "date_of_third_bmt_1", 
                               
-                              "collectiondt.germline", "Disease_Status.germline",
+                              "collectiondt.germline", "Disease_Status.germline", "collectiondt_1", "Disease_Status_1",
                               
-                              "date_death_1", "date_death_2",
-                              "date_last_follow_up_1", "date_last_follow_up_2", "vital_status_1", "vital_status_2", 
+                              "vital_status", "date_death", "date_last_follow_up", "last_date_available", 
                               
                               "prior_treatment_1", "prior_treatment_2",
-                              "number_drugs_regimen_1", "regimen_start_date_1", "drug1_regimen_1", "drug2_regimen_1", "drug_start_date_1", "treatment_line__1", "drug_name__1",
+                              "drug_start_date_1",
                               
-                              "smoking_status_1", "smoking_status_2", "current_smoker_1", "current_smoker_2", "alcohol_use_1", "alcohol_use_2",
+                              "rad_start_date_1", "rad_start_date_2", "rad_stop_date_1", "rad_stop_date_2",                  
                               
-                              "bmi_at_dx_v2_1", "Gender")]
+                              "smoking_status", "alcohol_use",
+                              
+                              "bmi_at_dx_v2", "Gender", "Ethnicity", "Race", "versionMM_1")]
 
 # nbr of germline collection
 germ_available <-  Global_venn[which(!is.na(Global_venn$collectiondt.germline)),]
@@ -51,7 +52,7 @@ draw.triple.venn(nrow(germ_available),
                  n13 = nrow(drugINgerm), n123 = nrow(had_GERM_BMT_DRUGS),
                  category = c("all germline", "had BMT1", "had drugs"), 
                  # col = "transparent" make cercle line transparent
-                 fill = myCol, # circle filling color
+                 fill = myCol1, # circle filling color
                  # alpha = c(.2, .3, .3), # circle filling transparency 1 = solide
                  cex = 1, fontface = "bold", fontfamily = "sans",
                  cat.col = c("darkgreen", "red", "blue"), # label color

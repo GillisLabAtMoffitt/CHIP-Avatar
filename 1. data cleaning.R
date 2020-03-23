@@ -255,6 +255,7 @@ Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var =
 rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
    Comorbidities, Alc_SmoV4, RadiationV2, RadiationV4)
 # Plot
+par(mar=c(4.1, 6.1, 4.1, 2.1)) # bottom left top right
 barplot(
   height = cbind(
     "Desease History" = NROW(MM_history),
@@ -262,12 +263,14 @@ barplot(
     "BMT" = NROW(SCT),
     "Treatment" = NROW(Treatment),
     "Radiation" = NROW(Radiation)
-  ),
+  ), horiz=TRUE, 
+  las = 1, 
   main = "Nbr of record in each file tab",
-  sub = "tab",
-  ylim = c(0, 700),
-  col = "darkblue"
-)
+  xlim = c(0, 700),
+  col = "#69b3a2",
+  cex.axis = .8,
+  cex.names = .8
+  )
 
 ##################################################################################################  III  # Merge WES and Sequencing
 # Are moffitt_sample_id are equal in WES and Sequencing ?

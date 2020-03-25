@@ -1,19 +1,10 @@
-# Tml <- Global_data[, c("avatar_id", "Date_of_Birth", "date_death", "date_last_follow_up", "last_date_available",
-#                        "date_of_diagnosis_1", "collectiondt.germline", "collectiondt_1",
-#                        "rad_start_date_1", "rad_start_date_2",
-#                        "drug_start_date_1", "drug_stop_date_1",
-#                        "date_of_first_bmt_1", "date_of_second_bmt_1", "date_of_third_bmt_1")]
-# Tml$Date_of_Birth <- as.Date(Tml$Date_of_Birth)
-# Tml$date_death <- as.Date(Tml$date_death)
-# dat1 <- Tml[,c("avatar_id", "Date_of_Birth","date_death")]
-# dat2 <- Tml[1,(!is.na(Tml[,c("date_of_diagnosis_1")])),c("avatar_id", "Date_of_Birth","date_of_diagnosis_1")]
 
-dat1 <- Demo_RedCap_V4ish
+dat1 <- Demo_RedCap_V4ish[, c("avatar_id", "Date_of_Birth")]
 ggplot(dat1, aes(Date_of_Birth, avatar_id)) +
 geom_point(size = 1) +
 labs(x="Birth", y=NULL, title="Birth timeline")
 
-dat2 <- mm_history
+dat2 <- mm_history[, c("avatar_id", "date_of_diagnosis")]
 ggplot(dat2, aes(date_of_diagnosis, avatar_id)) +
   geom_point(size = 1, colour = "red") +
   labs(x="diagnosis", y=NULL, title="diagnosis timeline")
@@ -26,36 +17,69 @@ ggplot(dat3, aes(bmt_date, avatar_id)) +
   labs(x="BMT", y=NULL, title="BMT timeline")
 
 
-dat4 <- radiation
-dat4 <- dat4 %>% pivot_longer(c("rad_start_date", "rad_stop_date"), 
-                      names_to = "type", values_to = "rad_date") %>% 
-  arrange(rad_date)
-
-ggplot(dat4, aes(rad_date, avatar_id)) +
-geom_line(size = 1, colour = "blue") +
+dat4 <- radiation[, c("avatar_id", "rad_start_date")]
+# dat4 <- dat4 %>% pivot_longer(c("rad_start_date", "rad_stop_date"), 
+#                       names_to = "type", values_to = "rad_date") %>% 
+#  arrange(rad_date)
+ggplot(dat4, aes(rad_start_date, avatar_id)) +
+geom_point(size = 1, colour = "blue") +
 labs(x="Radiation", y=NULL, title="Radiation timeline")
 
-colnames(treatment)
-dat5 <- treatment
-dat5 <- dat5 %>% pivot_longer(c("drug_start_date", "drug_stop_date"), 
-                              names_to = "type", values_to = "drug_date") %>% 
-  select(c("avatar_id", "type", "drug_date")) %>% 
-  arrange(drug_date)
-
-ggplot(dat5, aes(drug_date, avatar_id)) +
-  geom_line(size = 1, colour = "orange") +
+dat5 <- treatment[, c("avatar_id", "drug_start_date")]
+# dat5 <- dat5 %>% pivot_longer(c("drug_start_date", "drug_stop_date"), 
+#                               names_to = "type", values_to = "drug_date") %>% 
+#   select(c("avatar_id", "type", "drug_date")) %>% 
+#   arrange(drug_date)
+ggplot(dat5, aes(drug_start_date, avatar_id)) +
+  geom_point(size = 1, colour = "orange") +
   labs(x="Treatment", y=NULL, title="Treatment timeline")
 
-dat4
-dat5
-colnames(dat5)
-all <- bind_rows(dat4,dat5) %>%
-  pivot_longer(c("rad_date", "drug_date"),
-               names_to = "Type", values_to = "Dates")
+dat6 <- Vitals[, c("avatar_id", "date_death")]
+
+all <- bind_rows(dat1, dat2, dat3,dat4,dat5) #%>%
+  # pivot_longer(c("rad_date", "drug_date"),
+  #              names_to = "Type", values_to = "Dates")
+ggpp <- ggplot() 
+ggpp +
+  geom_point(data=dat6, aes(date_death, avatar_id), colour = "black", alpha=1) +
+  geom_point(data=dat5, aes(drug_start_date, avatar_id), colour = "yellow", alpha=0.8) +
+  geom_point(data=dat2, aes(date_of_diagnosis, avatar_id), colour = "red", alpha=0.3) +
+  geom_point(data=dat3, aes(bmt_date, avatar_id), colour = "green", alpha=0.3) +
+  geom_point(data=dat4, aes(rad_start_date, avatar_id), colour = "blue", alpha=0.3) +
+  labs(x="all", y=NULL, title="all timeline") +
+  scale_fill_manual(values=c("black", "yellow", "red", "green", "blue"), 
+                    name="Experimental\nCondition",
+                    labels=c("death","drugs", "a", "b", "c"))
+#+legend(x = "right", c("death","drugs", "a", "b", "c"), col= col)
+  
+  #theme(legend.position = c("death" = "black"))
+col <- c("black", "yellow", "red", "green", "blue")
+ggp <- ggplot()
+ggp +
+  geom_point(data=dat1, aes(Date_of_Birth, avatar_id, colour = "birth", alpha=0.3)) +
+  geom_point(data=dat5, aes(drug_start_date, avatar_id, colour = "orange", alpha=0.3)) +
+  geom_point(data=dat2, aes(date_of_diagnosis, avatar_id, colour = "red", alpha=0.3)) +
+  geom_point(data=dat3, aes(bmt_date, avatar_id, colour = "green", alpha=0.3)) +
+  geom_point(data=dat4, aes(rad_start_date, avatar_id, colour = "blue", alpha=0.3)) +
+  labs(x="all", y=NULL, title="all timeline") +
+  scale_fill_manual(values=c("black", "yellow", "red", "green", "blue"), 
+                    name="Experimental\nCondition",
+                    labels=c("death","drugs", "a", "b", "c"))
+ggp +
+  geom_point(data=dat1, aes(Date_of_Birth, avatar_id, color="col", alpha ="col")) +
+  geom_point(data=dat5, aes(drug_start_date, avatar_id)) +
+  geom_point(data=dat2, aes(date_of_diagnosis, avatar_id)) +
+  geom_point(data=dat3, aes(bmt_date, avatar_id)) +
+  geom_point(data=dat4, aes(rad_start_date, avatar_id)) +
+  scale_color_manual(values = c("black", "yellow", "red", "green", "blue")) +
+  scale_alpha_manual(values=c(0.1,1, 0.3, 0.3, 0.3)) +
+  labs(x="all", y=NULL, title="all timeline")
+
+
 ggplot(all, aes(Dates, avatar_id, color=Type, alpha = Type)) +
   geom_line(size = 1) +
-  scale_color_manual(values = c("#ED7953FF", "#9C179EFF"), labels = NULL) +
-  scale_alpha_manual(values=c(0.1,1), labels = NULL) +
+  scale_color_manual(values = c("black", "yellow", "red", "green", "blue")) +
+  scale_alpha_manual(values=c(0.1,1, 0.3, 0.3, 0.3)) +
   labs(x="all", y=NULL, title="all timeline")
 
 rm()

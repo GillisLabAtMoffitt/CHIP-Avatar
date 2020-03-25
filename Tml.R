@@ -16,8 +16,10 @@ Tml1 <- gather(Tml1,"type", "date", "date_last_follow_up", "date_death")
 Tml2 <- Radiation[c("A000038","A007321", "A000039"), ]
 Tml2 <- gather(Tml2,"state", "date", 2:5)
 Tml2$type <- "Radiation"
+
 Tml3 <- SCT[c("A000038","A007321", "A000039"), c(1, 6:11)]
 Tml3 <- gather(Tml3,"type", "date", 2:7)
+
 Tml4 <- Treatment[c("A000038","A007321", "A000039"), c(1, 35:100)]
 Tml4 <- gather(Tml4,"state", "date", 2:67) %>% 
 mutate_all(funs(str_replace_all(., "drug_start_date_..", "start"))) %>%

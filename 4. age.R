@@ -6,52 +6,52 @@ Age_data <- Global_data[, c("avatar_id", "TCC_ID", "Gender", "Ethnicity", "Race"
 enddate <- today()
 Age_data$Age <- interval(start= Global_data$Date_of_Birth, end= enddate)/                      
   duration(n=1, unit="years")
-Age_data$Age <- round(Age_data$Age, 2)
+Age_data$Age <- round(Age_data$Age, 3)
 summary(Age_data$Age)
 
 Age_data$Age_at_diagosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_diagnosis_1)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_diagosis <- round(Age_data$Age_at_diagosis, 2)
+Age_data$Age_at_diagosis <- round(Age_data$Age_at_diagosis, 3)
 summary(Age_data$Age_at_diagosis, na.rm = TRUE)
 
 Age_data$Age_at_death <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_death_1)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_death <- round(Age_data$Age_at_death, 2)
+Age_data$Age_at_death <- round(Age_data$Age_at_death, 3)
 summary(Age_data$Age_at_death, na.rm = TRUE)
 
 Age_data$Age_at_lastfollowup <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_last_follow_up_1)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_lastfollowup <- round(Age_data$Age_at_lastfollowup, 2)
+Age_data$Age_at_lastfollowup <- round(Age_data$Age_at_lastfollowup, 3)
 summary(Age_data$Age_at_lastfollowup, na.rm = TRUE)
 
 Age_data$Age_at_lastdate <- interval(start= Global_data$Date_of_Birth, end= f$last_date_deathorfollowup)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_lastdate <- round(Age_data$Age_at_lastdate, 2)
+Age_data$Age_at_lastdate <- round(Age_data$Age_at_lastdate, 3)
 summary(Age_data$Age_at_lastdate, na.rm = TRUE)
 
 Age_data$Age_at_firstdrug <- interval(start= Global_data$Date_of_Birth, end= Global_data$drug_start_date_1)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_firstdrug <- round(Age_data$Age_at_firstdrug, 2)
+Age_data$Age_at_firstdrug <- round(Age_data$Age_at_firstdrug, 3)
 summary(Age_data$Age_at_firstdrug, na.rm = TRUE)
 
 Age_data$Age_at_firstbmt <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_first_bmt_1)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_firstbmt <- round(Age_data$Age_at_firstbmt, 2)
+Age_data$Age_at_firstbmt <- round(Age_data$Age_at_firstbmt, 3)
 summary(Age_data$Age_at_firstbmt, na.rm = TRUE)
 
 Age_data$Age_at_firstrad <- interval(start= Global_data$Date_of_Birth, end= Global_data$rad_start_date_1)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_firstrad <- round(Age_data$Age_at_firstrad, 2)
+Age_data$Age_at_firstrad <- round(Age_data$Age_at_firstrad, 3)
 summary(Age_data$Age_at_firstrad, na.rm = TRUE)
 
 Age_data$Age_at_germcollect <- interval(start= Global_data$Date_of_Birth, end= Global_data$collectiondt.germline)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_germcollect <- round(Age_data$Age_at_germcollect, 2)
+Age_data$Age_at_germcollect <- round(Age_data$Age_at_germcollect, 3)
 summary(Age_data$Age_at_germcollect, na.rm = TRUE)
 
 Age_data$Age_at_tumorcollect <- interval(start= Global_data$Date_of_Birth, end= Global_data$collectiondt_1)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_tumorcollect <- round(Age_data$Age_at_tumorcollect, 2)
+Age_data$Age_at_tumorcollect <- round(Age_data$Age_at_tumorcollect, 3)
 summary(Age_data$Age_at_tumorcollect, na.rm = TRUE)
 
 #pdf(paste0(path, "/Age at diagnosis repartition.pdf"), height = 6, width = 9)

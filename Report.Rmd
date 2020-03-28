@@ -6,6 +6,8 @@ output: html_document
   # toc: true
   # toc_float: true
 ---
+
+
 ## Data available in version 1, 2 and 4
 ```{r, include=FALSE}
 # import library
@@ -184,10 +186,11 @@ RadiationV4 <-
 
 ```
 
+
 ## Avatar Data
 
-ORIEN Avatar is a collaboration among leading U.S. cancer hospitals, pharmaceutical companies and M2Gen. The program fosters collaboration among key stakeholders in cancer research, including patients themselves, with the shared goal of discovering and developing novel therapies and ultimately matching patients to the best treatment options.
-To date, we received 3 updated file with patient information, For example: Multiple Myeloma history, Vitals, BMT and Treatment.
+<p style="text-align: justify;">ORIEN Avatar is a collaboration among leading U.S. cancer hospitals, pharmaceutical companies and M2Gen. The program fosters collaboration among key stakeholders in cancer research, including patients themselves, with the shared goal of discovering and developing novel therapies and ultimately matching patients to the best treatment options.
+To date, we received 3 updated file with patient information, For example: Multiple Myeloma history, Vitals, BMT and Treatment.</a></p>
 
 
 ```{r , echo=FALSE}
@@ -271,6 +274,7 @@ rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, V
 
 ```
 
+
 ## Including Plots
 
 You can also embed plots, for example:
@@ -299,8 +303,9 @@ barplot(
   )
 ```
 
+
 ## Venn
-```{r , echo=FALSE, fig.ext='png'}
+```{r , echo=FALSE}
 library(VennDiagram)
 #library(UpSetR)
 colors3 <- c(viridis::plasma(n = 3))
@@ -551,7 +556,9 @@ venn.diagram(
 #     # type = c("cairo", "cairo-png", "Xlib", "quartz"), antialias
 #     )
 ```
-##ah
+
+
+## ah
 ```{r echo=FALSE, out.width='100%'}
 knitr::include_graphics('./Drugs and BMT.png')
 knitr::include_graphics('./Drugs, Radiation and BMT.png')
@@ -564,7 +571,288 @@ knitr::include_graphics('./Patient who had germlime sequenced.png')
 
 ```
 
-##Then Age
+
+## Then global data
 ```{r, include=FALSE}
+##################################################################################################  III  # Merge WES and Sequencing
+# Are moffitt_sample_id are equal in WES and Sequencing ?
+# Sequencing <- Sequencing[order(Sequencing$moffitt_sample_id),]
+# WES <- WES[order(WES$moffitt_sample_id),]
+# Sequencing$moffitt_sample_id == WES$moffitt_sample_id # =>>>>>>> YES
+
+WES <-
+  merge.data.frame(
+    WES,
+    Sequencing,
+    by.x = "moffitt_sample_id",
+    by.y = "moffitt_sample_id",
+    all.x = TRUE,
+    all.y = TRUE
+  )
+# rm(Sequencing)
+#Align duplicate on same row (per date)-------------------------------------------
+# Check for duplicate
+colnames(WES)
+
+duplicated(WES$moffitt_sample_id) # No duplicate
+duplicated(WES$avatar_id) # has duplicate
+
+WES <- WES[order(WES$collectiondt), ]
+WES <- dcast(setDT(WES), avatar_id ~ rowid(avatar_id), value.var = c("moffitt_sample_id","Disease_Status",
+                                                                     "collectiondt","SLID_germline", "SLID_tumor", "moffitt_sample_id_tumor",
+                                                                     "moffitt_sample_id_germline", "BaitSet", "ClinicalSpecimenLinkage_WES.Batch"))
+WES <-WES[, c("avatar_id","moffitt_sample_id_1", "Disease_Status_1", "collectiondt_1", "SLID_germline_1", "SLID_tumor_1", "moffitt_sample_id_tumor_1",
+              "moffitt_sample_id_germline_1", "BaitSet_1", "ClinicalSpecimenLinkage_WES.Batch_1",
+              "moffitt_sample_id_2", "Disease_Status_2", "collectiondt_2", "SLID_germline_2", "SLID_tumor_2", "moffitt_sample_id_tumor_2", 
+              "moffitt_sample_id_germline_2", "BaitSet_2", "ClinicalSpecimenLinkage_WES.Batch_2", 
+              "moffitt_sample_id_3", "Disease_Status_3", "collectiondt_3", "SLID_germline_3", "SLID_tumor_3", "moffitt_sample_id_tumor_3",
+              "moffitt_sample_id_germline_3", "BaitSet_3", "ClinicalSpecimenLinkage_WES.Batch_3",
+              "moffitt_sample_id_4", "Disease_Status_4", "collectiondt_4", "SLID_germline_4", "SLID_tumor_4", "moffitt_sample_id_tumor_4",
+              "moffitt_sample_id_germline_4", "BaitSet_4", "ClinicalSpecimenLinkage_WES.Batch_4",
+              "moffitt_sample_id_5", "Disease_Status_5", "collectiondt_5", "SLID_germline_5", "SLID_tumor_5", "moffitt_sample_id_tumor_5",
+              "moffitt_sample_id_germline_5","BaitSet_5", "ClinicalSpecimenLinkage_WES.Batch_5",
+              "moffitt_sample_id_6", "Disease_Status_6", "collectiondt_6", "SLID_germline_6", "SLID_tumor_6", "moffitt_sample_id_tumor_6",
+              "moffitt_sample_id_germline_6", "BaitSet_6", "ClinicalSpecimenLinkage_WES.Batch_6")]
+WES  <- WES[order(WES$collectiondt_1), ] %>%
+  arrange(collectiondt_2) %>%
+  arrange(collectiondt_3) %>%
+  arrange(collectiondt_4) %>%
+  arrange(collectiondt_5) %>%
+  arrange(collectiondt_6)
+# write.csv(WES,paste0(path, "/WES germline tumor.csv"))
+is.na(Germ$collectiondt.germline)
+colnames(Germ)
+Germ <- Germ[, c("avatar_id","moffitt_sample_id","collectiondt","SpecimenType","WES_HUDSON_ALPHA",
+                 "DNASpecimenStatus1", "Disease_Status")] %>% 
+  `colnames<-`(c("avatar_id","moffitt_sample_id.germline","collectiondt.germline","SpecimenType.germline","WES_HUDSON_ALPHA.germline",
+                 "DNASpecimenStatus1.germline", "Disease_Status.germline"))
+
+# Merge with Organized_WES
+Combined_data_MM <- merge.data.frame(WES, Germ, 
+                                     by.x = "avatar_id", by.y = "avatar_id", 
+                                     all.x = TRUE, all.y = TRUE)
+colnames(Combined_data_MM)
+# write.csv(Combined_data_MM, paste0(path, "/Combined data and dates MM.csv"))
+# I checked the ID they are all the same no missing nor added
+
+
+
+##################################################################################################  IV  ## Merge
+b <- merge.data.frame(Combined_data_MM[, c("avatar_id", "collectiondt.germline", "Disease_Status.germline", 
+                                           "collectiondt_1", "Disease_Status_1")],
+                      MM_history, by.x = "avatar_id", by.y = "avatar_id", 
+                      all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
+
+c <- merge.data.frame(b, Vitals, by.x = "avatar_id", by.y = "avatar_id", 
+                      all.x = FALSE, all.y = FALSE, suffixes = c(".x",".y"))
+
+d <- merge.data.frame(c, SCT, by.x = "avatar_id", by.y = "avatar_id", 
+                      all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
+
+e <- merge.data.frame(d, Treatment, by.x = "avatar_id", by.y = "avatar_id", 
+                      all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
+
+f <- merge.data.frame(e, Radiation,by.x = "avatar_id", by.y = "avatar_id", 
+                      all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
+
+Global_data <- merge.data.frame(Demo_RedCap_V4ish, f, by.x = "avatar_id", by.y = "avatar_id", all.x = FALSE, all.y = TRUE)
+# write.csv(Global_data, paste0(path, "/Global_data.csv"))
+rm(b,c,d,e,f)
+
+# tempory dataframe for the time to plot simply
+f <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
+                    "number_of_bonemarrow_transplant_1", "number_of_bonemarrow_transplant_2","date_of_first_bmt_1", "date_of_second_bmt_1", "date_of_third_bmt_1", 
+                    
+                    "collectiondt.germline", "Disease_Status.germline", "collectiondt_1", "Disease_Status_1",
+                    
+                    "vital_status", "date_death", "date_last_follow_up", "last_date_available", 
+                    
+                    "prior_treatment_1", "prior_treatment_2",
+                    "drug_start_date_1",
+                    
+                    "rad_start_date_1", "rad_start_date_2", "rad_stop_date_1", "rad_stop_date_2",                  
+                    
+                    "smoking_status", "alcohol_use",
+                    
+                    "bmi_at_dx_v2", "Gender", "Ethnicity", "Race", "versionMM_1")]
+```
+
+
+## Then Age
+```{r, echo=FALSE}
+library(lubridate)
+Age_data <- Global_data[, c("avatar_id", "TCC_ID", "Gender", "Ethnicity", "Race", 
+                            "Disease_Status.germline", "Disease_Status_1",
+                            "smoking_status", "alcohol_use", "bmi_at_dx_v2")]
+
+enddate <- today()
+Age_data$Age <- interval(start= Global_data$Date_of_Birth, end= enddate)/                      
+  duration(n=1, unit="years")
+Age_data$Age <- round(Age_data$Age, 3)
+summary(Age_data$Age)
+
+Age_data$Age_at_diagosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_diagnosis_1)/                      
+  duration(n=1, unit="years")
+Age_data$Age_at_diagosis <- round(Age_data$Age_at_diagosis, 3)
+summary(Age_data$Age_at_diagosis, na.rm = TRUE)
+
+Age_data$Age_at_death <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_death)/                      
+  duration(n=1, unit="years")
+Age_data$Age_at_death <- round(Age_data$Age_at_death, 3)
+summary(Age_data$Age_at_death, na.rm = TRUE)
+
+Age_data$Age_at_lastfollowup <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_last_follow_up)/                      
+  duration(n=1, unit="years")
+Age_data$Age_at_lastfollowup <- round(Age_data$Age_at_lastfollowup, 3)
+summary(Age_data$Age_at_lastfollowup, na.rm = TRUE)
+
+Age_data$Age_at_lastdate <- interval(start= Global_data$Date_of_Birth, end= f$last_date_available)/                      
+  duration(n=1, unit="years")
+Age_data$Age_at_lastdate <- round(Age_data$Age_at_lastdate, 3)
+summary(Age_data$Age_at_lastdate, na.rm = TRUE)
+
+Age_data$Age_at_firstdrug <- interval(start= Global_data$Date_of_Birth, end= Global_data$drug_start_date_1)/                      
+  duration(n=1, unit="years")
+Age_data$Age_at_firstdrug <- round(Age_data$Age_at_firstdrug, 3)
+summary(Age_data$Age_at_firstdrug, na.rm = TRUE)
+
+Age_data$Age_at_firstbmt <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_first_bmt_1)/                      
+  duration(n=1, unit="years")
+Age_data$Age_at_firstbmt <- round(Age_data$Age_at_firstbmt, 3)
+summary(Age_data$Age_at_firstbmt, na.rm = TRUE)
+
+Age_data$Age_at_firstrad <- interval(start= Global_data$Date_of_Birth, end= Global_data$rad_start_date_1)/                      
+  duration(n=1, unit="years")
+Age_data$Age_at_firstrad <- round(Age_data$Age_at_firstrad, 3)
+summary(Age_data$Age_at_firstrad, na.rm = TRUE)
+
+Age_data$Age_at_germcollect <- interval(start= Global_data$Date_of_Birth, end= Global_data$collectiondt.germline)/                      
+  duration(n=1, unit="years")
+Age_data$Age_at_germcollect <- round(Age_data$Age_at_germcollect, 3)
+summary(Age_data$Age_at_germcollect, na.rm = TRUE)
+
+Age_data$Age_at_tumorcollect <- interval(start= Global_data$Date_of_Birth, end= Global_data$collectiondt_1)/                      
+  duration(n=1, unit="years")
+Age_data$Age_at_tumorcollect <- round(Age_data$Age_at_tumorcollect, 3)
+summary(Age_data$Age_at_tumorcollect, na.rm = TRUE)
+
+#pdf(paste0(path, "/Age at diagnosis repartition.pdf"), height = 6, width = 9)
+p <- qplot(x =Age_at_diagosis, data=subset(Age_data,!is.na(Age_at_diagosis)), fill=..count.., geom="histogram") 
+p + scale_fill_viridis_c(
+  alpha = 1,
+  begin = 0,
+  end = 1,
+  direction = 1,
+  option = "D",
+  values = NULL,
+  space = "Lab",
+  na.value = "grey50",
+  guide = "colourbar",
+  aesthetics = "fill"
+)
+layer_data(p, 1)
+#dev.off()
+
+# Gender
+#pdf(paste0(path, "/Age repartition per gender.pdf"), height = 6, width = 9)
+p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Gender, y=Age_at_diagosis), fill=Gender) + 
+  geom_boxplot(color= c("purple3", "royalblue2")) +
+  ggtitle("Age repartition per gender")
+p + geom_jitter(shape=16, position=position_jitter(0.2))
+#dev.off()
+t <- as.data.table(layer_data(p, 1)) %>% 
+  select(c("ymin", "middle", "ymax")) %>% 
+  `colnames<-`(c("min", "median", "max"))
+# write.csv(t,paste0(path, "/Age repartition per gender.csv"))
+
+
+# Ethnicity
+#pdf(paste0(path, "/Age repartition per ethnicity.pdf"), height = 6, width = 9)
+p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Ethnicity, y=Age_at_diagosis), fill=Ethnicity) + 
+  geom_boxplot(color= c("darkred", "darkgreen")) +
+  ggtitle("Age repartition per ethnicity")
+p + geom_jitter(shape=16, position=position_jitter(0.2))
+p
+#dev.off()
+
+# Race
+#pdf(paste0(path, "/Age repartition per race.pdf"), height = 6, width = 9)
+p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Race, y=Age_at_diagosis), fill=Race) + 
+  geom_boxplot(color= viridis::plasma(n=3)) +
+  ggtitle("Age repartition per race")
+p + geom_jitter(shape=16, position=position_jitter(0.2))
+p
+#dev.off()
+
+Age_data <- Age_data %>% 
+  mutate(Race_Ethnicity = case_when(
+    Ethnicity == "Hispanic" ~ "Hispanic",
+    Race == "African American" ~ "African American",
+    Race == "White" &
+      Ethnicity == "Non- Hispanic" ~ "Caucasian",
+    Race == "Others" &
+      Ethnicity == "Non- Hispanic" ~ "Non-Hispanic"
+  ))
+#pdf(paste0(path, "/Age repartition per race_ethnicity.pdf"), height = 6, width = 9)
+p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Race_Ethnicity, y=Age_at_diagosis), fill=Race_Ethnicity) + 
+  geom_boxplot(color= viridis::plasma(n=4)) +
+  ggtitle("Age repartition per race/ethnicity")
+p + geom_jitter(shape=16, position=position_jitter(0.2))
+#dev.off()
+t <- as.data.table(layer_data(p, 1)) %>% 
+  select(c("ymin", "middle", "ymax")) %>% 
+  `colnames<-`(c("min", "median", "max"))
+# write.csv(t,paste0(path, "/Age repartition per race_ethnicity"))
+
+# Disease status
+#pdf(paste0(path, "/Age repartition per disease status.pdf"), height = 6, width = 9)
+p <-  ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)) %>% filter(!is.na(Disease_Status.germline)), 
+             aes(x=Age_at_diagosis, y=Disease_Status.germline)) + geom_point() +
+  ggtitle("Age repartition per disease status")
+
+#p <-  ggplot(data=subset(Age_data, !is.na(Age_at_diagosis)), aes(x=Age_at_diagosis, y=Disease_Status.germline)) + geom_point()
+p
+```
+
+
+## Timeline Age
+```{r, echo=FALSE}
+plot_age <- Age_data[, c("avatar_id","Age_at_diagosis", "Age_at_death", "Age_at_lastfollowup","Age_at_firstdrug", "Age_at_firstbmt", "Age_at_firstrad", "Age_at_germcollect")] %>% 
+  pivot_longer(c("Age_at_diagosis", "Age_at_death", "Age_at_lastfollowup","Age_at_firstdrug", "Age_at_firstbmt", "Age_at_firstrad", "Age_at_germcollect"), 
+                              names_to = "type", values_to = "age")
+
+ggplot(plot_age, aes(x=age ,y= avatar_id, color = type))+
+    geom_point(size = 1) +
+    scale_color_manual(values = c("black", "purple", "green", "blue", "#F0F921FF", "#ED7953FF", "grey"))
+  labs(x="Age at events", y=NULL, title="Treatment timeline")
+```
+
+
+## Timeline years
+```{r, echo=FALSE}
+dat2 <- mm_history[, c("avatar_id", "date_of_diagnosis")]
+
+dat3 <- sct
+dat3 <- dat3 %>% pivot_longer(c("date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"), 
+                              names_to = "type", values_to = "bmt_date")
+
+dat4 <- radiation[, c("avatar_id", "rad_start_date")]
+
+dat5 <- treatment[, c("avatar_id", "drug_start_date")]
+
+dat6 <- Vitals[, c("avatar_id", "date_death")]
+dat7 <- Vitals[, c("avatar_id", "date_last_follow_up")]
+all <- bind_rows(dat2, dat3,dat4,dat5,dat6,dat7) #%>%
+
+ggpp <- ggplot() 
+ggpp +
+  geom_point(data=dat6, aes(date_death, avatar_id), colour = "black", alpha=1) +
+  geom_point(data=dat7, aes(date_last_follow_up, avatar_id), colour = "grey", alpha=1) +
+  geom_point(data=dat5, aes(drug_start_date, avatar_id), colour = "blue", alpha=0.3) +
+  geom_point(data=dat2, aes(date_of_diagnosis, avatar_id), colour = "purple", alpha=0.4) +
+  geom_point(data=dat3, aes(bmt_date, avatar_id), colour = "green", alpha=0.5) +
+  geom_point(data=dat4, aes(rad_start_date, avatar_id), colour = "yellow", alpha=0.5) +
+  labs(x="all", y=NULL, title="all timeline")
 
 ```
+

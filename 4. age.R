@@ -1,7 +1,7 @@
 library(lubridate)
 Age_data <- Global_data[, c("avatar_id", "TCC_ID", "Gender", "Ethnicity", "Race", 
-                            "Disease_Status.germline", "Disease_Status_1", "smoking_status_1",
-                            "current_smoker_1", "alcohol_use_1", "bmi_at_dx_v2_1")]
+                            "Disease_Status.germline", "Disease_Status_1",
+                            "smoking_status", "alcohol_use", "bmi_at_dx_v2")]
 
 enddate <- today()
 Age_data$Age <- interval(start= Global_data$Date_of_Birth, end= enddate)/                      
@@ -14,17 +14,17 @@ Age_data$Age_at_diagosis <- interval(start= Global_data$Date_of_Birth, end= Glob
 Age_data$Age_at_diagosis <- round(Age_data$Age_at_diagosis, 3)
 summary(Age_data$Age_at_diagosis, na.rm = TRUE)
 
-Age_data$Age_at_death <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_death_1)/                      
+Age_data$Age_at_death <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_death)/                      
   duration(n=1, unit="years")
 Age_data$Age_at_death <- round(Age_data$Age_at_death, 3)
 summary(Age_data$Age_at_death, na.rm = TRUE)
 
-Age_data$Age_at_lastfollowup <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_last_follow_up_1)/                      
+Age_data$Age_at_lastfollowup <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_last_follow_up)/                      
   duration(n=1, unit="years")
 Age_data$Age_at_lastfollowup <- round(Age_data$Age_at_lastfollowup, 3)
 summary(Age_data$Age_at_lastfollowup, na.rm = TRUE)
 
-Age_data$Age_at_lastdate <- interval(start= Global_data$Date_of_Birth, end= f$last_date_deathorfollowup)/                      
+Age_data$Age_at_lastdate <- interval(start= Global_data$Date_of_Birth, end= f$last_date_available)/                      
   duration(n=1, unit="years")
 Age_data$Age_at_lastdate <- round(Age_data$Age_at_lastdate, 3)
 summary(Age_data$Age_at_lastdate, na.rm = TRUE)

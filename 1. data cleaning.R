@@ -12,16 +12,48 @@ Demo_RedCap_V4ish <-
 #-----------------------------------------------------------------------------------------------------------------
 Germ <- 
   readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx"))
+colnames(Germ)
+length(Germ$avatar_id)
+# We have 510 avatar-id which are unique
+print(paste("We have", length(Germ$avatar_id) ,"subject-id with", 
+            length(unique(Germ$avatar_id)) ,"unique id"))
 #-----------------------------------------------------------------------------------------------------------------
 WES <-
   readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_WES_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
   select(c("avatar_id", "moffitt_sample_id", "Disease_Status", "collectiondt"))
+# In the WES file (WES Disease classification from Raghu)
+colnames(WES)
+length(WES$avatar_id)
+# We have 510 avatar-id which are unique
+print(paste("We have", length(WES$avatar_id) ,"subject-id with", 
+            length(unique(WES$avatar_id)) ,"unique id"))
 #-----------------------------------------------------------------------------------------------------------------
 Sequencing <-
-  read.delim(paste0(path, "/Jamie/v0.4.3.MM.samples.WESdata01.31.20.txt")) %>% 
+  read.delim(paste0(path, "/Jamie/v0.4.3.MM.samples.WESdata01.31.20.txt")) #%>% 
+  # select(c(
+  #   "SLID_germline", "SLID_tumor" , "moffitt_sample_id_tumor", "moffitt_sample_id_germline",
+  #   "BaitSet", "ClinicalSpecimenLinkage_WES.Batch", "moffitt_sample_id", "subject"))
+#-----------------------------------------------------------------------------------------------------------------
+Sequencing2 <- 
+  read.delim(paste0(path, "/Jamie/wes_somatic_mutations_metadata_v0.4.4.txt")) %>% 
   select(c(
     "SLID_germline", "SLID_tumor" , "moffitt_sample_id_tumor", "moffitt_sample_id_germline",
-    "BaitSet", "ClinicalSpecimenLinkage_WES.Batch", "moffitt_sample_id"))
+    "BaitSet", "SpecimenDetail_DiseaseType", "moffitt_sample_id", "subject"))
+Sequencing2 <- Sequencing2[Sequencing2$SpecimenDetail_DiseaseType == "HEM - Myeloma Spectrum",]
+#-----------------------------------------------------------------------------------------------------------------
+Seq_WES_Raghu <- 
+  readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Metadata_WES_V044.xlsx")) %>% 
+  select(c("SLID_germline", "collectiondt_germline", "SLID_tumor" , "collectiondt_tumor",
+  "moffitt_sample_id_tumor", "moffitt_sample_id_germline",
+           "BaitSet", "SpecimenDetail_DiseaseType", "moffitt_sample_id", "subject"))
+#-----------------------------------------------------------------------------------------------------------------
+colnames(Seq_WES_Raghu)
+
+d <- bind_rows(Sequencing, Seq_WES_Raghu)
+unique(d$subject)
+duplicated(d)
+
+
 #-----------------------------------------------------------------------------------------------------------------
 ClinicalCap_V1 <-
   fs::path(
@@ -39,7 +71,6 @@ Vitals <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
                     sheet = "Vitals") %>%
   select(c("avatar_id","vital_status","date_death", "date_last_follow_up", "smoking_status","current_smoker","alcohol_use"))
-# Will need to change smoker and alcohol number
 #-----------------------------------------------------------------------------------------------------------------
 MM_history <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
@@ -63,13 +94,15 @@ Comorbidities <-
 Treatment <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", "number_drugs_regimen","regimen_start_date", "regimen_end_date",
+  select(c("avatar_id","regimen_start_date", "regimen_end_date",
            "drug1_regimen", "drug2_regimen", "drug3_regimen", 
-           "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) 
+           "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) %>% 
+  pivot_longer(c(4:10), names_to = "drug_regimen", values_to = "drug_name_",
+               values_drop_na = TRUE)
 
 colnames(Treatment)[which(names(Treatment) == "regimen_start_date")] <- "drug_start_date" 
 colnames(Treatment)[which(names(Treatment) == "regimen_end_date")] <- "drug_stop_date"
-    
+colnames(Treatment)[which(names(Treatment) == "drug_regimen")] <- "treatment_line_"
 #-----------------------------------------------------------------------------------------------------------------
 SCT <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
@@ -241,9 +274,8 @@ SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), value.var = c("prior_trea
 #------------------------------------
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
   arrange(drug_start_date)
-Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), value.var = c("number_drugs_regimen", "drug_start_date","drug_stop_date", "drug1_regimen",
-                                                                                 "drug2_regimen", "drug3_regimen", "drug4_regimen", "drug5_regimen",
-                                                                                 "drug6_regimen", "drug7_regimen", "treatment_line_", "drug_name_"))
+Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
+                   value.var = c("drug_start_date", "drug_stop_date", "drug_name_"))
 # write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))
 #------------------------------------
 radiation <- bind_rows(RadiationV2, RadiationV4, .id = "versionRad") %>% 
@@ -318,7 +350,7 @@ WES  <- WES[order(WES$collectiondt_1), ] %>%
   arrange(collectiondt_5) %>%
   arrange(collectiondt_6)
 # write.csv(WES,paste0(path, "/WES germline tumor.csv"))
-is.na(Germ$collectiondt.germline)
+is.na(Germ$collectiondt)
 colnames(Germ)
 Germ <- Germ[, c("avatar_id","moffitt_sample_id","collectiondt","SpecimenType","WES_HUDSON_ALPHA",
                  "DNASpecimenStatus1", "Disease_Status")] %>% 
@@ -332,8 +364,10 @@ Combined_data_MM <- merge.data.frame(WES, Germ,
 colnames(Combined_data_MM)
 # write.csv(Combined_data_MM, paste0(path, "/Combined data and dates MM.csv"))
 # I checked the ID they are all the same no missing nor added
-
-
+dat <- merge.data.frame(Seq_WES_Raghu, Combined_data_MM, 
+                        by.x = "subject", by.y = "avatar_id",
+                        all.x = TRUE, all.y = TRUE)
+unique(dat$subject)
 
 ##################################################################################################  IV  ## Merge
 b <- merge.data.frame(Combined_data_MM[, c("avatar_id", "collectiondt.germline", "Disease_Status.germline", 

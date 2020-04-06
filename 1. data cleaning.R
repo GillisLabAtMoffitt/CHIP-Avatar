@@ -25,35 +25,29 @@ WES <-
 colnames(WES)
 length(WES$avatar_id)
 # We have 510 avatar-id which are unique
-print(paste("We have", length(WES$avatar_id) ,"subject-id with", 
+print(paste("We have", length(WES$avatar_id) ,"subject-id in WES with", 
             length(unique(WES$avatar_id)) ,"unique id"))
 #-----------------------------------------------------------------------------------------------------------------
 Sequencing <-
-  read.delim(paste0(path, "/Jamie/v0.4.3.MM.samples.WESdata01.31.20.txt")) #%>% 
-  # select(c(
-  #   "SLID_germline", "SLID_tumor" , "moffitt_sample_id_tumor", "moffitt_sample_id_germline",
-  #   "BaitSet", "ClinicalSpecimenLinkage_WES.Batch", "moffitt_sample_id", "subject"))
-#-----------------------------------------------------------------------------------------------------------------
-Sequencing2 <- 
-  read.delim(paste0(path, "/Jamie/wes_somatic_mutations_metadata_v0.4.4.txt")) %>% 
+  read.delim(paste0(path, "/Jamie/v0.4.3.MM.samples.WESdata01.31.20.txt")) %>% 
   select(c(
     "SLID_germline", "SLID_tumor" , "moffitt_sample_id_tumor", "moffitt_sample_id_germline",
-    "BaitSet", "SpecimenDetail_DiseaseType", "moffitt_sample_id", "subject"))
-Sequencing2 <- Sequencing2[Sequencing2$SpecimenDetail_DiseaseType == "HEM - Myeloma Spectrum",]
+    "BaitSet", "ClinicalSpecimenLinkage_WES.Batch", "moffitt_sample_id", "subject"))
+print(paste("We have", length(Sequencing$subject) ,"subject-id in Sequencing with", 
+            length(unique(Sequencing$subject)) ,"unique id"))
+#-----------------------------------------------------------------------------------------------------------------
+# Sequencing2 <- 
+#   read.delim(paste0(path, "/Jamie/wes_somatic_mutations_metadata_v0.4.4.txt")) %>% 
+#   select(c(
+#     "SLID_germline", "SLID_tumor" , "moffitt_sample_id_tumor", "moffitt_sample_id_germline",
+#     "BaitSet", "SpecimenDetail_DiseaseType", "moffitt_sample_id", "subject"))
+# Sequencing2 <- Sequencing2[Sequencing2$SpecimenDetail_DiseaseType == "HEM - Myeloma Spectrum",]
 #-----------------------------------------------------------------------------------------------------------------
 Seq_WES_Raghu <- 
   readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Metadata_WES_V044.xlsx")) %>% 
   select(c("SLID_germline", "collectiondt_germline", "SLID_tumor" , "collectiondt_tumor",
   "moffitt_sample_id_tumor", "moffitt_sample_id_germline",
            "BaitSet", "SpecimenDetail_DiseaseType", "moffitt_sample_id", "subject"))
-#-----------------------------------------------------------------------------------------------------------------
-colnames(Seq_WES_Raghu)
-
-d <- bind_rows(Sequencing, Seq_WES_Raghu)
-unique(d$subject)
-duplicated(d)
-
-
 #-----------------------------------------------------------------------------------------------------------------
 ClinicalCap_V1 <-
   fs::path(

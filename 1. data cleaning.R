@@ -110,7 +110,9 @@ SCT <-
   select(c("avatar_id", "prior_treatment", "number_of_bonemarrow_transplant","date_of_first_bmt", 
            "date_of_second_bmt", "date_of_third_bmt"))
 #-----------------------------------------------------------------------------------------------------------------
-
+RadiationV1 <- readxl::read_xlsx(paste0(ClinicalCap_V1, "/Radiation_Version1_Patients.xlsx")) %>%
+  select(c("Avatar_ID", "Radiation Start Date", "Radiation End Date")) %>% 
+  `colnames<-`(c("avatar_id", "rad_start_date", "rad_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
   ClinicalCap_V2 <-
     fs::path(
@@ -213,8 +215,10 @@ RadiationV4 <-
       "Vitals" = c(NROW(Vitals), NROW(VitalsV2), NROW(VitalsV4)),
       "BMT" = c(NROW(SCT), NROW(SCTV2), NROW(SCTV4)),
       "Treatment" = c(NROW(Treatment), NROW(TreatmentV2), NROW(TreatmentV4)),
-      "Radiation" = c(0, NROW(RadiationV2), NROW(RadiationV4))
+      "Radiation" = c(NROW(RadiationV1), NROW(RadiationV2), NROW(RadiationV4))
     ),
+    main = "Total records per version",
+    ylab = "Number records",
     beside = FALSE,
     width = 1,
     ylim = c(0, 3000),
@@ -231,16 +235,33 @@ MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), value.var =
 # write.csv(MM_history,paste0(path, "/MM_history simplify.csv"))
 #-------------------------------------
 vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, Alc_SmoV4, .id = "versionVit")
-Vitals <- dcast(setDT(vitals), avatar_id ~ rowid(avatar_id), value.var = c("vital_status", "date_death", "date_last_follow_up", "smoking_status",
-                                                                           "current_smoker", "alcohol_use", "bmi_at_dx_v2"))%>%
+Vitals <- dcast(setDT(vitals), avatar_id ~ rowid(avatar_id), 
+                value.var = c("vital_status", "date_death", 
+                              "date_last_follow_up", "smoking_status", 
+                              "current_smoker", "alcohol_use", 
+                              "bmi_at_dx_v2")) %>%
+  # Have multiple record ("abstraction") per patient so date_death can be recorded multiple times in col 1 and 2
+  # Sometimes 1st "abstraction" record date_last_follow-up then second "abstraction" will record death (present in col 2)
+  # Use coalesce so when is NA in date_death_1 will take the value in date_death_2 if present
   mutate(date_death = coalesce(date_death_1, date_death_2)) %>% 
+  # Need to take the last date_follow_up recorded so in 2 then 
+  # use coalesce to fill up with date_last_follow_up_1 when date_last_follow_up_2 is NA
   mutate(date_last_follow_up = coalesce(date_last_follow_up_2, date_last_follow_up_1)) %>%
+  # Create a last_date_available var for ourself (help to arrange by last_date_available)
   mutate(last_date_available = coalesce(date_death_1, date_last_follow_up_1)) %>% 
+  # Create my own vital_satus var because found record with 
+  # 1st "abstraction" give date_death so vital = dead
+  # 2nd "abstraction" doesn't give date (probably because already recorded) so vital = alive
   mutate(vital_status = case_when(
     !is.na(date_death_1) ~ "Dead",
     !is.na(date_last_follow_up_1) ~ "Alive"
   )) %>% 
+  # For BMI, we may need to keep both if want to see evolution but for now keep the earliest (closest to diagnisis)
+  # then fill-up with second column when the first is NA using coalesce
   mutate(bmi_at_dx_v2 = coalesce(bmi_at_dx_v2_1, bmi_at_dx_v2_2)) %>% 
+  # Have patients who had "abstraction" 3 times and for who the alcohol_use and smoking_status was recorded only on the third
+  # Take third record, fill it up by the second when NA then the first when NA
+  # That is to get the lastest info. We may switch it if we want the closest to diag.
   mutate(alcohol_use = coalesce(alcohol_use_3, alcohol_use_2, alcohol_use_1)) %>% 
   mutate(alcohol_use = case_when(
     alcohol_use %in% c(0,3) ~ "never",
@@ -248,6 +269,9 @@ Vitals <- dcast(setDT(vitals), avatar_id ~ rowid(avatar_id), value.var = c("vita
     alcohol_use == 1 ~ "current",
     TRUE ~ NA_character_
   )) %>% 
+  # Smoking V1 have 2 var current_smoker_1 (1-2), smoking_status_1 ()
+  # Fill-up current_smoker_1 by smoking_status_1
+  # That is to get the lastest info. We may switch it if we want the closest to diag.
   mutate(smoking_status = coalesce(smoking_status_3, smoking_status_2, current_smoker_1, smoking_status_1)) %>% 
   mutate(smoking_status = case_when(
     smoking_status %in% c(0,3) ~ "never",
@@ -259,8 +283,8 @@ Vitals <- dcast(setDT(vitals), avatar_id ~ rowid(avatar_id), value.var = c("vita
            "bmi_at_dx_v2", "alcohol_use", "smoking_status"))
 
 # Note for smoking
-# A000409 said 3 in V2 and 11 in V1
-# A000509 said 3 in V2 and 12 in V1
+# 1 patient said 3 in V2 and 11 in V1
+# 1 patient said 3 in V2 and 12 in V1
 
 # write.csv(Vitals,paste0(path, "/Vitals simplify.csv"))
 #-------------------------------------
@@ -278,7 +302,7 @@ Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id),
                    value.var = c("drug_start_date", "drug_stop_date", "drug_name_"))
 # write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))
 #------------------------------------
-radiation <- bind_rows(RadiationV2, RadiationV4, .id = "versionRad") %>% 
+radiation <- bind_rows(RadiationV2, RadiationV2, RadiationV4, .id = "versionRad") %>% 
   arrange(rad_start_date)
 Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
                      c("rad_start_date", "rad_stop_date"))

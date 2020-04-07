@@ -203,23 +203,32 @@ RadiationV4 <-
                                  sheet = "Radiation") %>%
     select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
+par(mar=c(4.1, 6.1, 2.1, 2.1)) # bottom left top right
   barplot(
     height = cbind(
       "Clinical Data" = c(NROW(MM_history), NROW(MM_historyV2), NROW(MM_historyV4)),
       "Vitals" = c(NROW(Vitals), NROW(VitalsV2), NROW(VitalsV4)),
       "BMT" = c(NROW(SCT), NROW(SCTV2), NROW(SCTV4)),
+      "Radiation" = c(NROW(RadiationV1), NROW(RadiationV2), NROW(RadiationV4)),
       "Treatment" = c(NROW(Treatment), NROW(TreatmentV2), NROW(TreatmentV4)),
-      "Radiation" = c(NROW(RadiationV1), NROW(RadiationV2), NROW(RadiationV4))
-    ),
+      "Qc'd Treatment" = c(0, 0, 0)
+    ),horiz=TRUE, 
+    las = 1,
     main = "Total records per version",
-    ylab = "Number records",
+    sub = "A single patient can present multiple record ",
+    xlab = "Number records",
     beside = FALSE,
-    width = 1,
-    ylim = c(0, 3000),
+    # width = 1,
+    # ylim = c(0, 3000),
     col = c("purple", "orange", "yellow"),
-    legend.text = c("version1", "version2", "version4"),
-    args.legend = list(x = "top")
+    #legend.text = c("version1", "version2", "version4"),
+    #args.legend = list(x = "bottomright"),
+    cex.axis = .8,
+    cex.names = .8
   )
+  legend("bottomright", legend = c("version1", "version2", "version4"),
+         col = c("purple", "orange", "yellow"),
+         bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(0.05, 0.05))
 ##################################################################################################  II  ## Bind ### Align duplicated ID
 mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
   arrange(date_of_diagnosis)

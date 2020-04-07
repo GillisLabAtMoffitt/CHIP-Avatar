@@ -1,0 +1,55 @@
+# Treatment id date date drug drug drug
+
+# MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), 
+#                     value.var = c("date_of_diagnosis", "disease_stage", "versionMM"))
+  
+
+V2 <- dcast(setDT(TreatmentV2), avatar_id+drug_start_date+drug_stop_date ~ rowid(avatar_id),
+            value.var = c("drug_name_"),fun.aggregate = )
+
+V1 <- Treatment
+Treatment <- Treatment %>% pivot_longer(c(5:11), names_to = "drug_regimen", values_to = "drug_name_",
+                          values_drop_na = TRUE)
+
+v1 <- dcast(setDT(treatment), avatar_id+drug_start_date+drug_stop_date ~ rowid(avatar_id), 
+                   value.var = c("drug_name_", "treatment_line_"))
+
+
+v11 <- apply(v1, 1, function(x) unique(na.omit(x)))
+df <- as.data.frame.list(v11,row.names = NULL, check.rows = FALSE, check.names = TRUE)
+
+v2 <- TreatmentV2 %>% pivot_wider(values_from = c("drug_name_", "treatment_line_"),
+                                values_fill = list(drug_name_ = 0))
+
+
+
+%>% 
+  mutate(drug_name = coalesce(v2$drug_name__1, v2$drug_name__2, v2$drug_name__3))
+
+
+bb <- for (id in v1$avatar_id) {
+  apply(v1[5:50], 1, function(x) unique(na.omit(x)))
+}
+combine(na.omit(v1[,4:50]))
+##############################################
+TV2 <- dcast(setDT(TreatmentV2), avatar_id ~ rowid(avatar_id), 
+                             value.var = c("treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date"))
+TV22 <- dcast(setDT(TreatmentV2), avatar_id+drug_start_date ~ rowid(avatar_id), 
+             value.var = c("treatment_line_", "drug_name_", "drug_stop_date"))
+TV222 <- dcast(setDT(TreatmentV2), avatar_id+drug_start_date+drug_stop_date ~ rowid(avatar_id), 
+              value.var = c("treatment_line_", "drug_name_"))
+
+
+
+# We want to have 1 row per regiment/line so we wouldn't need to dcast at the end..
+treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
+  arrange(drug_start_date)
+Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
+                   value.var = c("drug_start_date", "drug_stop_date", "drug_name_"))
+
+
+
+
+
+
+

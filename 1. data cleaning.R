@@ -99,13 +99,13 @@ Treatment <-
                     sheet = "Treatment") %>%
   select(c("avatar_id","regimen_start_date", "regimen_end_date",
            "drug1_regimen", "drug2_regimen", "drug3_regimen", 
-           "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) %>% 
-  pivot_longer(c(4:10), names_to = "drug_regimen", values_to = "drug_name_",
-               values_drop_na = TRUE)
-
-colnames(Treatment)[which(names(Treatment) == "regimen_start_date")] <- "drug_start_date" 
-colnames(Treatment)[which(names(Treatment) == "regimen_end_date")] <- "drug_stop_date"
-colnames(Treatment)[which(names(Treatment) == "drug_regimen")] <- "treatment_line_"
+           "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) #%>% 
+#   pivot_longer(c(4:10), names_to = "drug_regimen", values_to = "drug_name_",
+#                values_drop_na = TRUE)
+# 
+# colnames(Treatment)[which(names(Treatment) == "regimen_start_date")] <- "drug_start_date" 
+# colnames(Treatment)[which(names(Treatment) == "regimen_end_date")] <- "drug_stop_date"
+# colnames(Treatment)[which(names(Treatment) == "drug_regimen")] <- "treatment_line_"
 #-----------------------------------------------------------------------------------------------------------------
 SCT <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),

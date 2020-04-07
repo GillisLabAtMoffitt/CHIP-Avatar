@@ -49,7 +49,7 @@ Seq_WES_Raghu <-
   select(c("subject", 
            "SLID_germline", "moffitt_sample_id_germline", "collectiondt_germline", 
            "SLID_tumor" , "moffitt_sample_id_tumor", "collectiondt_tumor", 
-           "BaitSet", "SpecimenDetail_DiseaseType")) %>% 
+           "BaitSet")) %>% 
   rename(avatar_id = subject)
 # Keep
 # Seq_WES_Raghu$moffitt_sample_id_tumor == Seq_WES_Raghu$moffitt_sample_id # yes so rename and remove one var
@@ -292,12 +292,13 @@ Vitals <- dcast(setDT(vitals), avatar_id ~ rowid(avatar_id),
 # write.csv(Vitals,paste0(path, "/Vitals simplify.csv"))
 #-------------------------------------
 sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>% 
-  arrange(date_of_first_bmt) %>% 
+  arrange(date_of_third_bmt) %>% 
   arrange(date_of_second_bmt) %>% 
-  arrange(date_of_third_bmt)
+  arrange(date_of_first_bmt)
 SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), value.var = c("prior_treatment", "number_of_bonemarrow_transplant",
                                                                      "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
 # write.csv(SCT,paste0(path, "/SCT simplify.csv"))
+A000302	1	NA	2	NA	2009-06-15	NA	2009-02-26
 #------------------------------------
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
   arrange(drug_start_date)
@@ -350,9 +351,10 @@ WES_seq <-
 # Check for duplicate
 colnames(WES_seq)
 
-duplicated(WES_seq$moffitt_sample_id_tumor) # No duplicate
-duplicated(WES_seq$avatar_id) # has duplicate
+# duplicated(WES_seq$moffitt_sample_id_tumor) # No duplicate
+# duplicated(WES_seq$avatar_id) # has duplicate
 
+# Really important to order by dates otherwise cannot find the duplicated lines
 WES_seq <- WES_seq[order(WES_seq$collectiondt_tumor), ]
 WES_seq <-
   dcast(setDT(WES_seq), avatar_id ~ rowid(avatar_id),
@@ -369,47 +371,59 @@ WES_seq <-
   )
 
 
-WES_seq <-WES_seq[, c("avatar_id", "Disease_Status_tumor_1", "collectiondt_tumor_1", "SLID_germline_1", "SLID_tumor_1", "moffitt_sample_id_tumor_1",
-              "moffitt_sample_id_germline_1", "BaitSet_1", "ClinicalSpecimenLinkage_WES.Batch_1",
-              "Disease_Status_tumor_2", "collectiondt_tumor_2", "SLID_germline_2", "SLID_tumor_2", "moffitt_sample_id_tumor_2", 
-              "moffitt_sample_id_germline_2", "BaitSet_2", "ClinicalSpecimenLinkage_WES.Batch_2", 
-              "Disease_Status_tumor_3", "collectiondt_tumor_3", "SLID_germline_3", "SLID_tumor_3", "moffitt_sample_id_tumor_3",
-              "moffitt_sample_id_germline_3", "BaitSet_3", "ClinicalSpecimenLinkage_WES.Batch_3",
-              "Disease_Status_tumor_4", "collectiondt_tumor_4", "SLID_germline_4", "SLID_tumor_4", "moffitt_sample_id_tumor_4",
-              "moffitt_sample_id_germline_4", "BaitSet_4", "ClinicalSpecimenLinkage_WES.Batch_4",
-              "Disease_Status_tumor_5", "collectiondt_tumor_5", "SLID_germline_5", "SLID_tumor_5", "moffitt_sample_id_tumor_5",
-              "moffitt_sample_id_germline_5","BaitSet_5", "ClinicalSpecimenLinkage_WES.Batch_5",
-              "Disease_Status_tumor_6", "collectiondt_tumor_6", "SLID_germline_6", "SLID_tumor_6", "moffitt_sample_id_tumor_6",
-              "moffitt_sample_id_germline_6", "BaitSet_6", "ClinicalSpecimenLinkage_WES.Batch_6")]
-WES  <- WES[order(WES$collectiondt_tumor_1), ] %>%
+# WES_seq <-WES_seq[, c("avatar_id", "Disease_Status_tumor_1", "collectiondt_tumor_1", "SLID_germline_1", "SLID_tumor_1", "moffitt_sample_id_tumor_1",
+#               "moffitt_sample_id_germline_1", "BaitSet_1", "ClinicalSpecimenLinkage_WES.Batch_1",
+#               "Disease_Status_tumor_2", "collectiondt_tumor_2", "SLID_germline_2", "SLID_tumor_2", "moffitt_sample_id_tumor_2", 
+#               "moffitt_sample_id_germline_2", "BaitSet_2", "ClinicalSpecimenLinkage_WES.Batch_2", 
+#               "Disease_Status_tumor_3", "collectiondt_tumor_3", "SLID_germline_3", "SLID_tumor_3", "moffitt_sample_id_tumor_3",
+#               "moffitt_sample_id_germline_3", "BaitSet_3", "ClinicalSpecimenLinkage_WES.Batch_3",
+#               "Disease_Status_tumor_4", "collectiondt_tumor_4", "SLID_germline_4", "SLID_tumor_4", "moffitt_sample_id_tumor_4",
+#               "moffitt_sample_id_germline_4", "BaitSet_4", "ClinicalSpecimenLinkage_WES.Batch_4",
+#               "Disease_Status_tumor_5", "collectiondt_tumor_5", "SLID_germline_5", "SLID_tumor_5", "moffitt_sample_id_tumor_5",
+#               "moffitt_sample_id_germline_5","BaitSet_5", "ClinicalSpecimenLinkage_WES.Batch_5",
+#               "Disease_Status_tumor_6", "collectiondt_tumor_6", "SLID_germline_6", "SLID_tumor_6", "moffitt_sample_id_tumor_6",
+#               "moffitt_sample_id_germline_6", "BaitSet_6", "ClinicalSpecimenLinkage_WES.Batch_6")]
+WES_seq  <- WES_seq[order(WES_seq$collectiondt_tumor_1), ] %>%
   arrange(collectiondt_tumor_2) %>%
   arrange(collectiondt_tumor_3) %>%
   arrange(collectiondt_tumor_4) %>%
   arrange(collectiondt_tumor_5) %>%
   arrange(collectiondt_tumor_6)
-# write.csv(WES,paste0(path, "/WES germline tumor.csv"))
-is.na(Germ$collectiondt)
+# write.csv(WES_seq,paste0(path, "/WES_seq germline tumor.csv"))
+
 colnames(Germ)
-Germ <- Germ[, c("avatar_id","moffitt_sample_id","collectiondt","SpecimenType","WES_HUDSON_ALPHA",
-                 "DNASpecimenStatus1", "Disease_Status")] %>% 
-  `colnames<-`(c("avatar_id","moffitt_sample_id.germline","collectiondt.germline","SpecimenType.germline","WES_HUDSON_ALPHA.germline",
-                 "DNASpecimenStatus1.germline", "Disease_Status.germline"))
 
 # Merge with Organized_WES
-Combined_data_MM <- merge.data.frame(WES, Germ, 
+Combined_data_MM <- merge.data.frame(WES_seq, Germ, 
                                      by.x = "avatar_id", by.y = "avatar_id", 
                                      all.x = TRUE, all.y = TRUE)
 colnames(Combined_data_MM)
 # write.csv(Combined_data_MM, paste0(path, "/Combined data and dates MM.csv"))
 # I checked the ID they are all the same no missing nor added
-dat <- merge.data.frame(Seq_WES_Raghu, Combined_data_MM, 
-                        by.x = "subject", by.y = "avatar_id",
-                        all.x = TRUE, all.y = TRUE)
-unique(dat$subject)
+# Really important to order by dates otherwise cannot find the duplicated lines
+Seq_WES_Raghu <- Seq_WES_Raghu[order(Seq_WES_Raghu$collectiondt_tumor), ]
+Seq_WES_Raghu <-
+  dcast(setDT(Seq_WES_Raghu), avatar_id ~ rowid(avatar_id),
+        value.var = c(
+          "SLID_tumor",
+          "moffitt_sample_id_tumor",
+          "collectiondt_tumor",
+          "SLID_germline",
+          "moffitt_sample_id_germline",
+          "BaitSet"
+        )
+  )
+
+
+########### Binds
+Sequencing <- bind_rows(Combined_data_MM, Seq_WES_Raghu)
+Sequencing <- Sequencing %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
+                             SLID_germline_1 , .keep_all = TRUE)
+colnames(Sequencing)
 
 ##################################################################################################  IV  ## Merge
-b <- merge.data.frame(Combined_data_MM[, c("avatar_id", "collectiondt.germline", "Disease_Status.germline", 
-                                           "collectiondt_1", "Disease_Status_1")],
+b <- merge.data.frame(Sequencing[, c("avatar_id", "collectiondt_germline", "Disease_Status_germline", 
+                                           "collectiondt_tumor_1", "Disease_Status_tumor_1")],
                       MM_history, by.x = "avatar_id", by.y = "avatar_id", 
                       all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
 
@@ -433,7 +447,7 @@ rm(b,c,d,e,f)
 f <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
                     "number_of_bonemarrow_transplant_1", "number_of_bonemarrow_transplant_2","date_of_first_bmt_1", "date_of_second_bmt_1", "date_of_third_bmt_1", 
                     
-                    "collectiondt.germline", "Disease_Status.germline", "collectiondt_1", "Disease_Status_1",
+                    "collectiondt_germline", "Disease_Status_germline", "collectiondt_tumor_1", "Disease_Status_tumor_1",
                     
                     "vital_status", "date_death", "date_last_follow_up", "last_date_available", 
                     

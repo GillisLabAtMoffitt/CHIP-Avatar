@@ -11,19 +11,23 @@ Demo_RedCap_V4ish <-
   select(c("avatar_id","TCC_ID","Date_of_Birth", "Gender", "Ethnicity", "Race"))
 #-----------------------------------------------------------------------------------------------------------------
 Germ <- 
-  readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx"))
-colnames(Germ)
-length(Germ$avatar_id)
+  readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
+  select(c("avatar_id","moffitt_sample_id","collectiondt", "WES_HUDSON_ALPHA",
+           "Disease_Status")) %>% 
+  `colnames<-`(c("avatar_id","moffitt_sample_id_germline","collectiondt_germline", "WES_HUDSON_ALPHA_germline",
+                 "Disease_Status_germline"))
+
 # We have 510 avatar-id which are unique
 print(paste("We have", length(Germ$avatar_id) ,"subject-id with", 
             length(unique(Germ$avatar_id)) ,"unique id"))
 #-----------------------------------------------------------------------------------------------------------------
 WES <-
   readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_WES_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
-  select(c("avatar_id", "moffitt_sample_id", "Disease_Status", "collectiondt"))
-# In the WES file (WES Disease classification from Raghu)
-colnames(WES)
-length(WES$avatar_id)
+  select(c("avatar_id", "moffitt_sample_id", 
+           "Disease_Status", "collectiondt", "WES_HUDSON_ALPHA")) %>% 
+  `colnames<-`(c("avatar_id", "moffitt_sample_id_tumor", 
+                 "Disease_Status_tumor", "collectiondt_tumor", "WES_HUDSON_ALPHA_tumor"))
+
 # We have 510 avatar-id which are unique
 print(paste("We have", length(WES$avatar_id) ,"subject-id in WES with", 
             length(unique(WES$avatar_id)) ,"unique id"))
@@ -31,23 +35,28 @@ print(paste("We have", length(WES$avatar_id) ,"subject-id in WES with",
 Sequencing <-
   read.delim(paste0(path, "/Jamie/v0.4.3.MM.samples.WESdata01.31.20.txt")) %>% 
   select(c(
-    "SLID_germline", "SLID_tumor" , "moffitt_sample_id_tumor", "moffitt_sample_id_germline",
-    "BaitSet", "ClinicalSpecimenLinkage_WES.Batch", "moffitt_sample_id", "subject"))
+    "SLID_germline", 
+    "SLID_tumor" , "moffitt_sample_id_tumor", 
+    "moffitt_sample_id_germline",
+    "BaitSet", "ClinicalSpecimenLinkage_WES.Batch"))
 print(paste("We have", length(Sequencing$subject) ,"subject-id in Sequencing with", 
             length(unique(Sequencing$subject)) ,"unique id"))
-#-----------------------------------------------------------------------------------------------------------------
-# Sequencing2 <- 
-#   read.delim(paste0(path, "/Jamie/wes_somatic_mutations_metadata_v0.4.4.txt")) %>% 
-#   select(c(
-#     "SLID_germline", "SLID_tumor" , "moffitt_sample_id_tumor", "moffitt_sample_id_germline",
-#     "BaitSet", "SpecimenDetail_DiseaseType", "moffitt_sample_id", "subject"))
-# Sequencing2 <- Sequencing2[Sequencing2$SpecimenDetail_DiseaseType == "HEM - Myeloma Spectrum",]
+# Sequencing$moffitt_sample_id_tumor == Sequencing$moffitt_sample_id # yes so remove one var
+# Sequencing$subject == Sequencing$avatar_id # yes so remove one var
 #-----------------------------------------------------------------------------------------------------------------
 Seq_WES_Raghu <- 
   readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Metadata_WES_V044.xlsx")) %>% 
-  select(c("SLID_germline", "collectiondt_germline", "SLID_tumor" , "collectiondt_tumor",
-  "moffitt_sample_id_tumor", "moffitt_sample_id_germline",
-           "BaitSet", "SpecimenDetail_DiseaseType", "moffitt_sample_id", "subject"))
+  select(c("subject", 
+           "SLID_germline", "moffitt_sample_id_germline", "collectiondt_germline", 
+           "SLID_tumor" , "moffitt_sample_id_tumor", "collectiondt_tumor", 
+           "BaitSet", "SpecimenDetail_DiseaseType")) %>% 
+  rename(avatar_id = subject)
+# Keep
+# Seq_WES_Raghu$moffitt_sample_id_tumor == Seq_WES_Raghu$moffitt_sample_id # yes so rename and remove one var
+# Seq_WES_Raghu$SLID_tumor == Seq_WES_Raghu$ClinicalSpecimenLinkage_WES # yes
+# Seq_WES_Raghu$SLID_tumor == Seq_WES_Raghu$SLID # yes
+# Seq_WES_Raghu$subject == Seq_WES_Raghu$ClinicalSpecimenLinkage_subject # yes
+# Seq_WES_R$collectiondt_germline == Seq_WES_R$collectiondt_tumor # No -> That's good
 #-----------------------------------------------------------------------------------------------------------------
 ClinicalCap_V1 <-
   fs::path(
@@ -327,46 +336,57 @@ barplot(
 # Sequencing <- Sequencing[order(Sequencing$moffitt_sample_id),]
 # WES <- WES[order(WES$moffitt_sample_id),]
 # Sequencing$moffitt_sample_id == WES$moffitt_sample_id # =>>>>>>> YES
-
-WES <-
+WES_seq <-
   merge.data.frame(
     WES,
     Sequencing,
-    by.x = "moffitt_sample_id",
-    by.y = "moffitt_sample_id",
+    by.x = "moffitt_sample_id_tumor",
+    by.y = "moffitt_sample_id_tumor",
     all.x = TRUE,
     all.y = TRUE
   )
 # rm(Sequencing)
 #Align duplicate on same row (per date)-------------------------------------------
 # Check for duplicate
-colnames(WES)
+colnames(WES_seq)
 
-duplicated(WES$moffitt_sample_id) # No duplicate
-duplicated(WES$avatar_id) # has duplicate
+duplicated(WES_seq$moffitt_sample_id_tumor) # No duplicate
+duplicated(WES_seq$avatar_id) # has duplicate
 
-WES <- WES[order(WES$collectiondt), ]
-WES <- dcast(setDT(WES), avatar_id ~ rowid(avatar_id), value.var = c("moffitt_sample_id","Disease_Status",
-                                                                     "collectiondt","SLID_germline", "SLID_tumor", "moffitt_sample_id_tumor",
-                                                                     "moffitt_sample_id_germline", "BaitSet", "ClinicalSpecimenLinkage_WES.Batch"))
-WES <-WES[, c("avatar_id","moffitt_sample_id_1", "Disease_Status_1", "collectiondt_1", "SLID_germline_1", "SLID_tumor_1", "moffitt_sample_id_tumor_1",
+WES_seq <- WES_seq[order(WES_seq$collectiondt_tumor), ]
+WES_seq <-
+  dcast(setDT(WES_seq), avatar_id ~ rowid(avatar_id),
+    value.var = c(
+      "SLID_tumor",
+      "moffitt_sample_id_tumor",
+      "Disease_Status_tumor",
+      "collectiondt_tumor",
+      "SLID_germline",
+      "moffitt_sample_id_germline",
+      "BaitSet",
+      "ClinicalSpecimenLinkage_WES.Batch"
+    )
+  )
+
+
+WES_seq <-WES_seq[, c("avatar_id", "Disease_Status_tumor_1", "collectiondt_tumor_1", "SLID_germline_1", "SLID_tumor_1", "moffitt_sample_id_tumor_1",
               "moffitt_sample_id_germline_1", "BaitSet_1", "ClinicalSpecimenLinkage_WES.Batch_1",
-              "moffitt_sample_id_2", "Disease_Status_2", "collectiondt_2", "SLID_germline_2", "SLID_tumor_2", "moffitt_sample_id_tumor_2", 
+              "Disease_Status_tumor_2", "collectiondt_tumor_2", "SLID_germline_2", "SLID_tumor_2", "moffitt_sample_id_tumor_2", 
               "moffitt_sample_id_germline_2", "BaitSet_2", "ClinicalSpecimenLinkage_WES.Batch_2", 
-              "moffitt_sample_id_3", "Disease_Status_3", "collectiondt_3", "SLID_germline_3", "SLID_tumor_3", "moffitt_sample_id_tumor_3",
+              "Disease_Status_tumor_3", "collectiondt_tumor_3", "SLID_germline_3", "SLID_tumor_3", "moffitt_sample_id_tumor_3",
               "moffitt_sample_id_germline_3", "BaitSet_3", "ClinicalSpecimenLinkage_WES.Batch_3",
-              "moffitt_sample_id_4", "Disease_Status_4", "collectiondt_4", "SLID_germline_4", "SLID_tumor_4", "moffitt_sample_id_tumor_4",
+              "Disease_Status_tumor_4", "collectiondt_tumor_4", "SLID_germline_4", "SLID_tumor_4", "moffitt_sample_id_tumor_4",
               "moffitt_sample_id_germline_4", "BaitSet_4", "ClinicalSpecimenLinkage_WES.Batch_4",
-              "moffitt_sample_id_5", "Disease_Status_5", "collectiondt_5", "SLID_germline_5", "SLID_tumor_5", "moffitt_sample_id_tumor_5",
+              "Disease_Status_tumor_5", "collectiondt_tumor_5", "SLID_germline_5", "SLID_tumor_5", "moffitt_sample_id_tumor_5",
               "moffitt_sample_id_germline_5","BaitSet_5", "ClinicalSpecimenLinkage_WES.Batch_5",
-              "moffitt_sample_id_6", "Disease_Status_6", "collectiondt_6", "SLID_germline_6", "SLID_tumor_6", "moffitt_sample_id_tumor_6",
+              "Disease_Status_tumor_6", "collectiondt_tumor_6", "SLID_germline_6", "SLID_tumor_6", "moffitt_sample_id_tumor_6",
               "moffitt_sample_id_germline_6", "BaitSet_6", "ClinicalSpecimenLinkage_WES.Batch_6")]
-WES  <- WES[order(WES$collectiondt_1), ] %>%
-  arrange(collectiondt_2) %>%
-  arrange(collectiondt_3) %>%
-  arrange(collectiondt_4) %>%
-  arrange(collectiondt_5) %>%
-  arrange(collectiondt_6)
+WES  <- WES[order(WES$collectiondt_tumor_1), ] %>%
+  arrange(collectiondt_tumor_2) %>%
+  arrange(collectiondt_tumor_3) %>%
+  arrange(collectiondt_tumor_4) %>%
+  arrange(collectiondt_tumor_5) %>%
+  arrange(collectiondt_tumor_6)
 # write.csv(WES,paste0(path, "/WES germline tumor.csv"))
 is.na(Germ$collectiondt)
 colnames(Germ)

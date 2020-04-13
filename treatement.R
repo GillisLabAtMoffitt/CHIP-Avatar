@@ -32,24 +32,69 @@ bb <- for (id in v1$avatar_id) {
 }
 combine(na.omit(v1[,4:50]))
 ##############################################
-TV2 <- dcast(setDT(TreatmentV2), avatar_id ~ rowid(avatar_id), 
-                             value.var = c("treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date"))
+colnames(TreatmentV2)
+
+
+# TV2 <- dcast(setDT(TreatmentV2), avatar_id ~ rowid(avatar_id), 
+#                              value.var = c("treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date"))
 TV22 <- dcast(setDT(TreatmentV2), avatar_id+drug_start_date ~ rowid(avatar_id), 
-             value.var = c("treatment_line_", "drug_name_", "drug_stop_date"))
+             value.var = c("drug_name_", "drug_stop_date"),
+             na.rm = TRUE)
+TVV22 <- dcast.data.table((TreatmentV2), avatar_id+drug_start_date ~ rowid(avatar_id), 
+                          fun.aggregate = sum,
+                          value.var = c("drug_name_"))
+TVv2 <- TreatmentV2 %>% pivot_wider(id_cols = avatar_id, names_from = NULL,
+                                    values_from = "drug_name_")
+TreatmentV2 %>%  plyr::ddply(TreatmentV2, avatar_id, summarize, text=paste(drug_name_, collapse=""))
+
+TreatmentV2 %>%
+  group_by(avatar_id,drug_start_date) %>%
+  summarise(text=paste(drug_name_,collapse=','))
+
+
 TV222 <- dcast(setDT(TreatmentV2), avatar_id+drug_start_date+drug_stop_date ~ rowid(avatar_id), 
+               drop = TRUE,
               value.var = c("treatment_line_", "drug_name_"))
 
 
 
 # We want to have 1 row per regiment/line so we wouldn't need to dcast at the end..
+
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
+  distinct() %>% 
   arrange(drug_start_date)
 Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
                    value.var = c("drug_start_date", "drug_stop_date", "drug_name_"))
 
+Treat <- TreatmentV2 %>% unite(drug_name_, c(drug_name_,drug_name_other), 
+                                 sep = "; ", na.rm = TRUE, remove = FALSE)
 
 
 
 
+
+Treat <- bind_rows(Treatment, Qcd_Treatment, .id = "Treatment") %>% 
+  distinct()
+TreatV2 <- bind_rows(TreatmentV2, Qcd_TreatmentV2, .id = "Treatment") %>% 
+  distinct() # remove duplicated rows in case
+# Cleanup
+#rm(Qcd_Treatment, Qcd_TreatmentV2)
+# Collapse drug_name_ V1
+
+# Widen V2 and V4
+TreatmV2 <- TreatV2 %>%
+  group_by(avatar_id,drug_start_date, drug_stop_date) %>%
+  summarise(drug_name_=paste(drug_name_,collapse='; ')) 
+TreatmV4 <- TreatV4 %>%
+  group_by(avatar_id,drug_start_date, drug_stop_date) %>%
+  summarise(drug_name_=paste(drug_name_,collapse='; ')) 
+colnames(Treatment)
+# ready to bind
+treat <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
+  distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_) %>% 
+  arrange(drug_start_date)
+TREATMENT <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
+                   value.var = c("drug_start_date", "drug_stop_date", "drug_name_"))
+# write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))
 
 

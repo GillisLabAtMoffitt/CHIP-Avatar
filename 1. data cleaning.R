@@ -100,14 +100,10 @@ Treatment <-
   select(c("avatar_id","regimen_start_date", "regimen_end_date",
            "drug1_regimen", "drug2_regimen", "drug3_regimen", 
            "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) %>% 
-#   pivot_longer(c(4:10), names_to = "drug_regimen", values_to = "drug_name_",
-#                values_drop_na = TRUE)
-# 
   rename(drug_start_date = regimen_start_date) %>% 
-  rename(drug_stop_date = regimen_end_date)
-# colnames(Treatment)[which(names(Treatment) == "regimen_start_date")] <- "drug_start_date" 
-# colnames(Treatment)[which(names(Treatment) == "regimen_end_date")] <- "drug_stop_date"
-# colnames(Treatment)[which(names(Treatment) == "drug_regimen")] <- "treatment_line_"
+  rename(drug_stop_date = regimen_end_date) %>% 
+  unite(drug_name_, drug1_regimen:drug7_regimen, sep = "; ", na.rm = TRUE, remove = TRUE)
+
 Qcd_Treatment <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
                     sheet = "QC'd Treatment") %>%
@@ -141,7 +137,6 @@ VitalsV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
                     sheet = "Vitals") %>%
   select(c("avatar_id","vital_status","date_death","smoking_status","alcohol_use", "bmi_at_dx_v2"))
-
 #-----------------------------------------------------------------------------------------------------------------
 MM_historyV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
@@ -151,7 +146,9 @@ MM_historyV2 <-
 TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", "treatment_line_", "drug_start_date" , "drug_name_", "drug_stop_date"))
+  select(c("avatar_id", "drug_start_date" , "drug_name_", "drug_stop_date",
+           "drug_name_other")) %>%  # remove "treatment_line_"
+  unite(drug_name_, c(drug_name_,drug_name_other), sep = "; ", na.rm = TRUE, remove = FALSE)
 Qcd_TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
                     sheet = "QC'd Treatment") %>%
@@ -178,7 +175,7 @@ RadiationV2 <- readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Da
       "extracted Avatar V124 data and dict",
       "V4"
     )
-  #-----------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------
 VitalsV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
                     sheet = "Vitals") %>%
@@ -211,7 +208,8 @@ MM_historyV4 <-
 TreatmentV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", "treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date"))
+  select(c("avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
+           "drug_name_other")) # remove "treatment_line_"
 #-----------------------------------------------------------------------------------------------------------------
 SCTV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
@@ -305,11 +303,9 @@ Vitals <- dcast(setDT(vitals), avatar_id ~ rowid(avatar_id),
   )) %>% 
   select(c("avatar_id","vital_status", "date_death", "date_last_follow_up", "last_date_available",
            "bmi_at_dx_v2", "alcohol_use", "smoking_status"))
-
 # Note for smoking
 # 1 patient said 3 in V2 and 11 in V1
 # 1 patient said 3 in V2 and 12 in V1
-
 # write.csv(Vitals,paste0(path, "/Vitals simplify.csv"))
 #-------------------------------------
 sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>% 
@@ -325,23 +321,26 @@ SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), value.var = c("prior_trea
 Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
 Qcd_TreatmentV2 <- Qcd_TreatmentV2 %>% drop_na("drug_start_date", "drug_name_")
 # Bind QC'd and Treatment for each version then remove duplicated raws
+_______________________________________
 Treatment <- bind_rows(Treatment, Qcd_Treatment, .id = "Treatment") %>% 
   distinct()
 TreatmentV2 <- bind_rows(TreatmentV2, Qcd_TreatmentV2, .id = "Treatment") %>% 
   distinct() # remove duplicated rows in case
 # Cleanup
 rm(Qcd_Treatment, Qcd_TreatmentV2)
+# Collapse drug_name_ V1
+
 # Widen V2 and V4
 TreatmentV2 <- TreatmentV2 %>%
   group_by(avatar_id,drug_start_date, drug_stop_date) %>%
-  summarise(text=paste(drug_name_,collapse=',')) 
+  summarise(drug_name_=paste(drug_name_,collapse='; ')) 
 TreatmentV4 <- TreatmentV4 %>%
   group_by(avatar_id,drug_start_date, drug_stop_date) %>%
-  summarise(drug_name_=paste(drug_name_,collapse=',')) 
-
+  summarise(drug_name_=paste(drug_name_,collapse='; ')) 
+colnames(Treatment)
 # ready to bind
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
-  distinct() %>% 
+  distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_) %>% 
   arrange(drug_start_date)
 Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
                    value.var = c("drug_start_date", "drug_stop_date", "drug_name_"))

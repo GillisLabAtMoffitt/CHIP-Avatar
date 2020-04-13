@@ -99,13 +99,21 @@ Treatment <-
                     sheet = "Treatment") %>%
   select(c("avatar_id","regimen_start_date", "regimen_end_date",
            "drug1_regimen", "drug2_regimen", "drug3_regimen", 
-           "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) #%>% 
+           "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) %>% 
 #   pivot_longer(c(4:10), names_to = "drug_regimen", values_to = "drug_name_",
 #                values_drop_na = TRUE)
 # 
+  rename(drug_start_date = regimen_start_date) %>% 
+  rename(drug_stop_date = regimen_end_date)
 # colnames(Treatment)[which(names(Treatment) == "regimen_start_date")] <- "drug_start_date" 
 # colnames(Treatment)[which(names(Treatment) == "regimen_end_date")] <- "drug_stop_date"
 # colnames(Treatment)[which(names(Treatment) == "drug_regimen")] <- "treatment_line_"
+Qcd_Treatment <-
+  readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
+                    sheet = "QC'd Treatment") %>%
+  select(c("avatar_id","regimen_start_date", "regimen_end_date",
+           "treatment")) %>%
+  `colnames<-`(c("avatar_id","drug_start_date", "drug_stop_date", "drug_name_"))
 #-----------------------------------------------------------------------------------------------------------------
 SCT <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
@@ -144,6 +152,10 @@ TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
                     sheet = "Treatment") %>%
   select(c("avatar_id", "treatment_line_", "drug_start_date" , "drug_name_", "drug_stop_date"))
+Qcd_TreatmentV2 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
+                    sheet = "QC'd Treatment") %>%
+  select(c("avatar_id", "drug_start_date" , "drug_name_", "drug_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
 SCTV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
@@ -205,7 +217,7 @@ SCTV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
                     sheet = "SCT") %>%
   select(c("avatar_id", "date_of_bmt")) %>% 
-  `colnames<-`(c("avatar_id", "date_of_first_bmt"))
+  `colnames<-`(c("avatar_id", "date_of_first_bmt")) # can be different than first if duplicated from v1 or v2
 #-----------------------------------------------------------------------------------------------------------------
 RadiationV4 <- 
     readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
@@ -309,6 +321,8 @@ SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), value.var = c("prior_trea
 # write.csv(SCT,paste0(path, "/SCT simplify.csv"))
 # A000302	1	NA	2	NA	2009-06-15	NA	2009-02-26
 #------------------------------------
+# Sequencing <- Sequencing %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
+                                      SLID_germline_1 , .keep_all = TRUE)
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
   arrange(drug_start_date)
 Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 

@@ -99,13 +99,21 @@ Treatment <-
                     sheet = "Treatment") %>%
   select(c("avatar_id","regimen_start_date", "regimen_end_date",
            "drug1_regimen", "drug2_regimen", "drug3_regimen", 
-           "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) #%>% 
+           "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) %>% 
 #   pivot_longer(c(4:10), names_to = "drug_regimen", values_to = "drug_name_",
 #                values_drop_na = TRUE)
 # 
+  rename(drug_start_date = regimen_start_date) %>% 
+  rename(drug_stop_date = regimen_end_date)
 # colnames(Treatment)[which(names(Treatment) == "regimen_start_date")] <- "drug_start_date" 
 # colnames(Treatment)[which(names(Treatment) == "regimen_end_date")] <- "drug_stop_date"
 # colnames(Treatment)[which(names(Treatment) == "drug_regimen")] <- "treatment_line_"
+Qcd_Treatment <-
+  readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
+                    sheet = "QC'd Treatment") %>%
+  select(c("avatar_id","regimen_start_date", "regimen_end_date",
+           "treatment")) %>%
+  `colnames<-`(c("avatar_id","drug_start_date", "drug_stop_date", "drug_name_"))
 #-----------------------------------------------------------------------------------------------------------------
 SCT <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_OUT_02072020.xlsx")),
@@ -144,6 +152,10 @@ TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
                     sheet = "Treatment") %>%
   select(c("avatar_id", "treatment_line_", "drug_start_date" , "drug_name_", "drug_stop_date"))
+Qcd_TreatmentV2 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
+                    sheet = "QC'd Treatment") %>%
+  select(c("avatar_id", "drug_start_date" , "drug_name_", "drug_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
 SCTV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_OUT_02102020.xlsx")),
@@ -205,7 +217,7 @@ SCTV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
                     sheet = "SCT") %>%
   select(c("avatar_id", "date_of_bmt")) %>% 
-  `colnames<-`(c("avatar_id", "date_of_first_bmt"))
+  `colnames<-`(c("avatar_id", "date_of_first_bmt")) # can be different than first if duplicated from v1 or v2
 #-----------------------------------------------------------------------------------------------------------------
 RadiationV4 <- 
     readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
@@ -220,7 +232,7 @@ par(mar=c(4.1, 6.1, 2.1, 2.1)) # bottom left top right
       "BMT" = c(NROW(SCT), NROW(SCTV2), NROW(SCTV4)),
       "Radiation" = c(NROW(RadiationV1), NROW(RadiationV2), NROW(RadiationV4)),
       "Treatment" = c(NROW(Treatment), NROW(TreatmentV2), NROW(TreatmentV4)),
-      "Qc'd Treatment" = c(0, 0, 0)
+      "Qc'd Treatment" = c(NROW(Qcd_Treatment), NROW(Qcd_TreatmentV2), 0)
     ),horiz=TRUE, 
     las = 1,
     main = "Total records per version",
@@ -309,7 +321,27 @@ SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), value.var = c("prior_trea
 # write.csv(SCT,paste0(path, "/SCT simplify.csv"))
 # A000302	1	NA	2	NA	2009-06-15	NA	2009-02-26
 #------------------------------------
+# remove row when QC'd row has no data
+Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
+Qcd_TreatmentV2 <- Qcd_TreatmentV2 %>% drop_na("drug_start_date", "drug_name_")
+# Bind QC'd and Treatment for each version then remove duplicated raws
+Treatment <- bind_rows(Treatment, Qcd_Treatment, .id = "Treatment") %>% 
+  distinct()
+TreatmentV2 <- bind_rows(TreatmentV2, Qcd_TreatmentV2, .id = "Treatment") %>% 
+  distinct() # remove duplicated rows in case
+# Cleanup
+rm(Qcd_Treatment, Qcd_TreatmentV2)
+# Widen V2 and V4
+TreatmentV2 <- TreatmentV2 %>%
+  group_by(avatar_id,drug_start_date, drug_stop_date) %>%
+  summarise(text=paste(drug_name_,collapse=',')) 
+TreatmentV4 <- TreatmentV4 %>%
+  group_by(avatar_id,drug_start_date, drug_stop_date) %>%
+  summarise(drug_name_=paste(drug_name_,collapse=',')) 
+
+# ready to bind
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
+  distinct() %>% 
   arrange(drug_start_date)
 Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
                    value.var = c("drug_start_date", "drug_stop_date", "drug_name_"))

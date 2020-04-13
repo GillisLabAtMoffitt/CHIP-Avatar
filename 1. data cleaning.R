@@ -323,9 +323,9 @@ Qcd_TreatmentV2 <- Qcd_TreatmentV2 %>% drop_na("drug_start_date", "drug_name_")
 # Bind QC'd and Treatment for each version then remove duplicated raws
 _______________________________________
 Treatment <- bind_rows(Treatment, Qcd_Treatment, .id = "Treatment") %>% 
-  distinct()
+  distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_) # remove duplicated rows
 TreatmentV2 <- bind_rows(TreatmentV2, Qcd_TreatmentV2, .id = "Treatment") %>% 
-  distinct() # remove duplicated rows in case
+  distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_) # remove duplicated rows
 # Cleanup
 rm(Qcd_Treatment, Qcd_TreatmentV2)
 # Collapse drug_name_ V1
@@ -333,17 +333,17 @@ rm(Qcd_Treatment, Qcd_TreatmentV2)
 # Widen V2 and V4
 TreatmentV2 <- TreatmentV2 %>%
   group_by(avatar_id,drug_start_date, drug_stop_date) %>%
-  summarise(drug_name_=paste(drug_name_,collapse='; ')) 
+  summarise(drug_name_=paste(drug_name_,collapse='; '))
 TreatmentV4 <- TreatmentV4 %>%
   group_by(avatar_id,drug_start_date, drug_stop_date) %>%
   summarise(drug_name_=paste(drug_name_,collapse='; ')) 
-colnames(Treatment)
+
 # ready to bind
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
   distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_) %>% 
   arrange(drug_start_date)
 Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
-                   value.var = c("drug_start_date", "drug_stop_date", "drug_name_"))
+                   value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
 # write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))
 #------------------------------------
 radiation <- bind_rows(RadiationV2, RadiationV2, RadiationV4, .id = "versionRad") %>% 

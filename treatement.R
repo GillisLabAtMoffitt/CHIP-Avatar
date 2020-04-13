@@ -32,24 +32,39 @@ bb <- for (id in v1$avatar_id) {
 }
 combine(na.omit(v1[,4:50]))
 ##############################################
-TV2 <- dcast(setDT(TreatmentV2), avatar_id ~ rowid(avatar_id), 
-                             value.var = c("treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date"))
+colnames(TreatmentV2)
+
+
+# TV2 <- dcast(setDT(TreatmentV2), avatar_id ~ rowid(avatar_id), 
+#                              value.var = c("treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date"))
 TV22 <- dcast(setDT(TreatmentV2), avatar_id+drug_start_date ~ rowid(avatar_id), 
-             value.var = c("treatment_line_", "drug_name_", "drug_stop_date"))
+             value.var = c("drug_name_", "drug_stop_date"),
+             na.rm = TRUE)
+TVV22 <- dcast.data.table((TreatmentV2), avatar_id+drug_start_date ~ rowid(avatar_id), 
+                          fun.aggregate = sum,
+                          value.var = c("drug_name_"))
+TVv2 <- TreatmentV2 %>% pivot_wider(id_cols = avatar_id, names_from = NULL,
+                                    values_from = "drug_name_")
+TreatmentV2 %>%  plyr::ddply(TreatmentV2, avatar_id, summarize, text=paste(drug_name_, collapse=""))
+
+TreatmentV2 %>%
+  group_by(avatar_id,drug_start_date) %>%
+  summarise(text=paste(drug_name_,collapse=','))
+
+
 TV222 <- dcast(setDT(TreatmentV2), avatar_id+drug_start_date+drug_stop_date ~ rowid(avatar_id), 
+               drop = TRUE,
               value.var = c("treatment_line_", "drug_name_"))
 
 
 
 # We want to have 1 row per regiment/line so we wouldn't need to dcast at the end..
+
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
+  distinct() %>% 
   arrange(drug_start_date)
 Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
                    value.var = c("drug_start_date", "drug_stop_date", "drug_name_"))
-
-
-
-
 
 
 

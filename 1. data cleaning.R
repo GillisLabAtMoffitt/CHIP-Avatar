@@ -347,8 +347,10 @@ TreatmentV4 <- TreatmentV4 %>%
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
   distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_) %>% 
   arrange(drug_start_date)
+#Treatm <- treatment %>% pivot_wider(values_from = drug_name_)
 Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
                    value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
+
 # write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))
 #------------------------------------
 radiation <- bind_rows(RadiationV2, RadiationV2, RadiationV4, .id = "versionRad") %>% 

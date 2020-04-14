@@ -316,19 +316,24 @@ SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), value.var = c("prior_trea
                                                                      "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
 # write.csv(SCT,paste0(path, "/SCT simplify.csv"))
 # A000302	1	NA	2	NA	2009-06-15	NA	2009-02-26
+
 #------------------------------------
 # remove row when QC'd row has no data
 Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
 Qcd_TreatmentV2 <- Qcd_TreatmentV2 %>% drop_na("drug_start_date", "drug_name_")
+# remove the Ids found in Qc'd from the Treatment 
+uid <- paste(unique(Qcd_Treatment$avatar_id), collapse = '|')
+Treatment <- Treatment[(!grepl(uid, Treatment$avatar_id)),]
+uid <- paste(unique(Qcd_TreatmentV2$avatar_id), collapse = '|')
+TreatmentV2 <- TreatmentV2[(!grepl(uid, TreatmentV2$avatar_id)),]
+
 # Bind QC'd and Treatment for each version then remove duplicated raws
-_______________________________________
-Treatment <- bind_rows(Treatment, Qcd_Treatment, .id = "Treatment") %>% 
-  distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_) # remove duplicated rows
-TreatmentV2 <- bind_rows(TreatmentV2, Qcd_TreatmentV2, .id = "Treatment") %>% 
-  distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_) # remove duplicated rows
+Treatment <- bind_rows(Qcd_Treatment, Treatment, .id = "Treatment") %>% 
+  distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_, .keep_all = TRUE) # remove duplicated rows
+TreatmentV2 <- bind_rows(Qcd_TreatmentV2, TreatmentV2, .id = "Treatment") %>% 
+  distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_, .keep_all = TRUE) # remove duplicated rows
 # Cleanup
-rm(Qcd_Treatment, Qcd_TreatmentV2)
-# Collapse drug_name_ V1
+rm(Qcd_Treatment, Qcd_TreatmentV2, uid)
 
 # Widen V2 and V4
 TreatmentV2 <- TreatmentV2 %>%

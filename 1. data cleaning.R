@@ -347,9 +347,37 @@ TreatmentV4 <- TreatmentV4 %>%
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
   distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_) %>% 
   arrange(drug_start_date)
+#Treatm <- treatment %>% pivot_wider(values_from = drug_name_)
 Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
                    value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
+
 # write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))
+
+# Another way of doing it which could be better by pivot longer, 
+# compare and pivot wider but couldn't figure out one last piece
+# TREATMENT <- Treatment
+# 
+# TREATM <- separate(TREATMENT, drug_name_, paste("drug_name_", 1:7, sep="_"), sep = "; ", extra = "warn")
+# TREATME <- TREATM %>% 
+#   pivot_longer(cols = drug_name__1:ncol(TREATM), 
+#                names_to = "line", values_to = "drug_name_", values_drop_na = TRUE)
+# 
+# Qcd_Treat <- separate(Qcd_Treatment, drug_name_, paste("drug_name_", 1:7, sep="_"), sep = "; ", extra = "warn")
+# Qcd_Treate <- Qcd_Treat %>% 
+#   pivot_longer(cols = drug_name__1:ncol(Qcd_Treat), 
+#                names_to = "line", values_to = "drug_name_", values_drop_na = TRUE)
+# 
+# 
+# Treat <- bind_rows(Qcd_Treate, TREATME, .id = "Treatment") %>% 
+#   distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_, .keep_all = TRUE) # remove duplicated rows
+# 
+# Treatm <- dcast(setDT(Treat), avatar_id+drug_start_date ~ rowid(avatar_id), 
+#                 value.var = c("drug_stop_date", "drug_name_"))
+# Treatm <- Treat %>% pivot_wider(names_from = line, values_from = drug_name_)
+# which(Treatm[, c("drug_name__1","drug_name__2")]== "") <-   NA
+# 
+# Treatme <- dcast(setDT(Treatm), avatar_id ~ rowid(avatar_id), 
+#                  value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
 #------------------------------------
 radiation <- bind_rows(RadiationV2, RadiationV2, RadiationV4, .id = "versionRad") %>% 
   arrange(rad_start_date)

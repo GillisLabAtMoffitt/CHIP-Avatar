@@ -8,6 +8,7 @@ data*
 *.log
 *.png
 *.html
+*.jpg
 
 # Ignore data directory or data dir if it is a symlink
 data/*

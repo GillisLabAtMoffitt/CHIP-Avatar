@@ -18,7 +18,9 @@ Germ <-
            "Disease_Status")) %>% 
   `colnames<-`(c("avatar_id","moffitt_sample_id_germline","collectiondt_germline", "WES_HUDSON_ALPHA_germline",
                  "Disease_Status_germline"))
-
+Germ2 <- readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_Germl_Disease_Classification_2patient_from_2nd_sequencingfile.xlsx")) %>% 
+  `colnames<-`(c("avatar_id","moffitt_sample_id_germline","collectiondt_germline", "WES_HUDSON_ALPHA_germline",
+                 "Disease_Status_germline"))
 # We have 510 avatar-id which are unique
 print(paste("We have", length(Germ$avatar_id) ,"subject-id with", 
             length(unique(Germ$avatar_id)) ,"unique id"))
@@ -257,15 +259,15 @@ dev.off()
 
 #######################################################################################  II  ## Bind Version
 #######################################################################################  II  ## Align duplicated ID
-mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
+MM_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
   arrange(date_of_diagnosis)
-MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
+MM_history <- dcast(setDT(MM_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
   select(c("avatar_id", "date_of_diagnosis_1", "disease_stage_1", "date_of_diagnosis_2", "disease_stage_2", "date_of_diagnosis_3", "disease_stage_3",
            "date_of_diagnosis_4", "disease_stage_4", "versionMM_1", "versionMM_2", "versionMM_3", "versionMM_4"))
 # write.csv(MM_history,paste0(path, "/MM_history simplify.csv"))
 #-------------------------------------
-vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, Alc_SmoV4, .id = "versionVit")
-Vitals <- dcast(setDT(vitals), avatar_id ~ rowid(avatar_id), 
+Vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, Alc_SmoV4, .id = "versionVit")
+Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), 
                 value.var = c("vital_status", "date_death", 
                               "date_last_follow_up", "smoking_status", 
                               "current_smoker", "alcohol_use", 
@@ -400,7 +402,7 @@ Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var =
 #------------------------------------
 # Cleaning
 rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
-   Comorbidities, Alc_SmoV4, RadiationV2, RadiationV4)
+   Comorbidities, Alc_SmoV4, RadiationV1, RadiationV2, RadiationV4)
 # Plot
 jpeg("barplot2.jpg", width = 350, height = 350)
 par(mar=c(3.5, 7.1, 4.1, 2.1)) # bottom left top right
@@ -437,7 +439,7 @@ WES_seq <-
     all.x = TRUE,
     all.y = TRUE
   )
-# rm(Sequencing)
+rm(Sequencing)
 # Reshape to have duplicate ID on same row (per date)-------------------------------------------
 # duplicated(WES_seq$moffitt_sample_id_tumor) # No duplicate
 # duplicated(WES_seq$avatar_id) # has duplicate
@@ -499,11 +501,16 @@ Seq_WES_Raghu <-
           "moffitt_sample_id_germline",
           "BaitSet"
         )
-  )
+  ) 
+
 ########### Binds
+Seq_WES_Raghu <- merge.data.frame(Seq_WES_Raghu, Germ2, 
+                          by.x = "avatar_id", by.y = "avatar_id",
+                          all.x = TRUE, all.y = TRUE) 
+
 Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu)
-Germline <- Sequencing %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
-                             SLID_germline_1 , .keep_all = TRUE)
+Germline <- Germline %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
+                             SLID_germline_1 , .keep_all = TRUE) 
 
 ##################################################################################################  IV  ## Merge
 b <- merge.data.frame(Germline[, c("avatar_id", "collectiondt_germline", "Disease_Status_germline", 

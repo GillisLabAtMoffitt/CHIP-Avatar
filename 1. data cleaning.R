@@ -500,16 +500,13 @@ Seq_WES_Raghu <-
           "BaitSet"
         )
   )
-
-
 ########### Binds
-Sequencing <- bind_rows(Combined_data_MM, Seq_WES_Raghu)
-Sequencing <- Sequencing %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
+Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu)
+Germline <- Sequencing %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
                              SLID_germline_1 , .keep_all = TRUE)
-colnames(Sequencing)
 
 ##################################################################################################  IV  ## Merge
-b <- merge.data.frame(Sequencing[, c("avatar_id", "collectiondt_germline", "Disease_Status_germline", 
+b <- merge.data.frame(Germline[, c("avatar_id", "collectiondt_germline", "Disease_Status_germline", 
                                            "collectiondt_tumor_1", "Disease_Status_tumor_1")],
                       MM_history, by.x = "avatar_id", by.y = "avatar_id", 
                       all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))

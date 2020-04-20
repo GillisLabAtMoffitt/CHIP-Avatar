@@ -18,7 +18,9 @@ Germ <-
            "Disease_Status")) %>% 
   `colnames<-`(c("avatar_id","moffitt_sample_id_germline","collectiondt_germline", "WES_HUDSON_ALPHA_germline",
                  "Disease_Status_germline"))
-
+Germ2 <- readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_Germl_Disease_Classification_2patient_from_2nd_sequencingfile.xlsx")) %>% 
+  `colnames<-`(c("avatar_id","moffitt_sample_id_germline","collectiondt_germline", "WES_HUDSON_ALPHA_germline",
+                 "Disease_Status_germline"))
 # We have 510 avatar-id which are unique
 print(paste("We have", length(Germ$avatar_id) ,"subject-id with", 
             length(unique(Germ$avatar_id)) ,"unique id"))
@@ -499,11 +501,15 @@ Seq_WES_Raghu <-
           "moffitt_sample_id_germline",
           "BaitSet"
         )
-  )
+  ) 
+
 ########### Binds
 Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu)
 Germline <- Sequencing %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
-                             SLID_germline_1 , .keep_all = TRUE)
+                             SLID_germline_1 , .keep_all = TRUE) %>% 
+  mutate(collection.dt_germline = ) %>% 
+  mutate(Disease_Status_1 = ) %>% 
+  mutate(moffitt_sample_id = )
 
 ##################################################################################################  IV  ## Merge
 b <- merge.data.frame(Germline[, c("avatar_id", "collectiondt_germline", "Disease_Status_germline", 

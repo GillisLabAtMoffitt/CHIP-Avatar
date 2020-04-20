@@ -1,4 +1,7 @@
-library(VennDiagram)
+# We have 512 unique patient IDs in Sequencing, does they match the treatment
+Treatment$avatar_id == Sequencing$avatar_id # No
+
+
 #library(UpSetR)
 colors3 <- c(viridis::plasma(n = 3))
 colors2 <- c(viridis::plasma(n = 2))
@@ -7,7 +10,7 @@ color4 <- c(viridis::plasma(n = 4))
 color3 <- c(viridis::cividis(n = 3))
 
 venn.diagram(
-  x = list(MM_history$avatar_id, Germ$avatar_id, Demo_RedCap_V4ish$avatar_id),
+  x = list(MM_history$avatar_id, Sequencing$avatar_id, Demo_RedCap_V4ish$avatar_id),
   category.names = c("Clinical data" , "Germline data", "Demographics data"),
   filename = 'Germline and Demo.png',
   output=TRUE,

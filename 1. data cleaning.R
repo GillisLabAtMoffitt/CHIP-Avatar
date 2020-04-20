@@ -1,7 +1,9 @@
 # import library
 library(tidyverse)
 library(data.table)
-
+library(VennDiagram)
+library(viridis)
+library(lubridate)
 
 ##################################################################################################  I  ### Load data
 path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Cassin", "CHIP in Avatar")
@@ -222,7 +224,9 @@ RadiationV4 <-
                                  sheet = "Radiation") %>%
     select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
-par(mar=c(4.1, 6.1, 2.1, 2.1)) # bottom left top right
+jpeg("barplot1.jpg", width = 350, height = 350)
+par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
+par(cex.sub = .7)
   barplot(
     height = cbind(
       "Clinical Data" = c(NROW(MM_history), NROW(MM_historyV2), NROW(MM_historyV4)),
@@ -234,20 +238,22 @@ par(mar=c(4.1, 6.1, 2.1, 2.1)) # bottom left top right
     ),horiz=TRUE, 
     las = 1,
     main = "Total records per version",
-    sub = "A single patient can present multiple record ",
+    sub = "A single patient can present multiple record ", col.sub = "red",
     xlab = "Number records",
     beside = FALSE,
     # width = 1,
-    # ylim = c(0, 3000),
+    xlim = c(0, 3000),
     col = c("purple", "orange", "yellow"),
     #legend.text = c("version1", "version2", "version4"),
     #args.legend = list(x = "bottomright"),
     cex.axis = .8,
-    cex.names = .8
+    cex.names = .8,
+    xpd = TRUE
   )
   legend("bottomright", legend = c("version1", "version2", "version4"),
          col = c("purple", "orange", "yellow"),
-         bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(0.05, 0.05))
+         bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(-0.05, 0.05))
+  dev.off()
 ##################################################################################################  II  ## Bind ### Align duplicated ID
 mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
   arrange(date_of_diagnosis)
@@ -315,7 +321,6 @@ sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>%
 SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), value.var = c("prior_treatment", "number_of_bonemarrow_transplant",
                                                                      "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
 # write.csv(SCT,paste0(path, "/SCT simplify.csv"))
-# A000302	1	NA	2	NA	2009-06-15	NA	2009-02-26
 
 #------------------------------------
 # remove row when QC'd row has no data
@@ -379,15 +384,23 @@ Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id),
 # Treatme <- dcast(setDT(Treatm), avatar_id ~ rowid(avatar_id), 
 #                  value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
 #------------------------------------
-radiation <- bind_rows(RadiationV2, RadiationV2, RadiationV4, .id = "versionRad") %>% 
+# Radiation V1 does't have a date format
+RadiationV1$rad_start_date <- as.POSIXct(strptime(RadiationV1$rad_start_date, 
+                                               format = "%m/%d/%Y", tz = "UTC"))
+RadiationV1$rad_stop_date <- as.POSIXct(strptime(RadiationV1$rad_stop_date, 
+                                              format = "%m/%d/%Y", tz = "UTC"))
+
+radiation <- bind_rows(RadiationV1, RadiationV2, RadiationV4, .id = "versionRad") %>% 
   arrange(rad_start_date)
 Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
                      c("rad_start_date", "rad_stop_date"))
+# write.csv(Radiation,paste0(path, "/Radiation simplify.csv"))
 #------------------------------------
 # Cleaning
 rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
    Comorbidities, Alc_SmoV4, RadiationV2, RadiationV4)
 # Plot
+jpeg("barplot2.jpg", width = 350, height = 350)
 par(mar=c(4.1, 6.1, 4.1, 2.1)) # bottom left top right
 barplot(
   height = cbind(
@@ -398,13 +411,13 @@ barplot(
     "Radiation" = NROW(Radiation)
   ), horiz=TRUE, 
   las = 1, 
-  main = "Nbr of record in each file tab",
-  xlim = c(0, 700),
+  main = "Nbr of unique patient ID recorded in each file tab",
+  #xlim = c(0, 700),
   col = "#69b3a2",
   cex.axis = .8,
   cex.names = .8
   )
-
+dev.off()
 ##################################################################################################  III  # Merge WES and Sequencing
 # Are moffitt_sample_id are equal in WES and Sequencing ?
 # Sequencing <- Sequencing[order(Sequencing$moffitt_sample_id),]

@@ -1,9 +1,11 @@
 # import library
 library(tidyverse)
 library(data.table)
+library(VennDiagram)
+library(viridis)
+library(lubridate)
 
-
-##################################################################################################  I  ### Load data
+#######################################################################################  I  ### Load data
 path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Cassin", "CHIP in Avatar")
 #-----------------------------------------------------------------------------------------------------------------
 Demo_RedCap_V4ish <-
@@ -222,33 +224,39 @@ RadiationV4 <-
                                  sheet = "Radiation") %>%
     select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
-par(mar=c(4.1, 6.1, 2.1, 2.1)) # bottom left top right
-  barplot(
-    height = cbind(
+jpeg("barplot1.jpg", width = 350, height = 350)
+par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
+par(cex.sub = .7)
+barplot(
+  height = cbind(
       "Clinical Data" = c(NROW(MM_history), NROW(MM_historyV2), NROW(MM_historyV4)),
       "Vitals" = c(NROW(Vitals), NROW(VitalsV2), NROW(VitalsV4)),
       "BMT" = c(NROW(SCT), NROW(SCTV2), NROW(SCTV4)),
       "Radiation" = c(NROW(RadiationV1), NROW(RadiationV2), NROW(RadiationV4)),
       "Treatment" = c(NROW(Treatment), NROW(TreatmentV2), NROW(TreatmentV4)),
       "Qc'd Treatment" = c(NROW(Qcd_Treatment), NROW(Qcd_TreatmentV2), 0)
-    ),horiz=TRUE, 
-    las = 1,
-    main = "Total records per version",
-    sub = "A single patient can present multiple record ",
-    xlab = "Number records",
-    beside = FALSE,
-    # width = 1,
-    # ylim = c(0, 3000),
-    col = c("purple", "orange", "yellow"),
-    #legend.text = c("version1", "version2", "version4"),
-    #args.legend = list(x = "bottomright"),
-    cex.axis = .8,
-    cex.names = .8
+      ),horiz=TRUE, 
+  las = 1,
+  main = "Total records per version",
+  sub = "A single patient can present multiple record ", col.sub = "red",
+  xlab = "Number records",
+  beside = FALSE,
+  # width = 1,
+  xlim = c(0, 3000),
+  col = c("purple", "orange", "yellow"),
+  #legend.text = c("version1", "version2", "version4"),
+  #args.legend = list(x = "bottomright"),
+  cex.axis = .8,
+  cex.names = .8,
+  xpd = TRUE
   )
-  legend("bottomright", legend = c("version1", "version2", "version4"),
-         col = c("purple", "orange", "yellow"),
-         bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(0.05, 0.05))
-##################################################################################################  II  ## Bind ### Align duplicated ID
+legend("bottomright", legend = c("version1", "version2", "version4"),
+       col = c("purple", "orange", "yellow"),
+       bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(-0.05, 0.05))
+dev.off()
+
+#######################################################################################  II  ## Bind Version
+#######################################################################################  II  ## Align duplicated ID
 mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
   arrange(date_of_diagnosis)
 MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
@@ -315,7 +323,6 @@ sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>%
 SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), value.var = c("prior_treatment", "number_of_bonemarrow_transplant",
                                                                      "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
 # write.csv(SCT,paste0(path, "/SCT simplify.csv"))
-# A000302	1	NA	2	NA	2009-06-15	NA	2009-02-26
 
 #------------------------------------
 # remove row when QC'd row has no data
@@ -379,16 +386,24 @@ Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id),
 # Treatme <- dcast(setDT(Treatm), avatar_id ~ rowid(avatar_id), 
 #                  value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
 #------------------------------------
-radiation <- bind_rows(RadiationV2, RadiationV2, RadiationV4, .id = "versionRad") %>% 
+# Radiation V1 does't have a date format
+RadiationV1$rad_start_date <- as.POSIXct(strptime(RadiationV1$rad_start_date, 
+                                               format = "%m/%d/%Y", tz = "UTC"))
+RadiationV1$rad_stop_date <- as.POSIXct(strptime(RadiationV1$rad_stop_date, 
+                                              format = "%m/%d/%Y", tz = "UTC"))
+
+radiation <- bind_rows(RadiationV1, RadiationV2, RadiationV4, .id = "versionRad") %>% 
   arrange(rad_start_date)
 Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
                      c("rad_start_date", "rad_stop_date"))
+# write.csv(Radiation,paste0(path, "/Radiation simplify.csv"))
 #------------------------------------
 # Cleaning
 rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
    Comorbidities, Alc_SmoV4, RadiationV2, RadiationV4)
 # Plot
-par(mar=c(4.1, 6.1, 4.1, 2.1)) # bottom left top right
+jpeg("barplot2.jpg", width = 350, height = 350)
+par(mar=c(3.5, 7.1, 4.1, 2.1)) # bottom left top right
 barplot(
   height = cbind(
     "Desease History" = NROW(MM_history),
@@ -398,14 +413,17 @@ barplot(
     "Radiation" = NROW(Radiation)
   ), horiz=TRUE, 
   las = 1, 
-  main = "Nbr of record in each file tab",
-  xlim = c(0, 700),
+  main = "Nbr of unique patient ID recorded \nin each file tab",
+  cex.main = 1,
+  #xlim = c(0, 700),
   col = "#69b3a2",
   cex.axis = .8,
   cex.names = .8
-  )
+)
+dev.off()
 
-##################################################################################################  III  # Merge WES and Sequencing
+#######################################################################################  III  # Merge WES and Sequencing
+#######################################################################################  III  # For 1st sequencing file
 # Are moffitt_sample_id are equal in WES and Sequencing ?
 # Sequencing <- Sequencing[order(Sequencing$moffitt_sample_id),]
 # WES <- WES[order(WES$moffitt_sample_id),]
@@ -420,10 +438,7 @@ WES_seq <-
     all.y = TRUE
   )
 # rm(Sequencing)
-#Align duplicate on same row (per date)-------------------------------------------
-# Check for duplicate
-colnames(WES_seq)
-
+# Reshape to have duplicate ID on same row (per date)-------------------------------------------
 # duplicated(WES_seq$moffitt_sample_id_tumor) # No duplicate
 # duplicated(WES_seq$avatar_id) # has duplicate
 
@@ -432,18 +447,16 @@ WES_seq <- WES_seq[order(WES_seq$collectiondt_tumor), ]
 WES_seq <-
   dcast(setDT(WES_seq), avatar_id ~ rowid(avatar_id),
     value.var = c(
-      "SLID_tumor",
-      "moffitt_sample_id_tumor",
-      "Disease_Status_tumor",
-      "collectiondt_tumor",
       "SLID_germline",
       "moffitt_sample_id_germline",
       "BaitSet",
-      "ClinicalSpecimenLinkage_WES.Batch"
+      "ClinicalSpecimenLinkage_WES.Batch",
+      "SLID_tumor",
+      "moffitt_sample_id_tumor",
+      "Disease_Status_tumor",
+      "collectiondt_tumor"
     )
   )
-
-
 # WES_seq <-WES_seq[, c("avatar_id", "Disease_Status_tumor_1", "collectiondt_tumor_1", "SLID_germline_1", "SLID_tumor_1", "moffitt_sample_id_tumor_1",
 #               "moffitt_sample_id_germline_1", "BaitSet_1", "ClinicalSpecimenLinkage_WES.Batch_1",
 #               "Disease_Status_tumor_2", "collectiondt_tumor_2", "SLID_germline_2", "SLID_tumor_2", "moffitt_sample_id_tumor_2", 
@@ -467,12 +480,13 @@ WES_seq  <- WES_seq[order(WES_seq$collectiondt_tumor_1), ] %>%
 colnames(Germ)
 
 # Merge with Organized_WES
-Combined_data_MM <- merge.data.frame(WES_seq, Germ, 
+Combined_data_MM <- merge.data.frame(Germ, WES_seq,
                                      by.x = "avatar_id", by.y = "avatar_id", 
                                      all.x = TRUE, all.y = TRUE)
-colnames(Combined_data_MM)
 # write.csv(Combined_data_MM, paste0(path, "/Combined data and dates MM.csv"))
 # I checked the ID they are all the same no missing nor added
+
+#######################################################################################  III  # For 2nd sequencing file
 # Really important to order by dates otherwise cannot find the duplicated lines
 Seq_WES_Raghu <- Seq_WES_Raghu[order(Seq_WES_Raghu$collectiondt_tumor), ]
 Seq_WES_Raghu <-
@@ -486,16 +500,13 @@ Seq_WES_Raghu <-
           "BaitSet"
         )
   )
-
-
 ########### Binds
-Sequencing <- bind_rows(Combined_data_MM, Seq_WES_Raghu)
-Sequencing <- Sequencing %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
+Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu)
+Germline <- Sequencing %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
                              SLID_germline_1 , .keep_all = TRUE)
-colnames(Sequencing)
 
 ##################################################################################################  IV  ## Merge
-b <- merge.data.frame(Sequencing[, c("avatar_id", "collectiondt_germline", "Disease_Status_germline", 
+b <- merge.data.frame(Germline[, c("avatar_id", "collectiondt_germline", "Disease_Status_germline", 
                                            "collectiondt_tumor_1", "Disease_Status_tumor_1")],
                       MM_history, by.x = "avatar_id", by.y = "avatar_id", 
                       all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))

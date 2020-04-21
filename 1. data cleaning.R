@@ -254,7 +254,7 @@ barplot(
   )
 legend("bottomright", legend = c("version1", "version2", "version4"),
        col = c("purple", "orange", "yellow"),
-       bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(-0.05, 0.05))
+       bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(-0.05, 0.05)) # horiz, vert
 dev.off()
 
 #######################################################################################  II  ## Bind Version

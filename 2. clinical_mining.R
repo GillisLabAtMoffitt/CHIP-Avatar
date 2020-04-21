@@ -1,5 +1,5 @@
 # We have 512 unique patient IDs in Sequencing, does they match the treatment
-Treatment$avatar_id == Sequencing$avatar_id # No
+Treatment$avatar_id == Germline$avatar_id # No
 
 #library(UpSetR)
 
@@ -248,9 +248,69 @@ venn.diagram(
   cat.default.pos = "outer",
   cat.pos = c(200, 165, 0), # germ treat
   cat.dist = c(0.020, -0.035, 0.045), # x BMT germ
-  cat.fontfamily = "sans",
-  rotation = -100
+  cat.fontfamily = "sans"
 )
+library(RColorBrewer)
+###################################################################################################  I  ## Venn 1
+# Restart from the Global_data
+# Who had BMT or/and drugs in the germline available patient samples
+
+Global_data <- Global_data#[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
+# "number_of_bonemarrow_transplant_1", "number_of_bonemarrow_transplant_2","date_of_first_bmt_1", "date_of_second_bmt_1", "date_of_third_bmt_1", 
+# 
+# "collectiondt.germline", "Disease_Status.germline", "collectiondt_1", "Disease_Status_1",
+# 
+# "vital_status", "date_death", "date_last_follow_up", "last_date_available", 
+# 
+# "prior_treatment_1", "prior_treatment_2",
+# "drug_start_date_1",
+# 
+# "rad_start_date_1", "rad_start_date_2", "rad_stop_date_1", "rad_stop_date_2",                  
+# 
+# "smoking_status", "alcohol_use",
+# 
+# "bmi_at_dx_v2", "Gender", "Ethnicity", "Race", "versionMM_1")]
+
+# nbr of germline collection
+germ_available <-  Global_data[which(!is.na(Global_data$collectiondt_germline)),]
+NROW(germ_available) #512
+# nbr tcc id
+NROW(which(!is.na(germ_available$TCC_ID))) # 510
+# nbr birth
+NROW(which(!is.na(germ_available$Date_of_Birth))) # 510
+# nbr death
+NROW(which(!is.na(germ_available$date_death))) # 83
+# nbr diag
+NROW(which(!is.na(germ_available$date_of_diagnosis_1))) # 507
+
+# nbr had bmt1 
+NROW(which(!is.na(germ_available$date_of_first_bmt_1))) # 240
+bmtINgerm <- germ_available[which(!is.na(germ_available$date_of_first_bmt_1)),]
+# nbr had drug1
+NROW(which(!is.na(germ_available$drug_start_date_1))) # 416
+drugINgerm <- germ_available[which(!is.na(germ_available$drug_start_date_1)),]
+# nbr commun in bmt1 and drug
+had_GERM_BMT_DRUGS <- germ_available[which(!is.na(bmtINgerm$drug_start_date_1)),] # 240
+NROW(which(!is.na(drugINgerm$date_of_first_bmt_1))) # same
+NROW(which(!is.na(bmtINgerm$drug_start_date_1)))
+
+
+myCol1 <- brewer.pal(3, "Pastel1")
+myCol2 <- brewer.pal(3, "Pastel2")
+
+draw.triple.venn(nrow(germ_available), 
+                 nrow(bmtINgerm),
+                 nrow(drugINgerm),
+                 n12 = nrow(bmtINgerm), n23 = nrow(had_GERM_BMT_DRUGS),
+                 n13 = nrow(drugINgerm), n123 = nrow(had_GERM_BMT_DRUGS),
+                 category = c("all germline", "had BMT1", "had drugs"), 
+                 # col = "transparent" make cercle line transparent
+                 fill = myCol1, # circle filling color
+                 # alpha = c(.2, .3, .3), # circle filling transparency 1 = solide
+                 cex = 1, fontface = "bold", fontfamily = "sans",
+                 cat.col = c("darkgreen", "red", "blue"), # label color
+                 cat.pos = c(-25,5,25), cat.dist = c(0,0,0),
+                 cat.cex = 1, cat.fontface = "bold")
 ################################################################################# TABLE disease status year ####
 head(Combined_data_MM)
 Combined_data_MM$Disease_Status_germline
@@ -381,7 +441,6 @@ rm(
   SmolderingMM,
   Solitary_Plasmacytoma,
   Walderstrom,
-  Yearofsamplecollection,
-  col_date
+  Yearofsamplecollection
 )
 

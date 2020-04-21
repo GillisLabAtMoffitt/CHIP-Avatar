@@ -3,7 +3,7 @@
 
 ##################################################################################################  I  ### Germline date VS other
 
-f <- f %>% 
+f <- Global_data %>% 
   mutate(check_birthBFlastdate = case_when(
     last_date_available > Date_of_Birth ~ "OK",
     last_date_available == Date_of_Birth |
@@ -24,42 +24,42 @@ f <- f %>%
       date_of_diagnosis_1 < last_date_available  ~ "OK"
   )) %>% 
   mutate(germlineBFdrugs = case_when(
-    collectiondt.germline > drug_start_date_1 ~ ":(",
-    collectiondt.germline <= drug_start_date_1 ~ "OK"
+    collectiondt_germline > drug_start_date_1 ~ ":(",
+    collectiondt_germline <= drug_start_date_1 ~ "OK"
   )) %>% 
   mutate(germlineBFbmt1 = case_when(
-    collectiondt.germline > date_of_first_bmt_1  ~ ":(",
-    collectiondt.germline < date_of_first_bmt_1  ~ "OK",
-    collectiondt.germline == date_of_first_bmt_1 ~ "same date"
+    collectiondt_germline > date_of_first_bmt_1  ~ ":(",
+    collectiondt_germline < date_of_first_bmt_1  ~ "OK",
+    collectiondt_germline == date_of_first_bmt_1 ~ "same date"
   )) %>% 
   mutate(germlineBFbmt2 = case_when(
-    collectiondt.germline > date_of_second_bmt_1  ~ ":(",
-    collectiondt.germline < date_of_second_bmt_1  ~ "OK",
-    collectiondt.germline == date_of_second_bmt_1 ~ "same date"
+    collectiondt_germline > date_of_second_bmt_1  ~ ":(",
+    collectiondt_germline < date_of_second_bmt_1  ~ "OK",
+    collectiondt_germline == date_of_second_bmt_1 ~ "same date"
   )) %>% 
   mutate(germlineBFbmt3 = case_when(
-    collectiondt.germline > date_of_third_bmt_1 ~ ":(",
-    collectiondt.germline < date_of_third_bmt_1 ~ "OK",
-    collectiondt.germline == date_of_third_bmt_1 ~ "same date"
+    collectiondt_germline > date_of_third_bmt_1 ~ ":(",
+    collectiondt_germline < date_of_third_bmt_1 ~ "OK",
+    collectiondt_germline == date_of_third_bmt_1 ~ "same date"
   )) %>% 
   mutate(germlineBFrad1 = case_when(
-    collectiondt.germline < rad_start_date_1 ~ "OK",
-    collectiondt.germline > rad_start_date_1 ~ "No",
-    collectiondt.germline == rad_start_date_1 ~ "same date"
+    collectiondt_germline < rad_start_date_1 ~ "OK",
+    collectiondt_germline > rad_start_date_1 ~ "No",
+    collectiondt_germline == rad_start_date_1 ~ "same date"
   )) %>% 
   mutate(germlineBFrad2 = case_when(
-    collectiondt.germline < rad_start_date_2 ~ "OK",
-    collectiondt.germline > rad_start_date_2 ~ "No",
-    collectiondt.germline == rad_start_date_2 ~ "same date"
+    collectiondt_germline < rad_start_date_2 ~ "OK",
+    collectiondt_germline > rad_start_date_2 ~ "No",
+    collectiondt_germline == rad_start_date_2 ~ "same date"
   )) %>% 
   mutate(germBFdrugsbmt1 = case_when(
-    collectiondt.germline <= drug_start_date_1 &
-      collectiondt.germline < date_of_first_bmt_1  ~ "OK"
+    collectiondt_germline <= drug_start_date_1 &
+      collectiondt_germline < date_of_first_bmt_1  ~ "OK"
   )) %>% 
   mutate(germBFdbr = case_when(
-    collectiondt.germline < drug_start_date_1 &
-      collectiondt.germline < date_of_first_bmt_1 &
-      collectiondt.germline < rad_start_date_1 ~ "OK"
+    collectiondt_germline < drug_start_date_1 &
+      collectiondt_germline < date_of_first_bmt_1 &
+      collectiondt_germline < rad_start_date_1 ~ "OK"
   )) %>% 
   mutate(bmt1_BF_drug = case_when(
     date_of_first_bmt_1 < drug_start_date_1 ~ "OK",
@@ -71,12 +71,12 @@ f <- f %>%
   )) %>% 
   mutate(GandBmt1BEFOREdrug = case_when(
     date_of_first_bmt_1 < drug_start_date_1 &
-      collectiondt.germline < drug_start_date_1 ~ "OK"
+      collectiondt_germline < drug_start_date_1 ~ "OK"
   )) %>% 
   mutate(GermBFtumorWES = case_when(
-    collectiondt.germline < collectiondt_1 ~ "Germ first",
-    collectiondt.germline > collectiondt_1 ~ "tumorWES first",
-    collectiondt.germline == collectiondt_1 ~ "same date"
+    collectiondt_germline < collectiondt_tumor_1 ~ "Germ first",
+    collectiondt_germline > collectiondt_tumor_1 ~ "tumorWES first",
+    collectiondt_germline == collectiondt_tumor_1 ~ "same date"
   ))
 
 # write.csv(f, paste0(path, "/compared germline dates and Demographics.csv"))
@@ -94,7 +94,7 @@ germline_compared_dates <-matrix(
     "last date available", sum(!is.na(f$last_date_available)),  "", "death date available", sum(!is.na(f$date_death_1)), "",
     "nbr of patients born before last date", sum(str_count(f$check_birthBFlastdate, "OK"), na.rm = TRUE), "",
     "nbr of patients diag before last date", sum(str_count(f$check_diagBFlastdate, "OK"), na.rm = TRUE), "3 patients present same date diagnosis/last day",
-    "germline date available", sum(!is.na(f$collectiondt.germline)),  "",
+    "germline date available", sum(!is.na(f$collectiondt_germline)),  "",
     "drug date available", sum(!is.na(f$drug_start_date_1)),  "",
     "bmt1 date available", sum(!is.na(f$date_of_first_bmt_1)),  "",
     "rad date available", sum(!is.na(f$rad_start_date_1)),  "",
@@ -111,11 +111,10 @@ germline_compared_dates <- as.table(germline_compared_dates)
 germline_compared_dates
 # write.csv(germline_compared_dates, paste0(path, "table compared germline dates and Demographics.csv"))
 
-rm(a,b,c,d,e, germline_compared_dates)
+rm(a, germline_compared_dates)
 
 
 #------------------------------------------------------------- Venn
-colors2 <- c(viridis::magma(n = 2))
 germ_BF_drugs <- f[which(f$germlineBFdrugs =="OK"),]
 germ_BF_bmt1 <- f[which(f$germlineBFbmt1 == "OK"),]
 germ_BF_drugsBMT <- f[which(f$germBEFOREdrugsBMT == "OK"),]
@@ -136,7 +135,7 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = colors2,
+  fill = m2,
   margin = 0.09,
   
   # Numbers
@@ -148,11 +147,11 @@ venn.diagram(
   cat.cex = .8
 )
 
-color3 <- c(viridis::magma(n = 3))
+
 # germ_BF_drugs <- f[which(f$germlineBFdrugs =="OK"),]
 # germ_BF_bmt1 <- f[which(f$germlineBFbmt1 == "OK"),]
 # germ_BF_drugsBMT <- f[which(f$germBEFOREdrugsBMT == "OK"),]
-germ_available <-  f[which(!is.na(f$collectiondt.germline)),]
+germ_available <-  f[which(!is.na(f$collectiondt_germline)),]
 
 venn.diagram(
   x = list(germ_available$avatar_id, germ_BF_drugs$avatar_id, germ_BF_bmt1$avatar_id),
@@ -257,7 +256,7 @@ disease_stat_germVStreatment
 
 temp <- germ_BF_drugs[(germ_BF_drugs$Disease_Status.germline == "Early Relapse Multiple Myeloma"), c("avatar_id", "Date_of_Birth", "date_of_diagnosis_1",
                                                                                              "date_of_first_bmt_1", "GermBFtumorWES",
-                                                                                             "collectiondt.germline","Disease_Status.germline", 
+                                                                                             "collectiondt_germline","Disease_Status.germline", 
                                                                                              "collectiondt_1", "Disease_Status_1",
                                                                                              "date_death_1", "date_last_follow_up_1",
                                                                                              "date_last_follow_up_2", "drug_start_date_1",

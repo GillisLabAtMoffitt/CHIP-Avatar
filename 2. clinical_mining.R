@@ -1,13 +1,19 @@
 # We have 512 unique patient IDs in Sequencing, does they match the treatment
-Treatment$avatar_id == Sequencing$avatar_id # No
-
+Treatment$avatar_id == Germline$avatar_id # No
 
 #library(UpSetR)
-colors3 <- c(viridis::plasma(n = 3))
-colors2 <- c(viridis::plasma(n = 2))
-colors4 <- c(viridis::inferno(n = 4))
-color4 <- c(viridis::plasma(n = 4))
-color3 <- c(viridis::cividis(n = 3))
+
+color_vir <- list(p2 <- c(viridis::plasma(n = 2)),
+                  p3 <- c(viridis::plasma(n = 3)),
+                  p4 <- c(viridis::plasma(n = 4)),
+                  m2 <- c(viridis::magma(n = 2)),
+                  m3 <- c(viridis::magma(n = 3)),
+                  m4 <- c(viridis::magma(n = 4)),
+                  i3 <- c(viridis::inferno(n = 3)),
+                  i4 <- c(viridis::inferno(n = 4)),
+                  c3 <- c(viridis::cividis(n = 3)),
+                  c4 <- c(viridis::cividis(n = 4)),
+                  c5 <- c(viridis::cividis(n = 5)))
 
 venn.diagram(
   x = list(MM_history$avatar_id, Germline$avatar_id, Demo_RedCap_V4ish$avatar_id),
@@ -25,7 +31,7 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = color3,
+  fill = c3,
   margin = 0.2,
   
   # Numbers
@@ -114,7 +120,7 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = color4,
+  fill = p4,
   margin = 0.2,
   
   # Numbers
@@ -142,7 +148,7 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = colors2,
+  fill = p2,
   margin = 0.05,
   
   # Numbers
@@ -172,7 +178,7 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = colors4,
+  fill = i4,
   margin = 0.2,
   
   # Numbers
@@ -201,7 +207,7 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = viridis::cividis(n=5),
+  fill = c5,
   margin = 0.2,
   
   # Numbers
@@ -229,7 +235,7 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = viridis::cividis(n=3) ,
+  fill = c3,
   
   # Numbers
   cex = .6,
@@ -240,32 +246,90 @@ venn.diagram(
   cat.cex = 0.6,
   cat.fontface = "bold",
   cat.default.pos = "outer",
-  cat.pos = c(-27, 27, 135),
-  cat.dist = c(0.055, 0.055, 0.015),
-  cat.fontfamily = "sans",
-  rotation = 1
+  cat.pos = c(200, 165, 0), # germ treat
+  cat.dist = c(0.020, -0.035, 0.045), # x BMT germ
+  cat.fontfamily = "sans"
 )
+library(RColorBrewer)
+###################################################################################################  I  ## Venn 1
+# Restart from the Global_data
+# Who had BMT or/and drugs in the germline available patient samples
+
+Global_data <- Global_data#[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
+# "number_of_bonemarrow_transplant_1", "number_of_bonemarrow_transplant_2","date_of_first_bmt_1", "date_of_second_bmt_1", "date_of_third_bmt_1", 
+# 
+# "collectiondt.germline", "Disease_Status.germline", "collectiondt_1", "Disease_Status_1",
+# 
+# "vital_status", "date_death", "date_last_follow_up", "last_date_available", 
+# 
+# "prior_treatment_1", "prior_treatment_2",
+# "drug_start_date_1",
+# 
+# "rad_start_date_1", "rad_start_date_2", "rad_stop_date_1", "rad_stop_date_2",                  
+# 
+# "smoking_status", "alcohol_use",
+# 
+# "bmi_at_dx_v2", "Gender", "Ethnicity", "Race", "versionMM_1")]
+
+# nbr of germline collection
+germ_available <-  Global_data[which(!is.na(Global_data$collectiondt_germline)),]
+NROW(germ_available) #512
+# nbr tcc id
+NROW(which(!is.na(germ_available$TCC_ID))) # 510
+# nbr birth
+NROW(which(!is.na(germ_available$Date_of_Birth))) # 510
+# nbr death
+NROW(which(!is.na(germ_available$date_death))) # 83
+# nbr diag
+NROW(which(!is.na(germ_available$date_of_diagnosis_1))) # 507
+
+# nbr had bmt1 
+NROW(which(!is.na(germ_available$date_of_first_bmt_1))) # 240
+bmtINgerm <- germ_available[which(!is.na(germ_available$date_of_first_bmt_1)),]
+# nbr had drug1
+NROW(which(!is.na(germ_available$drug_start_date_1))) # 416
+drugINgerm <- germ_available[which(!is.na(germ_available$drug_start_date_1)),]
+# nbr commun in bmt1 and drug
+had_GERM_BMT_DRUGS <- germ_available[which(!is.na(bmtINgerm$drug_start_date_1)),] # 240
+NROW(which(!is.na(drugINgerm$date_of_first_bmt_1))) # same
+NROW(which(!is.na(bmtINgerm$drug_start_date_1)))
+
+
+myCol1 <- brewer.pal(3, "Pastel1")
+myCol2 <- brewer.pal(3, "Pastel2")
+
+draw.triple.venn(nrow(germ_available), 
+                 nrow(bmtINgerm),
+                 nrow(drugINgerm),
+                 n12 = nrow(bmtINgerm), n23 = nrow(had_GERM_BMT_DRUGS),
+                 n13 = nrow(drugINgerm), n123 = nrow(had_GERM_BMT_DRUGS),
+                 category = c("all germline", "had BMT1", "had drugs"), 
+                 # col = "transparent" make cercle line transparent
+                 fill = myCol1, # circle filling color
+                 # alpha = c(.2, .3, .3), # circle filling transparency 1 = solide
+                 cex = 1, fontface = "bold", fontfamily = "sans",
+                 cat.col = c("darkgreen", "red", "blue"), # label color
+                 cat.pos = c(-25,5,25), cat.dist = c(0,0,0),
+                 cat.cex = 1, cat.fontface = "bold")
 ################################################################################# TABLE disease status year ####
 head(Combined_data_MM)
-Combined_data_MM$Disease_Status.germline
-Disease_status_table <- table(Combined_data_MM$Disease_Status.germline)
-Disease_status_table <- as.table(Disease_status_table)
-# write.csv(Disease_status_table, paste0(path, "/Disease status table.csv"))
-
+Combined_data_MM$Disease_Status_germline
+Disease_status_table <- table(Combined_data_MM$Disease_Status_germline)
+write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
 
 ################################################################################# TABLE Year of germline sample collection ####
-Amyloidosis_Diagnostic <- which(Combined_data_MM$Disease_Status.germline == "Amyloidosis- Diagnostic marrow")#1  
-Early_Relapse <- which(Combined_data_MM$Disease_Status.germline == "Early Relapse Multiple Myeloma") # 208 
-Late_Relapse <- which(Combined_data_MM$Disease_Status.germline == "Late Relapse Multiple Myeloma")  #66  
-Mgus <- which(Combined_data_MM$Disease_Status.germline == "Mgus") #50
-Myelofib <- which(Combined_data_MM$Disease_Status.germline == "MYELOFIBROSIS")    #1                                 
-Normal_marrow <- which(Combined_data_MM$Disease_Status.germline == "Normal marrow") #1
-Post_Treat <-which(Combined_data_MM$Disease_Status.germline == "Post Treatment Newly Diagnosed Multiple Myeloma")  #9 
-Refractory_anemia <- which(Combined_data_MM$Disease_Status.germline == "Refractory anemia with ring sideroblasts")  #1                  
-SmolderingMM <- which(Combined_data_MM$Disease_Status.germline == "Smoldering Multiple Myeloma") #47
-Solitary_Plasmacytoma <- which(Combined_data_MM$Disease_Status.germline == "Solitary Plasmacytoma")    #4              
-Walderstrom <- which(Combined_data_MM$Disease_Status.germline == "WALDENSTROM MACROGLOBULINEMIA") #1
-Pre_Treat <- which(Combined_data_MM$Disease_Status.germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") #117
+Amyloidosis_Diagnostic <- which(Combined_data_MM$Disease_Status_germline == "Amyloidosis- Diagnostic marrow")#1  
+Early_Relapse <- which(Combined_data_MM$Disease_Status_germline == "Early Relapse Multiple Myeloma") # 208 
+Late_Relapse <- which(Combined_data_MM$Disease_Status_germline == "Late Relapse Multiple Myeloma")  #66  
+Mgus <- which(Combined_data_MM$Disease_Status_germline == "Mgus") #50
+Myelofib <- which(Combined_data_MM$Disease_Status_germline == "MYELOFIBROSIS")    #1                                 
+Normal_marrow <- which(Combined_data_MM$Disease_Status_germline == "Normal marrow") #1
+Post_Treat <-which(Combined_data_MM$Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma")  #9 
+Refractory_anemia <- which(Combined_data_MM$Disease_Status_germline == "Refractory anemia with ring sideroblasts")  #1                  
+SmolderingMM <- which(Combined_data_MM$Disease_Status_germline == "Smoldering Multiple Myeloma") #47
+Solitary_Plasmacytoma <- which(Combined_data_MM$Disease_Status_germline == "Solitary Plasmacytoma")    #4              
+Walderstrom <- which(Combined_data_MM$Disease_Status_germline == "WALDENSTROM MACROGLOBULINEMIA") #1
+Pre_Treat <- which(Combined_data_MM$Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") #117
 
 Pre_Treat <- Combined_data_MM[Pre_Treat, ]
 Post_Treat <- Combined_data_MM[Post_Treat, ]
@@ -280,89 +344,89 @@ SmolderingMM <- Combined_data_MM[SmolderingMM, ]
 Solitary_Plasmacytoma <- Combined_data_MM[Solitary_Plasmacytoma, ]
 Walderstrom <- Combined_data_MM[Walderstrom, ]
 
-col_date <- matrix(
+disease_staus_by_year <- matrix(
   c("group", "nbr of patients", "earliest date", "latest date","2011", "2012", "2013","2014","2015","2016","2017","2018","2019",
     
-    "General", nrow(Combined_data_MM), as.character(min(Combined_data_MM$collectiondt.germline)), as.character(max(Combined_data_MM$collectiondt.germline)), 
-    sum(str_count(Combined_data_MM$collectiondt.germline, "2011")),sum(str_count(Combined_data_MM$collectiondt.germline, "2012")),sum(str_count(Combined_data_MM$collectiondt.germline, "2013")),
-    sum(str_count(Combined_data_MM$collectiondt.germline, "2014")),sum(str_count(Combined_data_MM$collectiondt.germline, "2015")),sum(str_count(Combined_data_MM$collectiondt.germline, "2016")),
-    sum(str_count(Combined_data_MM$collectiondt.germline, "2015")),sum(str_count(Combined_data_MM$collectiondt.germline, "2018")),sum(str_count(Combined_data_MM$collectiondt.germline, "2019")),
-    "Pre Treatment Newly Diagnosed", nrow(Pre_Treat), as.character(min(Pre_Treat$collectiondt.germline)),as.character(max(Pre_Treat$collectiondt.germline)),
-    sum(str_count(Pre_Treat$collectiondt.germline, "2011")),sum(str_count(Pre_Treat$collectiondt.germline, "2012")),
-    sum(str_count(Pre_Treat$collectiondt.germline, "2013")),sum(str_count(Pre_Treat$collectiondt.germline, "2014")),
-    sum(str_count(Pre_Treat$collectiondt.germline, "2015")),sum(str_count(Pre_Treat$collectiondt.germline, "2016")),
-    sum(str_count(Pre_Treat$collectiondt.germline, "2017")),sum(str_count(Pre_Treat$collectiondt.germline, "2018")),
-    sum(str_count(Pre_Treat$collectiondt.germline, "2019")),
-    "Post Treatment Newly Diagnosed", nrow(Normal_marrow), as.character(min(Normal_marrow$collectiondt.germline)),as.character(max(Normal_marrow$collectiondt.germline)),
-    sum(str_count(Normal_marrow$collectiondt.germline, "2011")),sum(str_count(Normal_marrow$collectiondt.germline, "2012")),
-    sum(str_count(Normal_marrow$collectiondt.germline, "2013")),sum(str_count(Normal_marrow$collectiondt.germline, "2014")),
-    sum(str_count(Normal_marrow$collectiondt.germline, "2015")),sum(str_count(Normal_marrow$collectiondt.germline, "2016")),
-    sum(str_count(Normal_marrow$collectiondt.germline, "2017")),sum(str_count(Normal_marrow$collectiondt.germline, "2018")),
-    sum(str_count(Normal_marrow$collectiondt.germline, "2019")),
-    "Amyloidosis-Diagnostic marrow", nrow(Amyloidosis_Diagnostic), as.character(min(Amyloidosis_Diagnostic$collectiondt.germline)),as.character(max(Amyloidosis_Diagnostic$collectiondt.germline)),
-    sum(str_count(Amyloidosis_Diagnostic$collectiondt.germline, "2011")),sum(str_count(Amyloidosis_Diagnostic$collectiondt.germline, "2012")),
-    sum(str_count(Amyloidosis_Diagnostic$collectiondt.germline, "2013")),sum(str_count(Amyloidosis_Diagnostic$collectiondt.germline, "2014")),
-    sum(str_count(Amyloidosis_Diagnostic$collectiondt.germline, "2015")),sum(str_count(Amyloidosis_Diagnostic$collectiondt.germline, "2016")),
-    sum(str_count(Amyloidosis_Diagnostic$collectiondt.germline, "2017")),sum(str_count(Amyloidosis_Diagnostic$collectiondt.germline, "2018")),
-    sum(str_count(Amyloidosis_Diagnostic$collectiondt.germline, "2019")),
-    "Early Relapse Multiple Myeloma", nrow(Early_Relapse), as.character(min(Early_Relapse$collectiondt.germline)),as.character(max(Early_Relapse$collectiondt.germline)),
-    sum(str_count(Early_Relapse$collectiondt.germline, "2011")),sum(str_count(Early_Relapse$collectiondt.germline, "2012")),
-    sum(str_count(Early_Relapse$collectiondt.germline, "2013")),sum(str_count(Early_Relapse$collectiondt.germline, "2014")),
-    sum(str_count(Early_Relapse$collectiondt.germline, "2015")),sum(str_count(Early_Relapse$collectiondt.germline, "2016")),
-    sum(str_count(Early_Relapse$collectiondt.germline, "2017")),sum(str_count(Early_Relapse$collectiondt.germline, "2018")),
-    sum(str_count(Early_Relapse$collectiondt.germline, "2019")),
-    "Late Relapse Multiple Myeloma", nrow(Late_Relapse), as.character(min(Late_Relapse$collectiondt.germline)),as.character(max(Late_Relapse$collectiondt.germline)),
-    sum(str_count(Late_Relapse$collectiondt.germline, "2011")),sum(str_count(Late_Relapse$collectiondt.germline, "2012")),
-    sum(str_count(Late_Relapse$collectiondt.germline, "2013")),sum(str_count(Late_Relapse$collectiondt.germline, "2014")),
-    sum(str_count(Late_Relapse$collectiondt.germline, "2015")),sum(str_count(Late_Relapse$collectiondt.germline, "2016")),
-    sum(str_count(Late_Relapse$collectiondt.germline, "2017")),sum(str_count(Late_Relapse$collectiondt.germline, "2018")),
-    sum(str_count(Late_Relapse$collectiondt.germline, "2019")),
-    "Mgus", nrow(Mgus), as.character(min(Mgus$collectiondt.germline)),as.character(max(Mgus$collectiondt.germline)),
-    sum(str_count(Mgus$collectiondt.germline, "2011")),sum(str_count(Mgus$collectiondt.germline, "2012")),
-    sum(str_count(Mgus$collectiondt.germline, "2013")),sum(str_count(Mgus$collectiondt.germline, "2014")),
-    sum(str_count(Mgus$collectiondt.germline, "2015")),sum(str_count(Mgus$collectiondt.germline, "2016")),
-    sum(str_count(Mgus$collectiondt.germline, "2017")),sum(str_count(Mgus$collectiondt.germline, "2018")),
-    sum(str_count(Mgus$collectiondt.germline, "2019")),
-    "MYELOFIBROSIS", nrow(Myelofib), as.character(min(Myelofib$collectiondt.germline)),as.character(max(Myelofib$collectiondt.germline)),
-    sum(str_count(Myelofib$collectiondt.germline, "2011")),sum(str_count(Myelofib$collectiondt.germline, "2012")),
-    sum(str_count(Myelofib$collectiondt.germline, "2013")),sum(str_count(Myelofib$collectiondt.germline, "2014")),
-    sum(str_count(Myelofib$collectiondt.germline, "2015")),sum(str_count(Myelofib$collectiondt.germline, "2016")),
-    sum(str_count(Myelofib$collectiondt.germline, "2017")),sum(str_count(Myelofib$collectiondt.germline, "2018")),
-    sum(str_count(Myelofib$collectiondt.germline, "2019")),
-    "Normal marrow", nrow(Normal_marrow), as.character(min(Normal_marrow$collectiondt.germline)),as.character(max(Normal_marrow$collectiondt.germline)),
-    sum(str_count(Normal_marrow$collectiondt.germline, "2011")),sum(str_count(Normal_marrow$collectiondt.germline, "2012")),
-    sum(str_count(Normal_marrow$collectiondt.germline, "2013")),sum(str_count(Normal_marrow$collectiondt.germline, "2014")),
-    sum(str_count(Normal_marrow$collectiondt.germline, "2015")),sum(str_count(Normal_marrow$collectiondt.germline, "2016")),
-    sum(str_count(Normal_marrow$collectiondt.germline, "2017")),sum(str_count(Normal_marrow$collectiondt.germline, "2018")),
-    sum(str_count(Normal_marrow$collectiondt.germline, "2019")),
-    "Refractory anemia with ring sideroblasts", nrow(Refractory_anemia), as.character(min(Refractory_anemia$collectiondt.germline)),as.character(max(Refractory_anemia$collectiondt.germline)),
-    sum(str_count(Refractory_anemia$collectiondt.germline, "2011")),sum(str_count(Refractory_anemia$collectiondt.germline, "2012")),
-    sum(str_count(Refractory_anemia$collectiondt.germline, "2013")),sum(str_count(Refractory_anemia$collectiondt.germline, "2014")),
-    sum(str_count(Refractory_anemia$collectiondt.germline, "2015")),sum(str_count(Refractory_anemia$collectiondt.germline, "2016")),
-    sum(str_count(Refractory_anemia$collectiondt.germline, "2017")),sum(str_count(Refractory_anemia$collectiondt.germline, "2018")),
-    sum(str_count(Refractory_anemia$collectiondt.germline, "2019")),
-    "Smoldering Multiple Myeloma", nrow(SmolderingMM), as.character(min(SmolderingMM$collectiondt.germline)),as.character(max(SmolderingMM$collectiondt.germline)),
-    sum(str_count(SmolderingMM$collectiondt.germline, "2011")),sum(str_count(SmolderingMM$collectiondt.germline, "2012")),
-    sum(str_count(SmolderingMM$collectiondt.germline, "2013")),sum(str_count(SmolderingMM$collectiondt.germline, "2014")),
-    sum(str_count(SmolderingMM$collectiondt.germline, "2015")),sum(str_count(SmolderingMM$collectiondt.germline, "2016")),
-    sum(str_count(SmolderingMM$collectiondt.germline, "2017")),sum(str_count(SmolderingMM$collectiondt.germline, "2018")),
-    sum(str_count(SmolderingMM$collectiondt.germline, "2019")),
-    "Solitary Plasmacytoma", nrow(Solitary_Plasmacytoma), as.character(min(Solitary_Plasmacytoma$collectiondt.germline)),as.character(max(Solitary_Plasmacytoma$collectiondt.germline)),
-    sum(str_count(Solitary_Plasmacytoma$collectiondt.germline, "2011")),sum(str_count(Solitary_Plasmacytoma$collectiondt.germline, "2012")),
-    sum(str_count(Solitary_Plasmacytoma$collectiondt.germline, "2013")),sum(str_count(Solitary_Plasmacytoma$collectiondt.germline, "2014")),
-    sum(str_count(Solitary_Plasmacytoma$collectiondt.germline, "2015")),sum(str_count(Solitary_Plasmacytoma$collectiondt.germline, "2016")),
-    sum(str_count(Solitary_Plasmacytoma$collectiondt.germline, "2017")),sum(str_count(Solitary_Plasmacytoma$collectiondt.germline, "2018")),
-    sum(str_count(Solitary_Plasmacytoma$collectiondt.germline, "2019")),
-    "WALDENSTROM MACROGLOBULINEMIA", nrow(Walderstrom), as.character(min(Walderstrom$collectiondt.germline)),as.character(max(Walderstrom$collectiondt.germline)),
-    sum(str_count(Walderstrom$collectiondt.germline, "2011")),sum(str_count(Walderstrom$collectiondt.germline, "2012")),
-    sum(str_count(Walderstrom$collectiondt.germline, "2013")),sum(str_count(Walderstrom$collectiondt.germline, "2014")),
-    sum(str_count(Walderstrom$collectiondt.germline, "2015")),sum(str_count(Walderstrom$collectiondt.germline, "2016")),
-    sum(str_count(Walderstrom$collectiondt.germline, "2017")),sum(str_count(Walderstrom$collectiondt.germline, "2018")),
-    sum(str_count(Walderstrom$collectiondt.germline, "2019"))), ncol = 13, byrow=TRUE)
+    "General", nrow(Combined_data_MM), as.character(min(Combined_data_MM$collectiondt_germline)), as.character(max(Combined_data_MM$collectiondt_germline)), 
+    sum(str_count(Combined_data_MM$collectiondt_germline, "2011")),sum(str_count(Combined_data_MM$collectiondt_germline, "2012")),sum(str_count(Combined_data_MM$collectiondt_germline, "2013")),
+    sum(str_count(Combined_data_MM$collectiondt_germline, "2014")),sum(str_count(Combined_data_MM$collectiondt_germline, "2015")),sum(str_count(Combined_data_MM$collectiondt_germline, "2016")),
+    sum(str_count(Combined_data_MM$collectiondt_germline, "2015")),sum(str_count(Combined_data_MM$collectiondt_germline, "2018")),sum(str_count(Combined_data_MM$collectiondt_germline, "2019")),
+    "Pre Treatment Newly Diagnosed", nrow(Pre_Treat), as.character(min(Pre_Treat$collectiondt_germline)),as.character(max(Pre_Treat$collectiondt_germline)),
+    sum(str_count(Pre_Treat$collectiondt_germline, "2011")),sum(str_count(Pre_Treat$collectiondt_germline, "2012")),
+    sum(str_count(Pre_Treat$collectiondt_germline, "2013")),sum(str_count(Pre_Treat$collectiondt_germline, "2014")),
+    sum(str_count(Pre_Treat$collectiondt_germline, "2015")),sum(str_count(Pre_Treat$collectiondt_germline, "2016")),
+    sum(str_count(Pre_Treat$collectiondt_germline, "2017")),sum(str_count(Pre_Treat$collectiondt_germline, "2018")),
+    sum(str_count(Pre_Treat$collectiondt_germline, "2019")),
+    "Post Treatment Newly Diagnosed", nrow(Normal_marrow), as.character(min(Normal_marrow$collectiondt_germline)),as.character(max(Normal_marrow$collectiondt_germline)),
+    sum(str_count(Normal_marrow$collectiondt_germline, "2011")),sum(str_count(Normal_marrow$collectiondt_germline, "2012")),
+    sum(str_count(Normal_marrow$collectiondt_germline, "2013")),sum(str_count(Normal_marrow$collectiondt_germline, "2014")),
+    sum(str_count(Normal_marrow$collectiondt_germline, "2015")),sum(str_count(Normal_marrow$collectiondt_germline, "2016")),
+    sum(str_count(Normal_marrow$collectiondt_germline, "2017")),sum(str_count(Normal_marrow$collectiondt_germline, "2018")),
+    sum(str_count(Normal_marrow$collectiondt_germline, "2019")),
+    "Amyloidosis-Diagnostic marrow", nrow(Amyloidosis_Diagnostic), as.character(min(Amyloidosis_Diagnostic$collectiondt_germline)),as.character(max(Amyloidosis_Diagnostic$collectiondt_germline)),
+    sum(str_count(Amyloidosis_Diagnostic$collectiondt_germline, "2011")),sum(str_count(Amyloidosis_Diagnostic$collectiondt_germline, "2012")),
+    sum(str_count(Amyloidosis_Diagnostic$collectiondt_germline, "2013")),sum(str_count(Amyloidosis_Diagnostic$collectiondt_germline, "2014")),
+    sum(str_count(Amyloidosis_Diagnostic$collectiondt_germline, "2015")),sum(str_count(Amyloidosis_Diagnostic$collectiondt_germline, "2016")),
+    sum(str_count(Amyloidosis_Diagnostic$collectiondt_germline, "2017")),sum(str_count(Amyloidosis_Diagnostic$collectiondt_germline, "2018")),
+    sum(str_count(Amyloidosis_Diagnostic$collectiondt_germline, "2019")),
+    "Early Relapse Multiple Myeloma", nrow(Early_Relapse), as.character(min(Early_Relapse$collectiondt_germline)),as.character(max(Early_Relapse$collectiondt_germline)),
+    sum(str_count(Early_Relapse$collectiondt_germline, "2011")),sum(str_count(Early_Relapse$collectiondt_germline, "2012")),
+    sum(str_count(Early_Relapse$collectiondt_germline, "2013")),sum(str_count(Early_Relapse$collectiondt_germline, "2014")),
+    sum(str_count(Early_Relapse$collectiondt_germline, "2015")),sum(str_count(Early_Relapse$collectiondt_germline, "2016")),
+    sum(str_count(Early_Relapse$collectiondt_germline, "2017")),sum(str_count(Early_Relapse$collectiondt_germline, "2018")),
+    sum(str_count(Early_Relapse$collectiondt_germline, "2019")),
+    "Late Relapse Multiple Myeloma", nrow(Late_Relapse), as.character(min(Late_Relapse$collectiondt_germline)),as.character(max(Late_Relapse$collectiondt_germline)),
+    sum(str_count(Late_Relapse$collectiondt_germline, "2011")),sum(str_count(Late_Relapse$collectiondt_germline, "2012")),
+    sum(str_count(Late_Relapse$collectiondt_germline, "2013")),sum(str_count(Late_Relapse$collectiondt_germline, "2014")),
+    sum(str_count(Late_Relapse$collectiondt_germline, "2015")),sum(str_count(Late_Relapse$collectiondt_germline, "2016")),
+    sum(str_count(Late_Relapse$collectiondt_germline, "2017")),sum(str_count(Late_Relapse$collectiondt_germline, "2018")),
+    sum(str_count(Late_Relapse$collectiondt_germline, "2019")),
+    "Mgus", nrow(Mgus), as.character(min(Mgus$collectiondt_germline)),as.character(max(Mgus$collectiondt_germline)),
+    sum(str_count(Mgus$collectiondt_germline, "2011")),sum(str_count(Mgus$collectiondt_germline, "2012")),
+    sum(str_count(Mgus$collectiondt_germline, "2013")),sum(str_count(Mgus$collectiondt_germline, "2014")),
+    sum(str_count(Mgus$collectiondt_germline, "2015")),sum(str_count(Mgus$collectiondt_germline, "2016")),
+    sum(str_count(Mgus$collectiondt_germline, "2017")),sum(str_count(Mgus$collectiondt_germline, "2018")),
+    sum(str_count(Mgus$collectiondt_germline, "2019")),
+    "MYELOFIBROSIS", nrow(Myelofib), as.character(min(Myelofib$collectiondt_germline)),as.character(max(Myelofib$collectiondt_germline)),
+    sum(str_count(Myelofib$collectiondt_germline, "2011")),sum(str_count(Myelofib$collectiondt_germline, "2012")),
+    sum(str_count(Myelofib$collectiondt_germline, "2013")),sum(str_count(Myelofib$collectiondt_germline, "2014")),
+    sum(str_count(Myelofib$collectiondt_germline, "2015")),sum(str_count(Myelofib$collectiondt_germline, "2016")),
+    sum(str_count(Myelofib$collectiondt_germline, "2017")),sum(str_count(Myelofib$collectiondt_germline, "2018")),
+    sum(str_count(Myelofib$collectiondt_germline, "2019")),
+    "Normal marrow", nrow(Normal_marrow), as.character(min(Normal_marrow$collectiondt_germline)),as.character(max(Normal_marrow$collectiondt_germline)),
+    sum(str_count(Normal_marrow$collectiondt_germline, "2011")),sum(str_count(Normal_marrow$collectiondt_germline, "2012")),
+    sum(str_count(Normal_marrow$collectiondt_germline, "2013")),sum(str_count(Normal_marrow$collectiondt_germline, "2014")),
+    sum(str_count(Normal_marrow$collectiondt_germline, "2015")),sum(str_count(Normal_marrow$collectiondt_germline, "2016")),
+    sum(str_count(Normal_marrow$collectiondt_germline, "2017")),sum(str_count(Normal_marrow$collectiondt_germline, "2018")),
+    sum(str_count(Normal_marrow$collectiondt_germline, "2019")),
+    "Refractory anemia with ring sideroblasts", nrow(Refractory_anemia), as.character(min(Refractory_anemia$collectiondt_germline)),as.character(max(Refractory_anemia$collectiondt_germline)),
+    sum(str_count(Refractory_anemia$collectiondt_germline, "2011")),sum(str_count(Refractory_anemia$collectiondt_germline, "2012")),
+    sum(str_count(Refractory_anemia$collectiondt_germline, "2013")),sum(str_count(Refractory_anemia$collectiondt_germline, "2014")),
+    sum(str_count(Refractory_anemia$collectiondt_germline, "2015")),sum(str_count(Refractory_anemia$collectiondt_germline, "2016")),
+    sum(str_count(Refractory_anemia$collectiondt_germline, "2017")),sum(str_count(Refractory_anemia$collectiondt_germline, "2018")),
+    sum(str_count(Refractory_anemia$collectiondt_germline, "2019")),
+    "Smoldering Multiple Myeloma", nrow(SmolderingMM), as.character(min(SmolderingMM$collectiondt_germline)),as.character(max(SmolderingMM$collectiondt_germline)),
+    sum(str_count(SmolderingMM$collectiondt_germline, "2011")),sum(str_count(SmolderingMM$collectiondt_germline, "2012")),
+    sum(str_count(SmolderingMM$collectiondt_germline, "2013")),sum(str_count(SmolderingMM$collectiondt_germline, "2014")),
+    sum(str_count(SmolderingMM$collectiondt_germline, "2015")),sum(str_count(SmolderingMM$collectiondt_germline, "2016")),
+    sum(str_count(SmolderingMM$collectiondt_germline, "2017")),sum(str_count(SmolderingMM$collectiondt_germline, "2018")),
+    sum(str_count(SmolderingMM$collectiondt_germline, "2019")),
+    "Solitary Plasmacytoma", nrow(Solitary_Plasmacytoma), as.character(min(Solitary_Plasmacytoma$collectiondt_germline)),as.character(max(Solitary_Plasmacytoma$collectiondt_germline)),
+    sum(str_count(Solitary_Plasmacytoma$collectiondt_germline, "2011")),sum(str_count(Solitary_Plasmacytoma$collectiondt_germline, "2012")),
+    sum(str_count(Solitary_Plasmacytoma$collectiondt_germline, "2013")),sum(str_count(Solitary_Plasmacytoma$collectiondt_germline, "2014")),
+    sum(str_count(Solitary_Plasmacytoma$collectiondt_germline, "2015")),sum(str_count(Solitary_Plasmacytoma$collectiondt_germline, "2016")),
+    sum(str_count(Solitary_Plasmacytoma$collectiondt_germline, "2017")),sum(str_count(Solitary_Plasmacytoma$collectiondt_germline, "2018")),
+    sum(str_count(Solitary_Plasmacytoma$collectiondt_germline, "2019")),
+    "WALDENSTROM MACROGLOBULINEMIA", nrow(Walderstrom), as.character(min(Walderstrom$collectiondt_germline)),as.character(max(Walderstrom$collectiondt_germline)),
+    sum(str_count(Walderstrom$collectiondt_germline, "2011")),sum(str_count(Walderstrom$collectiondt_germline, "2012")),
+    sum(str_count(Walderstrom$collectiondt_germline, "2013")),sum(str_count(Walderstrom$collectiondt_germline, "2014")),
+    sum(str_count(Walderstrom$collectiondt_germline, "2015")),sum(str_count(Walderstrom$collectiondt_germline, "2016")),
+    sum(str_count(Walderstrom$collectiondt_germline, "2017")),sum(str_count(Walderstrom$collectiondt_germline, "2018")),
+    sum(str_count(Walderstrom$collectiondt_germline, "2019"))), ncol = 13, byrow=TRUE)
 
-col_date
-Yearofsamplecollection <- as.table(col_date)
-# write.csv(Yearofsamplecollection,paste0(path, "/Year of germline sample collection.csv"))
+write.csv(disease_staus_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
+# disease_staus_by_year <- as.table(disease_staus_by_year)
+# write.csv(disease_staus_by_year,paste0(path, "/Year of germline sample collection.csv"))
 
 rm(
   Amyloidosis_Diagnostic,
@@ -377,7 +441,6 @@ rm(
   SmolderingMM,
   Solitary_Plasmacytoma,
   Walderstrom,
-  Yearofsamplecollection,
-  col_date
+  Yearofsamplecollection
 )
 

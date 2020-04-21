@@ -321,11 +321,11 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
 sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>% 
   arrange(date_of_third_bmt) %>% 
   arrange(date_of_second_bmt) %>% 
-  arrange(date_of_first_bmt)
+  arrange(date_of_first_bmt) %>% 
+  drop_na("date_of_first_bmt")
 SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), value.var = c("prior_treatment", "number_of_bonemarrow_transplant",
                                                                      "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
 # write.csv(SCT,paste0(path, "/SCT simplify.csv"))
-
 #------------------------------------
 # remove row when QC'd row has no data
 Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
@@ -394,7 +394,8 @@ RadiationV1$rad_start_date <- as.POSIXct(strptime(RadiationV1$rad_start_date,
 RadiationV1$rad_stop_date <- as.POSIXct(strptime(RadiationV1$rad_stop_date, 
                                               format = "%m/%d/%Y", tz = "UTC"))
 
-radiation <- bind_rows(RadiationV1, RadiationV2, RadiationV4, .id = "versionRad") %>% 
+radiation <- bind_rows(RadiationV1, RadiationV2, RadiationV4, .id = "versionRad")%>% 
+  drop_na("rad_start_date") %>% 
   arrange(rad_start_date)
 Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
                      c("rad_start_date", "rad_stop_date"))
@@ -406,6 +407,7 @@ rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, V
 # Plot
 jpeg("barplot2.jpg", width = 350, height = 350)
 par(mar=c(3.5, 7.1, 4.1, 2.1)) # bottom left top right
+par(cex.sub = .7)
 barplot(
   height = cbind(
     "Desease History" = NROW(MM_history),
@@ -439,7 +441,7 @@ WES_seq <-
     all.x = TRUE,
     all.y = TRUE
   )
-rm(Sequencing)
+rm(Sequencing, WES)
 # Reshape to have duplicate ID on same row (per date)-------------------------------------------
 # duplicated(WES_seq$moffitt_sample_id_tumor) # No duplicate
 # duplicated(WES_seq$avatar_id) # has duplicate
@@ -479,9 +481,8 @@ WES_seq  <- WES_seq[order(WES_seq$collectiondt_tumor_1), ] %>%
   arrange(collectiondt_tumor_6)
 # write.csv(WES_seq,paste0(path, "/WES_seq germline tumor.csv"))
 
-colnames(Germ)
 
-# Merge with Organized_WES
+# Merge with Germ (date) with WES_seq (sequencing)
 Combined_data_MM <- merge.data.frame(Germ, WES_seq,
                                      by.x = "avatar_id", by.y = "avatar_id", 
                                      all.x = TRUE, all.y = TRUE)
@@ -511,7 +512,7 @@ Seq_WES_Raghu <- merge.data.frame(Seq_WES_Raghu, Germ2,
 Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu)
 Germline <- Germline %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
                              SLID_germline_1 , .keep_all = TRUE) 
-rm(Germ, Germ2)
+rm(WES_seq, Seq_WES_Raghu, Germ, Germ2)
 ##################################################################################################  IV  ## Merge
 b <- merge.data.frame(Germline[, c("avatar_id", "collectiondt_germline", "Disease_Status_germline", 
                                            "collectiondt_tumor_1", "Disease_Status_tumor_1")],
@@ -535,19 +536,21 @@ Global_data <- merge.data.frame(Demo_RedCap_V4ish, f, by.x = "avatar_id", by.y =
 rm(b,c,d,e,f)
 
 # tempory dataframe for the time to plot simply
-f <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
-                    "number_of_bonemarrow_transplant_1", "number_of_bonemarrow_transplant_2","date_of_first_bmt_1", "date_of_second_bmt_1", "date_of_third_bmt_1", 
-                    
-                    "collectiondt_germline", "Disease_Status_germline", "collectiondt_tumor_1", "Disease_Status_tumor_1",
-                    
-                    "vital_status", "date_death", "date_last_follow_up", "last_date_available", 
-                    
-                    "prior_treatment_1", "prior_treatment_2",
-                    "drug_start_date_1",
-                    
-                    "rad_start_date_1", "rad_start_date_2", "rad_stop_date_1", "rad_stop_date_2",                  
-                    
-                    "smoking_status", "alcohol_use",
-                    
-                    "bmi_at_dx_v2", "Gender", "Ethnicity", "Race", "versionMM_1")]
+# f <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
+#                     "number_of_bonemarrow_transplant_1", "number_of_bonemarrow_transplant_2","date_of_first_bmt_1", "date_of_second_bmt_1", "date_of_third_bmt_1", 
+#                     
+#                     "collectiondt_germline", "Disease_Status_germline", "collectiondt_tumor_1", "Disease_Status_tumor_1",
+#                     
+#                     "vital_status", "date_death", "date_last_follow_up", "last_date_available", 
+#                     
+#                     "prior_treatment_1", "prior_treatment_2",
+#                     "drug_start_date_1",
+#                     
+#                     "rad_start_date_1", "rad_start_date_2", "rad_stop_date_1", "rad_stop_date_2",                  
+#                     
+#                     "smoking_status", "alcohol_use",
+#                     
+#                     "bmi_at_dx_v2", "Gender", "Ethnicity", "Race", "versionMM_1")]
+
+# Create dataframe for all start dates 
 

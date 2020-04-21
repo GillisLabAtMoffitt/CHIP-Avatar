@@ -1,5 +1,5 @@
 # We have 512 unique patient IDs in Sequencing, does they match the treatment
-Treatment$avatar_id == Sequencing$avatar_id # No
+Treatment$avatar_id == Germline$avatar_id # No
 
 #library(UpSetR)
 
@@ -248,8 +248,7 @@ venn.diagram(
   cat.default.pos = "outer",
   cat.pos = c(200, 165, 0), # germ treat
   cat.dist = c(0.020, -0.035, 0.045), # x BMT germ
-  cat.fontfamily = "sans",
-  rotation = -100
+  cat.fontfamily = "sans"
 )
 ################################################################################# TABLE disease status year ####
 head(Combined_data_MM)

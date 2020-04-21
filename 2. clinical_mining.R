@@ -10,9 +10,9 @@ color4 <- c(viridis::plasma(n = 4))
 color3 <- c(viridis::cividis(n = 3))
 
 venn.diagram(
-  x = list(MM_history$avatar_id, Sequencing$avatar_id, Demo_RedCap_V4ish$avatar_id),
+  x = list(MM_history$avatar_id, Germline$avatar_id, Demo_RedCap_V4ish$avatar_id),
   category.names = c("Clinical data" , "Germline data", "Demographics data"),
-  filename = 'Germline and Demo.png',
+  filename = 'Germline patients in Demographic and Clinical data.png',
   output=TRUE,
   
   # Output features
@@ -35,39 +35,39 @@ venn.diagram(
   ext.percent = 5
 )
 
-venn.diagram(
-  x = list(MM_history$avatar_id, Germ$avatar_id, WES$avatar_id, Demo_RedCap_V4ish$avatar_id),
-  category.names = c("Clinical data" , "Germline data" , "WES data", "Demographics data"),
-  filename = 'Germline, WES and Demo.png',
-  output=TRUE,
-  
-  # Output features
-  imagetype="png" ,
-  height = 1000 , 
-  width = 1000 , 
-  resolution = 300,
-  compression = "lzw",
-  
-  # Circles
-  lwd = 2,
-  lty = 'blank',
-  fill = color4,
-  margin = 0.2,
-  
-  # Numbers
-  cex = .6,
-  fontface = "bold",
-  fontfamily = "sans",
-  ext.percent = 5,
-  cat.pos = c(-38, 30, -30, 30),
-  cat.dist = c(0.28, 0.25, 0.15, 0.15)
-)
+# venn.diagram(
+#   x = list(MM_history$avatar_id, Germline$avatar_id, WES$avatar_id, Demo_RedCap_V4ish$avatar_id),
+#   category.names = c("Clinical data" , "Germline data" , "WES data", "Demographics data"),
+#   filename = 'Germline, WES and Demo.png',
+#   output=TRUE,
+#   
+#   # Output features
+#   imagetype="png" ,
+#   height = 1000 , 
+#   width = 1000 , 
+#   resolution = 300,
+#   compression = "lzw",
+#   
+#   # Circles
+#   lwd = 2,
+#   lty = 'blank',
+#   fill = color4,
+#   margin = 0.2,
+#   
+#   # Numbers
+#   cex = .6,
+#   fontface = "bold",
+#   fontfamily = "sans",
+#   ext.percent = 5,
+#   cat.pos = c(-38, 30, -30, 30),
+#   cat.dist = c(0.28, 0.25, 0.15, 0.15)
+# )
 
 # Patient who had Drugs and BMT
 venn.diagram(
   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id),
   category.names = c("Clinical data" , "Treatment" , "BMT"),
-  filename = 'Drugs and BMT.png',
+  filename = 'Patients treated with Drugs and or BMT in Clinical data.png',
   output=TRUE,
   
   # Output features
@@ -101,7 +101,7 @@ venn.diagram(
 venn.diagram(
   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Radiation$avatar_id),
   category.names = c("Clinical data" , "Treatment" , "BMT", "Radiation"),
-  filename = 'Drugs, Radiation and BMT.png',
+  filename = 'Patients treated with Drugs BMT Radiation in Clinical data.png',
   output=TRUE,
   
   # Output features
@@ -127,7 +127,7 @@ venn.diagram(
 )
 
 venn.diagram(
-  x = list(MM_history$avatar_id, Germ$avatar_id),
+  x = list(MM_history$avatar_id, Germline$avatar_id),
   category.names = c("Clinical data" , "Germline data"),
   filename = 'Patient who had germlime sequenced.png',
   output=TRUE,
@@ -157,7 +157,7 @@ venn.diagram(
 )
 
 venn.diagram(
-  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germ$avatar_id),
+  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id),
   category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data"),
   filename = 'Patient who had Drugs, BMT and Germlime sequenced.png',
   output=TRUE,
@@ -186,7 +186,7 @@ venn.diagram(
 )
 
 venn.diagram(
-  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germ$avatar_id, Radiation$avatar_id),
+  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id, Radiation$avatar_id),
   category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data", "Radiation"),
   filename = 'Patient who had Drugs, BMT, Radiation and Germlime sequenced.png',
   output=TRUE,
@@ -214,7 +214,7 @@ venn.diagram(
 )
 
 venn.diagram(
-  x = list(Treatment$avatar_id, SCT$avatar_id, Germ$avatar_id),
+  x = list(Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id),
   category.names = c("Treatment" , "BMT", "Germline data"),
   filename = 'Patient who had Drugs, BMT and Germlime sequenced 2.png',
   output=TRUE,
@@ -240,10 +240,10 @@ venn.diagram(
   cat.cex = 0.6,
   cat.fontface = "bold",
   cat.default.pos = "outer",
-  cat.pos = c(-27, 27, 135),
-  cat.dist = c(0.055, 0.055, 0.015),
+  cat.pos = c(200, 165, 0), # germ treat
+  cat.dist = c(0.020, -0.035, 0.045), # x BMT germ
   cat.fontfamily = "sans",
-  rotation = 1
+  rotation = -100
 )
 ################################################################################# TABLE disease status year ####
 head(Combined_data_MM)

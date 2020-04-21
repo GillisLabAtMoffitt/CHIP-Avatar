@@ -247,25 +247,24 @@ venn.diagram(
 )
 ################################################################################# TABLE disease status year ####
 head(Combined_data_MM)
-Combined_data_MM$Disease_Status.germline
-Disease_status_table <- table(Combined_data_MM$Disease_Status.germline)
-Disease_status_table <- as.table(Disease_status_table)
-# write.csv(Disease_status_table, paste0(path, "/Disease status table.csv"))
-
+Combined_data_MM$Disease_Status_germline
+Disease_status_table <- table(Combined_data_MM$Disease_Status_germline)
+write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
+rm(Disease_status_table)
 
 ################################################################################# TABLE Year of germline sample collection ####
-Amyloidosis_Diagnostic <- which(Combined_data_MM$Disease_Status.germline == "Amyloidosis- Diagnostic marrow")#1  
-Early_Relapse <- which(Combined_data_MM$Disease_Status.germline == "Early Relapse Multiple Myeloma") # 208 
-Late_Relapse <- which(Combined_data_MM$Disease_Status.germline == "Late Relapse Multiple Myeloma")  #66  
-Mgus <- which(Combined_data_MM$Disease_Status.germline == "Mgus") #50
-Myelofib <- which(Combined_data_MM$Disease_Status.germline == "MYELOFIBROSIS")    #1                                 
-Normal_marrow <- which(Combined_data_MM$Disease_Status.germline == "Normal marrow") #1
-Post_Treat <-which(Combined_data_MM$Disease_Status.germline == "Post Treatment Newly Diagnosed Multiple Myeloma")  #9 
-Refractory_anemia <- which(Combined_data_MM$Disease_Status.germline == "Refractory anemia with ring sideroblasts")  #1                  
-SmolderingMM <- which(Combined_data_MM$Disease_Status.germline == "Smoldering Multiple Myeloma") #47
-Solitary_Plasmacytoma <- which(Combined_data_MM$Disease_Status.germline == "Solitary Plasmacytoma")    #4              
-Walderstrom <- which(Combined_data_MM$Disease_Status.germline == "WALDENSTROM MACROGLOBULINEMIA") #1
-Pre_Treat <- which(Combined_data_MM$Disease_Status.germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") #117
+Amyloidosis_Diagnostic <- which(Combined_data_MM$Disease_Status_germline == "Amyloidosis- Diagnostic marrow")#1  
+Early_Relapse <- which(Combined_data_MM$Disease_Status_germline == "Early Relapse Multiple Myeloma") # 208 
+Late_Relapse <- which(Combined_data_MM$Disease_Status_germline == "Late Relapse Multiple Myeloma")  #66  
+Mgus <- which(Combined_data_MM$Disease_Status_germline == "Mgus") #50
+Myelofib <- which(Combined_data_MM$Disease_Status_germline == "MYELOFIBROSIS")    #1                                 
+Normal_marrow <- which(Combined_data_MM$Disease_Status_germline == "Normal marrow") #1
+Post_Treat <-which(Combined_data_MM$Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma")  #9 
+Refractory_anemia <- which(Combined_data_MM$Disease_Status_germline == "Refractory anemia with ring sideroblasts")  #1                  
+SmolderingMM <- which(Combined_data_MM$Disease_Status_germline == "Smoldering Multiple Myeloma") #47
+Solitary_Plasmacytoma <- which(Combined_data_MM$Disease_Status_germline == "Solitary Plasmacytoma")    #4              
+Walderstrom <- which(Combined_data_MM$Disease_Status_germline == "WALDENSTROM MACROGLOBULINEMIA") #1
+Pre_Treat <- which(Combined_data_MM$Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") #117
 
 Pre_Treat <- Combined_data_MM[Pre_Treat, ]
 Post_Treat <- Combined_data_MM[Post_Treat, ]

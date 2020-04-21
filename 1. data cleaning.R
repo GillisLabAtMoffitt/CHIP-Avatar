@@ -226,7 +226,7 @@ RadiationV4 <-
                                  sheet = "Radiation") %>%
     select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
-jpeg("barplot1.jpg", width = 350, height = 350)
+# jpeg("barplot1.jpg", width = 350, height = 350)
 par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
 par(cex.sub = .7)
 barplot(
@@ -255,7 +255,7 @@ barplot(
 legend("bottomright", legend = c("version1", "version2", "version4"),
        col = c("purple", "orange", "yellow"),
        bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(-0.05, 0.05))
-dev.off()
+# dev.off()
 
 #######################################################################################  II  ## Bind Version
 #######################################################################################  II  ## Align duplicated ID
@@ -325,7 +325,6 @@ sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>%
 SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), value.var = c("prior_treatment", "number_of_bonemarrow_transplant",
                                                                      "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
 # write.csv(SCT,paste0(path, "/SCT simplify.csv"))
-
 #------------------------------------
 # remove row when QC'd row has no data
 Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
@@ -404,7 +403,7 @@ Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var =
 rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
    Comorbidities, Alc_SmoV4, RadiationV1, RadiationV2, RadiationV4)
 # Plot
-jpeg("barplot2.jpg", width = 350, height = 350)
+# jpeg("barplot2.jpg", width = 350, height = 350)
 par(mar=c(3.5, 7.1, 4.1, 2.1)) # bottom left top right
 barplot(
   height = cbind(
@@ -422,7 +421,7 @@ barplot(
   cex.axis = .8,
   cex.names = .8
 )
-dev.off()
+# dev.off()
 
 #######################################################################################  III  # Merge WES and Sequencing
 #######################################################################################  III  # For 1st sequencing file
@@ -439,7 +438,7 @@ WES_seq <-
     all.x = TRUE,
     all.y = TRUE
   )
-rm(Sequencing)
+rm(Sequencing, WES)
 # Reshape to have duplicate ID on same row (per date)-------------------------------------------
 # duplicated(WES_seq$moffitt_sample_id_tumor) # No duplicate
 # duplicated(WES_seq$avatar_id) # has duplicate
@@ -479,9 +478,8 @@ WES_seq  <- WES_seq[order(WES_seq$collectiondt_tumor_1), ] %>%
   arrange(collectiondt_tumor_6)
 # write.csv(WES_seq,paste0(path, "/WES_seq germline tumor.csv"))
 
-colnames(Germ)
 
-# Merge with Organized_WES
+# Merge with Germ (date) with WES_seq (sequencing)
 Combined_data_MM <- merge.data.frame(Germ, WES_seq,
                                      by.x = "avatar_id", by.y = "avatar_id", 
                                      all.x = TRUE, all.y = TRUE)
@@ -511,7 +509,7 @@ Seq_WES_Raghu <- merge.data.frame(Seq_WES_Raghu, Germ2,
 Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu)
 Germline <- Germline %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
                              SLID_germline_1 , .keep_all = TRUE) 
-
+rm(WES_seq, Seq_WES_Raghu, Germ, Germ2)
 ##################################################################################################  IV  ## Merge
 b <- merge.data.frame(Germline[, c("avatar_id", "collectiondt_germline", "Disease_Status_germline", 
                                            "collectiondt_tumor_1", "Disease_Status_tumor_1")],
@@ -550,4 +548,6 @@ f <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1
                     "smoking_status", "alcohol_use",
                     
                     "bmi_at_dx_v2", "Gender", "Ethnicity", "Race", "versionMM_1")]
+
+# Create dataframe for all start dates 
 

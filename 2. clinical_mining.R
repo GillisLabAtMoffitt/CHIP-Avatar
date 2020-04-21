@@ -257,7 +257,6 @@ Combined_data_MM$Disease_Status_germline
 Disease_status_table <- table(Combined_data_MM$Disease_Status_germline)
 write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
 
-
 ################################################################################# TABLE Year of germline sample collection ####
 Amyloidosis_Diagnostic <- which(Combined_data_MM$Disease_Status_germline == "Amyloidosis- Diagnostic marrow")#1  
 Early_Relapse <- which(Combined_data_MM$Disease_Status_germline == "Early Relapse Multiple Myeloma") # 208 

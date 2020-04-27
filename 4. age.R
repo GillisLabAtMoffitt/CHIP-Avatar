@@ -44,17 +44,17 @@ Age_data$Age_at_firstrad <- interval(start= Global_data$Date_of_Birth, end= Glob
 Age_data$Age_at_firstrad <- round(Age_data$Age_at_firstrad, 3)
 summary(Age_data$Age_at_firstrad, na.rm = TRUE)
 
-Age_data$Age_at_germcollect <- interval(start= Global_data$Date_of_Birth, end= Global_data$collectiondt.germline)/                      
+Age_data$Age_at_germcollect <- interval(start= Global_data$Date_of_Birth, end= Global_data$collectiondt_germline)/                      
   duration(n=1, unit="years")
 Age_data$Age_at_germcollect <- round(Age_data$Age_at_germcollect, 3)
 summary(Age_data$Age_at_germcollect, na.rm = TRUE)
 
-Age_data$Age_at_tumorcollect <- interval(start= Global_data$Date_of_Birth, end= Global_data$collectiondt_1)/                      
+Age_data$Age_at_tumorcollect <- interval(start= Global_data$Date_of_Birth, end= Global_data$collectiondt_tumor_1)/                      
   duration(n=1, unit="years")
 Age_data$Age_at_tumorcollect <- round(Age_data$Age_at_tumorcollect, 3)
 summary(Age_data$Age_at_tumorcollect, na.rm = TRUE)
 
-#pdf(paste0(path, "/Age at diagnosis repartition.pdf"), height = 6, width = 9)
+pdf(paste0(path, "/Age at diagnosis repartition.pdf"), height = 6, width = 9)
 p <- qplot(x =Age_at_diagosis, data=subset(Age_data,!is.na(Age_at_diagosis)), fill=..count.., geom="histogram") 
 p + scale_fill_viridis_c(
   alpha = 1,
@@ -69,15 +69,15 @@ p + scale_fill_viridis_c(
   aesthetics = "fill"
 )
 layer_data(p, 1)
-#dev.off()
+dev.off()
 
 # Gender
-#pdf(paste0(path, "/Age repartition per gender.pdf"), height = 6, width = 9)
+pdf(paste0(path, "/Age repartition per gender.pdf"), height = 6, width = 9)
 p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Gender, y=Age_at_diagosis), fill=Gender) + 
   geom_boxplot(color= c("purple3", "royalblue2")) +
   ggtitle("Age repartition per gender")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
-#dev.off()
+dev.off()
 t <- as.data.table(layer_data(p, 1)) %>% 
   select(c("ymin", "middle", "ymax")) %>% 
   `colnames<-`(c("min", "median", "max"))
@@ -85,22 +85,22 @@ write.csv(t,paste0(path, "/Age repartition per gender.csv"))
 
 
 # Ethnicity
-#pdf(paste0(path, "/Age repartition per ethnicity.pdf"), height = 6, width = 9)
+pdf(paste0(path, "/Age repartition per ethnicity.pdf"), height = 6, width = 9)
 p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Ethnicity, y=Age_at_diagosis), fill=Ethnicity) + 
   geom_boxplot(color= c("darkred", "darkgreen")) +
   ggtitle("Age repartition per ethnicity")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 p
-#dev.off()
+dev.off()
 
 # Race
-#pdf(paste0(path, "/Age repartition per race.pdf"), height = 6, width = 9)
+pdf(paste0(path, "/Age repartition per race.pdf"), height = 6, width = 9)
 p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Race, y=Age_at_diagosis), fill=Race) + 
   geom_boxplot(color= viridis::plasma(n=3)) +
   ggtitle("Age repartition per race")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 p
-#dev.off()
+dev.off()
 
 Age_data <- Age_data %>% 
   mutate(Race_Ethnicity = case_when(
@@ -111,26 +111,26 @@ Age_data <- Age_data %>%
     Race == "Others" &
       Ethnicity == "Non- Hispanic" ~ "Non-Hispanic"
   ))
-#pdf(paste0(path, "/Age repartition per race_ethnicity.pdf"), height = 6, width = 9)
+pdf(paste0(path, "/Age repartition per race_ethnicity.pdf"), height = 6, width = 9)
 p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Race_Ethnicity, y=Age_at_diagosis), fill=Race_Ethnicity) + 
   geom_boxplot(color= viridis::plasma(n=4)) +
   ggtitle("Age repartition per race/ethnicity")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
-#dev.off()
+dev.off()
 t <- as.data.table(layer_data(p, 1)) %>% 
   select(c("ymin", "middle", "ymax")) %>% 
   `colnames<-`(c("min", "median", "max"))
 write.csv(t,paste0(path, "/Age repartition per race_ethnicity"))
 
 # Disease status
-#pdf(paste0(path, "/Age repartition per disease status.pdf"), height = 6, width = 9)
-p <-  ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)) %>% filter(!is.na(Disease_Status.germline)), 
+pdf(paste0(path, "/Age repartition per disease status.pdf"), height = 6, width = 9)
+p <-  ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)) %>% filter(!is.na(Disease_Status_germline)), 
              aes(x=Age_at_diagosis, y=Disease_Status.germline)) + geom_point() +
   ggtitle("Age repartition per disease status")
 
 #p <-  ggplot(data=subset(Age_data, !is.na(Age_at_diagosis)), aes(x=Age_at_diagosis, y=Disease_Status.germline)) + geom_point()
 p
-#dev.off()
+dev.off()
 
 
 

@@ -79,7 +79,7 @@ f <- Global_data %>%
     collectiondt_germline == collectiondt_tumor_1 ~ "same date"
   ))
 
-# write.csv(f, paste0(path, "/compared germline dates and Demographics.csv"))
+write.csv(f, paste0(path, "/compared germline dates and Demographics.csv"))
 a <- table(f$GermBFtumorWES)
 barplot(a, main = "Frequency of collection date first observed", ylim = c(0,500))
 
@@ -109,7 +109,7 @@ germline_compared_dates <-matrix(
   ncol = 3, byrow=TRUE)
 germline_compared_dates <- as.table(germline_compared_dates)
 germline_compared_dates
-# write.csv(germline_compared_dates, paste0(path, "table compared germline dates and Demographics.csv"))
+write.csv(germline_compared_dates, paste0(path, "/table compared germline dates and Demographics.csv"))
 
 rm(a, germline_compared_dates)
 
@@ -122,7 +122,7 @@ germ_BF_drugsBMT <- f[which(f$germBEFOREdrugsBMT == "OK"),]
 venn.diagram(
   x = list(germ_BF_drugs$avatar_id, germ_BF_bmt1$avatar_id),
   category.names = c("Germline before drugs" , "Germline before BMT1"),
-  filename = 'Patient who had germlime sequenced before drugs and BMT.png',
+  filename = 'Patient who had Germline sequenced before drugs and BMT.png',
   output=TRUE,
   
   # Output features
@@ -156,7 +156,7 @@ germ_available <-  f[which(!is.na(f$collectiondt_germline)),]
 venn.diagram(
   x = list(germ_available$avatar_id, germ_BF_drugs$avatar_id, germ_BF_bmt1$avatar_id),
   category.names = c("Germline available", "Germline before drugs" , "Germline before BMT1"),
-  filename = 'Patient who had germlime sequenced before drugs and BMT in Total Germline population.png',
+  filename = 'Patient who had Germline sequenced before drugs and BMT in Total Germline population.png',
   output=TRUE,
   
   # Output features
@@ -250,7 +250,7 @@ disease_stat_germVStreatment <- matrix(
 disease_stat_germVStreatment <- as.table(disease_stat_germVStreatment)
 disease_stat_germVStreatment
 
-# write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germline dates.csv"))
+write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germline dates.csv"))
 
 ###########################################################################################################################################
 
@@ -261,5 +261,5 @@ temp <- germ_BF_drugs[(germ_BF_drugs$Disease_Status.germline == "Early Relapse M
                                                                                              "date_death_1", "date_last_follow_up_1",
                                                                                              "date_last_follow_up_2", "drug_start_date_1",
                                                                                              "rad_start_date_1", "versionMM_1")]
-# write.csv(temp, paste0(path, "/temp file.csv"))
+write.csv(temp, paste0(path, "/temp file.csv"))
 

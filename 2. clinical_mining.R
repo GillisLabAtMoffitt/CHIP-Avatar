@@ -135,7 +135,7 @@ venn.diagram(
 venn.diagram(
   x = list(MM_history$avatar_id, Germline$avatar_id),
   category.names = c("Clinical data" , "Germline data"),
-  filename = 'Patient who had germlime sequenced.png',
+  filename = 'Patient who had Germline sequenced.png',
   output=TRUE,
   
   # Output features
@@ -165,7 +165,7 @@ venn.diagram(
 venn.diagram(
   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id),
   category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data"),
-  filename = 'Patient who had Drugs, BMT and Germlime sequenced.png',
+  filename = 'Patient who had Drugs, BMT and Germline sequenced.png',
   output=TRUE,
   
   # Output features
@@ -194,7 +194,7 @@ venn.diagram(
 venn.diagram(
   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id, Radiation$avatar_id),
   category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data", "Radiation"),
-  filename = 'Patient who had Drugs, BMT, Radiation and Germlime sequenced.png',
+  filename = 'Patient who had Drugs, BMT, Radiation and Germline sequenced.png',
   output=TRUE,
   
   # Output features
@@ -222,7 +222,7 @@ venn.diagram(
 venn.diagram(
   x = list(Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id),
   category.names = c("Treatment" , "BMT", "Germline data"),
-  filename = 'Patient who had Drugs, BMT and Germlime sequenced 2.png',
+  filename = 'Patient who had Drugs, BMT and Germline sequenced 2.png',
   output=TRUE,
   
   # Output features
@@ -253,7 +253,7 @@ venn.diagram(
 library(RColorBrewer)
 ###################################################################################################  I  ## Venn 1
 # Restart from the Global_data
-# Who had BMT or/and drugs in the germline available patient samples
+# Who had BMT or/and drugs in the Germline available patient samples
 
 Global_data <- Global_data#[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
 # "number_of_bonemarrow_transplant_1", "number_of_bonemarrow_transplant_2","date_of_first_bmt_1", "date_of_second_bmt_1", "date_of_third_bmt_1", 
@@ -344,7 +344,7 @@ SmolderingMM <- Combined_data_MM[SmolderingMM, ]
 Solitary_Plasmacytoma <- Combined_data_MM[Solitary_Plasmacytoma, ]
 Walderstrom <- Combined_data_MM[Walderstrom, ]
 
-disease_staus_by_year <- matrix(
+disease_status_by_year <- matrix(
   c("group", "nbr of patients", "earliest date", "latest date","2011", "2012", "2013","2014","2015","2016","2017","2018","2019",
     
     "General", nrow(Combined_data_MM), as.character(min(Combined_data_MM$collectiondt_germline)), as.character(max(Combined_data_MM$collectiondt_germline)), 
@@ -424,9 +424,9 @@ disease_staus_by_year <- matrix(
     sum(str_count(Walderstrom$collectiondt_germline, "2017")),sum(str_count(Walderstrom$collectiondt_germline, "2018")),
     sum(str_count(Walderstrom$collectiondt_germline, "2019"))), ncol = 13, byrow=TRUE)
 
-write.csv(disease_staus_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
-# disease_staus_by_year <- as.table(disease_staus_by_year)
-# write.csv(disease_staus_by_year,paste0(path, "/Year of germline sample collection.csv"))
+write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
+# disease_status_by_year <- as.table(disease_status_by_year)
+write.csv(disease_status_by_year,paste0(path, "/Year of germline sample collection.csv"))
 
 rm(
   Amyloidosis_Diagnostic,
@@ -440,7 +440,6 @@ rm(
   Refractory_anemia,
   SmolderingMM,
   Solitary_Plasmacytoma,
-  Walderstrom,
-  Yearofsamplecollection
+  Walderstrom
 )
 

@@ -1,7 +1,7 @@
-library(lubridate)
-Age_data <- Global_data[, c("avatar_id", "TCC_ID", "Gender", "Ethnicity", "Race", 
-                            "Disease_Status.germline", "Disease_Status_1",
-                            "smoking_status", "alcohol_use", "bmi_at_dx_v2")]
+
+Age_data <- Global_data#[, c("avatar_id", "TCC_ID", "Gender", "Ethnicity", "Race", 
+                            # "Disease_Status_germline", "disease_status_1",
+                            # "smoking_status", "alcohol_use", "bmi_at_dx_v2")]
 
 enddate <- today()
 Age_data$Age <- interval(start= Global_data$Date_of_Birth, end= enddate)/                      
@@ -81,7 +81,7 @@ p + geom_jitter(shape=16, position=position_jitter(0.2))
 t <- as.data.table(layer_data(p, 1)) %>% 
   select(c("ymin", "middle", "ymax")) %>% 
   `colnames<-`(c("min", "median", "max"))
-# write.csv(t,paste0(path, "/Age repartition per gender.csv"))
+write.csv(t,paste0(path, "/Age repartition per gender.csv"))
 
 
 # Ethnicity
@@ -120,7 +120,7 @@ p + geom_jitter(shape=16, position=position_jitter(0.2))
 t <- as.data.table(layer_data(p, 1)) %>% 
   select(c("ymin", "middle", "ymax")) %>% 
   `colnames<-`(c("min", "median", "max"))
-# write.csv(t,paste0(path, "/Age repartition per race_ethnicity"))
+write.csv(t,paste0(path, "/Age repartition per race_ethnicity"))
 
 # Disease status
 #pdf(paste0(path, "/Age repartition per disease status.pdf"), height = 6, width = 9)

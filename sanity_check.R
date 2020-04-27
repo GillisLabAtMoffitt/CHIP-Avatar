@@ -13,7 +13,7 @@ treatment <- treatment %>%
   ))
 table(treatment$treatment_check)
 wrong_date <- as.data.table(treatment[which(treatment$treatment_check == "not good"),])
-# write.csv(wrong_date, paste0(path, "/wrong date treatment.csv"))
+write.csv(wrong_date, paste0(path, "/wrong date treatment.csv"))
 
 sanity_check <- Global_data %>% 
   mutate(diag_check = case_when(
@@ -113,14 +113,14 @@ table_sanity_check <- as.data.table(matrix(c("check", "radiation_check", "treatm
                               sum(str_count(sanity_check$drug_after_diag, "not good"), na.rm = TRUE)
                               ), ncol = 14, byrow=TRUE))
 
-# write.csv(table_sanity_check, paste0(path, "/sanity check.csv"))
+write.csv(table_sanity_check, paste0(path, "/sanity check.csv"))
 
 wrong_date_bmt <- as.data.table(sanity_check[which(sanity_check$sct_check == "not good"), c("avatar_id", "date_of_first_bmt_1", "date_of_second_bmt_1")])
-# write.csv(wrong_date_bmt, paste0(path, "/wrong_date_bmt.csv"))
+write.csv(wrong_date_bmt, paste0(path, "/wrong_date_bmt.csv"))
 
 wrong_diag_or_lastdate <- as.data.table(sanity_check[which(sanity_check$diag_BF_lastdate == "not good"), c("avatar_id", "date_of_diagnosis_1", "last_date_available",
                                                                         "date_death", "date_last_follow_up")])
-# write.csv(wrong_diag_or_lastdate, paste0(path, "/wrong_diag_or_lastdate.csv"))
+write.csv(wrong_diag_or_lastdate, paste0(path, "/wrong_diag_or_lastdate.csv"))
 
 missing_diag <- as.data.table(sanity_check[which(is.na(sanity_check$date_of_diagnosis_1)), c("avatar_id", "date_of_diagnosis_1")])
 write.csv(missing_diag, paste0(path, "/missing_diag date.csv"))

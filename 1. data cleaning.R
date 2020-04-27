@@ -264,7 +264,7 @@ MM_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM
 MM_history <- dcast(setDT(MM_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
   select(c("avatar_id", "date_of_diagnosis_1", "disease_stage_1", "date_of_diagnosis_2", "disease_stage_2", "date_of_diagnosis_3", "disease_stage_3",
            "date_of_diagnosis_4", "disease_stage_4", "versionMM_1", "versionMM_2", "versionMM_3", "versionMM_4"))
-# write.csv(MM_history,paste0(path, "/MM_history simplify.csv"))
+write.csv(MM_history,paste0(path, "/MM_history simplify.csv"))
 #-------------------------------------
 Vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, Alc_SmoV4, .id = "versionVit")
 Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), 
@@ -316,7 +316,7 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
 # Note for smoking
 # 1 patient said 3 in V2 and 11 in V1
 # 1 patient said 3 in V2 and 12 in V1
-# write.csv(Vitals,paste0(path, "/Vitals simplify.csv"))
+write.csv(Vitals,paste0(path, "/Vitals simplify.csv"))
 #-------------------------------------
 sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>% 
   arrange(date_of_third_bmt) %>% 
@@ -325,7 +325,7 @@ sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>%
   drop_na("date_of_first_bmt")
 SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), value.var = c("prior_treatment", "number_of_bonemarrow_transplant",
                                                                      "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
-# write.csv(SCT,paste0(path, "/SCT simplify.csv"))
+write.csv(SCT,paste0(path, "/SCT simplify.csv"))
 #------------------------------------
 # remove row when QC'd row has no data
 Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
@@ -360,7 +360,7 @@ treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat"
 Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
                    value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
 
-# write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))
+write.csv(Treatment,paste0(path, "/Treatment simplify.csv"))
 
 # Another way of doing it which could be better by pivot longer, 
 # compare and pivot wider but couldn't figure out one last piece
@@ -399,7 +399,7 @@ radiation <- bind_rows(RadiationV1, RadiationV2, RadiationV4, .id = "versionRad"
   arrange(rad_start_date)
 Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
                      c("rad_start_date", "rad_stop_date"))
-# write.csv(Radiation,paste0(path, "/Radiation simplify.csv"))
+write.csv(Radiation,paste0(path, "/Radiation simplify.csv"))
 #------------------------------------
 # Cleaning
 rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
@@ -479,14 +479,14 @@ WES_seq  <- WES_seq[order(WES_seq$collectiondt_tumor_1), ] %>%
   arrange(collectiondt_tumor_4) %>%
   arrange(collectiondt_tumor_5) %>%
   arrange(collectiondt_tumor_6)
-# write.csv(WES_seq,paste0(path, "/WES_seq germline tumor.csv"))
+write.csv(WES_seq,paste0(path, "/WES_seq germline tumor.csv"))
 
 
 # Merge with Germ (date) with WES_seq (sequencing)
 Combined_data_MM <- merge.data.frame(Germ, WES_seq,
                                      by.x = "avatar_id", by.y = "avatar_id", 
                                      all.x = TRUE, all.y = TRUE)
-# write.csv(Combined_data_MM, paste0(path, "/Combined data and dates MM.csv"))
+write.csv(Combined_data_MM, paste0(path, "/Combined data and dates MM.csv"))
 # I checked the ID they are all the same no missing nor added
 
 #######################################################################################  III  # For 2nd sequencing file
@@ -532,7 +532,7 @@ f <- merge.data.frame(e, Radiation,by.x = "avatar_id", by.y = "avatar_id",
                       all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
 
 Global_data <- merge.data.frame(Demo_RedCap_V4ish, f, by.x = "avatar_id", by.y = "avatar_id", all.x = FALSE, all.y = TRUE)
-# write.csv(Global_data, paste0(path, "/Global_data.csv"))
+write.csv(Global_data, paste0(path, "/Global_data.csv"))
 rm(b,c,d,e,f)
 
 # tempory dataframe for the time to plot simply

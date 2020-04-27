@@ -109,7 +109,7 @@ germline_compared_dates <-matrix(
   ncol = 3, byrow=TRUE)
 germline_compared_dates <- as.table(germline_compared_dates)
 germline_compared_dates
-# write.csv(germline_compared_dates, paste0(path, "table compared germline dates and Demographics.csv"))
+# write.csv(germline_compared_dates, paste0(path, "/table compared germline dates and Demographics.csv"))
 
 rm(a, germline_compared_dates)
 
@@ -122,7 +122,7 @@ germ_BF_drugsBMT <- f[which(f$germBEFOREdrugsBMT == "OK"),]
 venn.diagram(
   x = list(germ_BF_drugs$avatar_id, germ_BF_bmt1$avatar_id),
   category.names = c("Germline before drugs" , "Germline before BMT1"),
-  filename = 'Patient who had germlime sequenced before drugs and BMT.png',
+  filename = 'Patient who had Germline sequenced before drugs and BMT.png',
   output=TRUE,
   
   # Output features
@@ -156,7 +156,7 @@ germ_available <-  f[which(!is.na(f$collectiondt_germline)),]
 venn.diagram(
   x = list(germ_available$avatar_id, germ_BF_drugs$avatar_id, germ_BF_bmt1$avatar_id),
   category.names = c("Germline available", "Germline before drugs" , "Germline before BMT1"),
-  filename = 'Patient who had germlime sequenced before drugs and BMT in Total Germline population.png',
+  filename = 'Patient who had Germline sequenced before drugs and BMT in Total Germline population.png',
   output=TRUE,
   
   # Output features

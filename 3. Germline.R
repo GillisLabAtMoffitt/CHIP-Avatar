@@ -109,7 +109,7 @@ germline_compared_dates <-matrix(
   ncol = 3, byrow=TRUE)
 germline_compared_dates <- as.table(germline_compared_dates)
 germline_compared_dates
-write.csv(germline_compared_dates, paste0(path, "/table compared germline dates and Demographics.csv"))
+# write.csv(germline_compared_dates, paste0(path, "/table compared germline dates and Demographics.csv"))
 
 rm(a, germline_compared_dates)
 

@@ -181,23 +181,23 @@ RadiationV2 <- readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Da
     )
 #-----------------------------------------------------------------------------------------------------------------
 VitalsV4 <-
-  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                     sheet = "Vitals") %>%
   select(c("avatar_id","vital_status","date_death", "date_of_last_contact")) %>% 
   `colnames<-`(c("avatar_id","vital_status","date_death", "date_last_follow_up"))
 #-----------------------------------------------------------------------------------------------------------------
 MM_historyV4 <-
-  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                     sheet = "Myeloma_Disease_History") %>%
   select(c("avatar_id", "date_of_diagnosis"))
 # will need to modify date as 2000 then as.Date
 #-----------------------------------------------------------------------------------------------------------------
   # ComorbiditiesV4 <-
-  #   readxl::read_xlsx((paste0(ClinicalCap_V4,"/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+  #   readxl::read_xlsx((paste0(ClinicalCap_V4,"/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
   #                     sheet = "Comorbidities") %>%
   #   select(c("avatar_id", ))
   Alc_SmoV4 <-
-    readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+    readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                       sheet = "Comorbidities") %>%
     select(c("avatar_id","smoking_status", "alcohol_use"))
 #-----------------------------------------------------------------------------------------------------------------
@@ -210,19 +210,19 @@ MM_historyV4 <-
 # Biopsy <- Biopsy[,c("tcc_id" ,"number_of_bonemarrow_biopsies")]
 #-----------------------------------------------------------------------------------------------------------------
 TreatmentV4 <-
-  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                     sheet = "Treatment") %>%
   select(c("avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
            "drug_name_other")) # remove "treatment_line_"
 #-----------------------------------------------------------------------------------------------------------------
 SCTV4 <-
-  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                     sheet = "SCT") %>%
   select(c("avatar_id", "date_of_bmt")) %>% 
   `colnames<-`(c("avatar_id", "date_of_first_bmt")) # can be different than first if duplicated from v1 or v2
 #-----------------------------------------------------------------------------------------------------------------
 RadiationV4 <- 
-    readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_02212020.xlsx")),
+    readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                                  sheet = "Radiation") %>%
     select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
@@ -354,7 +354,7 @@ TreatmentV4 <- TreatmentV4 %>%
 
 # ready to bind
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
-  distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_) %>% 
+  distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_, .keep_all = TRUE) %>% 
   arrange(drug_start_date)
 #Treatm <- treatment %>% pivot_wider(values_from = drug_name_)
 Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 

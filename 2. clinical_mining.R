@@ -86,7 +86,7 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("#F0F921FF", "#0D0887FF", "#CC4678FF"),
+  fill = m3,
   
   # Numbers
   cex = .6,
@@ -235,7 +235,7 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c3,
+  fill = m3,
   
   # Numbers
   cex = .6,
@@ -254,22 +254,6 @@ library(RColorBrewer)
 ###################################################################################################  I  ## Venn 1
 # Restart from the Global_data
 # Who had BMT or/and drugs in the Germline available patient samples
-
-Global_data <- Global_data#[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
-# "number_of_bonemarrow_transplant_1", "number_of_bonemarrow_transplant_2","date_of_first_bmt_1", "date_of_second_bmt_1", "date_of_third_bmt_1", 
-# 
-# "collectiondt.germline", "Disease_Status.germline", "collectiondt_1", "Disease_Status_1",
-# 
-# "vital_status", "date_death", "date_last_follow_up", "last_date_available", 
-# 
-# "prior_treatment_1", "prior_treatment_2",
-# "drug_start_date_1",
-# 
-# "rad_start_date_1", "rad_start_date_2", "rad_stop_date_1", "rad_stop_date_2",                  
-# 
-# "smoking_status", "alcohol_use",
-# 
-# "bmi_at_dx_v2", "Gender", "Ethnicity", "Race", "versionMM_1")]
 
 # nbr of germline collection
 germ_available <-  Global_data[which(!is.na(Global_data$collectiondt_germline)),]
@@ -315,7 +299,7 @@ draw.triple.venn(nrow(germ_available),
 head(Combined_data_MM)
 Combined_data_MM$Disease_Status_germline
 Disease_status_table <- table(Combined_data_MM$Disease_Status_germline)
-write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
+# write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
 
 ################################################################################# TABLE Year of germline sample collection ####
 Amyloidosis_Diagnostic <- which(Combined_data_MM$Disease_Status_germline == "Amyloidosis- Diagnostic marrow")#1  
@@ -424,9 +408,9 @@ disease_status_by_year <- matrix(
     sum(str_count(Walderstrom$collectiondt_germline, "2017")),sum(str_count(Walderstrom$collectiondt_germline, "2018")),
     sum(str_count(Walderstrom$collectiondt_germline, "2019"))), ncol = 13, byrow=TRUE)
 
-write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
+# write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
 # disease_status_by_year <- as.table(disease_status_by_year)
-write.csv(disease_status_by_year,paste0(path, "/Year of germline sample collection.csv"))
+# write.csv(disease_status_by_year,paste0(path, "/Year of germline sample collection.csv"))
 
 rm(
   Amyloidosis_Diagnostic,

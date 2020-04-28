@@ -9,7 +9,7 @@ library(lubridate)
 path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Cassin", "CHIP in Avatar")
 #-----------------------------------------------------------------------------------------------------------------
 Demo_RedCap_V4ish <-
-  readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Avatar_Demographics_All_MM_OUT_03022020.xlsx")) %>%
+  readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Avatar_Demographics_All_MM_modif_04292020.xlsx")) %>%
   select(c("avatar_id","TCC_ID","Date_of_Birth", "Gender", "Ethnicity", "Race"))
 #-----------------------------------------------------------------------------------------------------------------
 Germ <- 
@@ -227,7 +227,7 @@ RadiationV4 <-
                                  sheet = "Radiation") %>%
     select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
-jpeg("barplot1.jpg", width = 350, height = 350)
+# jpeg("barplot1.jpg", width = 350, height = 350)
 par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
 par(cex.sub = .7)
 barplot(
@@ -256,13 +256,13 @@ barplot(
 legend("bottomright", legend = c("version1", "version2", "version4"),
        col = c("purple", "orange", "yellow"),
        bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(-0.05, 0.05)) # horiz, vert
-dev.off()
+# dev.off()
 
 #######################################################################################  II  ## Bind Version
 #######################################################################################  II  ## Align duplicated ID
-MM_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
+mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
   arrange(date_of_diagnosis)
-MM_history <- dcast(setDT(MM_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
+MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
   select(c("avatar_id", "date_of_diagnosis_1", "disease_stage_1", "date_of_diagnosis_2", "disease_stage_2", "date_of_diagnosis_3", "disease_stage_3",
            "date_of_diagnosis_4", "disease_stage_4", "versionMM_1", "versionMM_2", "versionMM_3", "versionMM_4"))
 # write.csv(MM_history,paste0(path, "/MM_history simplify.csv"))
@@ -327,7 +327,7 @@ sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>%
   distinct(avatar_id, date_of_first_bmt, .keep_all = TRUE)
 SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), 
              value.var = c("date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
-write.csv(SCT,paste0(path, "/SCT simplify.csv"))
+# write.csv(SCT,paste0(path, "/SCT simplify.csv"))
 #------------------------------------
 # remove row when QC'd row has no data
 Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
@@ -481,14 +481,13 @@ WES_seq  <- WES_seq[order(WES_seq$collectiondt_tumor_1), ] %>%
   arrange(collectiondt_tumor_4) %>%
   arrange(collectiondt_tumor_5) %>%
   arrange(collectiondt_tumor_6)
-# write.csv(WES_seq,paste0(path, "/WES_seq germline tumor.csv"))
 
 
 # Merge with Germ (date) with WES_seq (sequencing)
 Combined_data_MM <- merge.data.frame(Germ, WES_seq,
                                      by.x = "avatar_id", by.y = "avatar_id", 
                                      all.x = TRUE, all.y = TRUE)
-# write.csv(Combined_data_MM, paste0(path, "/Combined data and dates MM.csv"))
+
 # I checked the ID they are all the same no missing nor added
 
 #######################################################################################  III  # For 2nd sequencing file
@@ -514,46 +513,29 @@ Seq_WES_Raghu <- merge.data.frame(Seq_WES_Raghu, Germ2,
 Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu)
 Germline <- Germline %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
                              SLID_germline_1 , .keep_all = TRUE) 
-# write.csv(Germline, paste0(path, "/Combined data and dates MM_2.csv"))
+write.csv(Germline, paste0(path, "/Combined data and dates MM.csv"))
 rm(WES_seq, Seq_WES_Raghu, Germ, Germ2)
 ##################################################################################################  IV  ## Merge
 b <- merge.data.frame(Germline[, c("avatar_id", "collectiondt_germline", "Disease_Status_germline", 
                                            "collectiondt_tumor_1", "Disease_Status_tumor_1")],
                       MM_history, by.x = "avatar_id", by.y = "avatar_id", 
-                      all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
+                      all.x = TRUE, all.y = TRUE, suffixes = c(".x",".y"))
 
 c <- merge.data.frame(b, Vitals, by.x = "avatar_id", by.y = "avatar_id", 
-                      all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
+                      all.x = TRUE, all.y = TRUE, suffixes = c(".x",".y"))
 
 d <- merge.data.frame(c, SCT, by.x = "avatar_id", by.y = "avatar_id", 
-                      all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
+                      all.x = TRUE, all.y = TRUE, suffixes = c(".x",".y"))
 
 e <- merge.data.frame(d, Treatment, by.x = "avatar_id", by.y = "avatar_id", 
-                      all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
+                      all.x = TRUE, all.y = TRUE, suffixes = c(".x",".y"))
 
 f <- merge.data.frame(e, Radiation,by.x = "avatar_id", by.y = "avatar_id", 
-                      all.x = TRUE, all.y = FALSE, suffixes = c(".x",".y"))
+                      all.x = TRUE, all.y = TRUE, suffixes = c(".x",".y"))
 
 Global_data <- merge.data.frame(Demo_RedCap_V4ish, f, by.x = "avatar_id", by.y = "avatar_id", all.x = FALSE, all.y = TRUE)
-# write.csv(Global_data, paste0(path, "/Global_data.csv"))
+write.csv(Global_data, paste0(path, "/Global_data.csv"))
 rm(b,c,d,e,f)
-
-# tempory dataframe for the time to plot simply
-# f <- Global_data[,c("avatar_id", "TCC_ID", "Date_of_Birth", "date_of_diagnosis_1","disease_stage_1",
-#                     "number_of_bonemarrow_transplant_1", "number_of_bonemarrow_transplant_2","date_of_first_bmt_1", "date_of_second_bmt_1", "date_of_third_bmt_1", 
-#                     
-#                     "collectiondt_germline", "Disease_Status_germline", "collectiondt_tumor_1", "Disease_Status_tumor_1",
-#                     
-#                     "vital_status", "date_death", "date_last_follow_up", "last_date_available", 
-#                     
-#                     "prior_treatment_1", "prior_treatment_2",
-#                     "drug_start_date_1",
-#                     
-#                     "rad_start_date_1", "rad_start_date_2", "rad_stop_date_1", "rad_stop_date_2",                  
-#                     
-#                     "smoking_status", "alcohol_use",
-#                     
-#                     "bmi_at_dx_v2", "Gender", "Ethnicity", "Race", "versionMM_1")]
 
 # Create dataframe for all start dates 
 

@@ -1,7 +1,5 @@
 
-Age_data <- Global_data#[, c("avatar_id", "TCC_ID", "Gender", "Ethnicity", "Race", 
-                            # "Disease_Status_germline", "disease_status_1",
-                            # "smoking_status", "alcohol_use", "bmi_at_dx_v2")]
+Age_data <- Global_data
 
 enddate <- today()
 Age_data$Age <- interval(start= Global_data$Date_of_Birth, end= enddate)/                      

@@ -250,39 +250,39 @@ venn.diagram(
   cat.dist = c(0.020, -0.035, 0.045), # x BMT germ
   cat.fontfamily = "sans"
 )
+
 library(RColorBrewer)
 ###################################################################################################  I  ## Venn 1
 # Restart from the Global_data
 # Who had BMT or/and drugs in the Germline available patient samples
 
 # nbr of germline collection
-germ_available <-  Global_data[which(!is.na(Global_data$collectiondt_germline)),]
-NROW(germ_available) #512
+NROW(gerrmline_patient_data) #512
 # nbr tcc id
-NROW(which(!is.na(germ_available$TCC_ID))) # 510
+NROW(which(!is.na(gerrmline_patient_data$TCC_ID))) # 512
 # nbr birth
-NROW(which(!is.na(germ_available$Date_of_Birth))) # 510
+NROW(which(!is.na(gerrmline_patient_data$Date_of_Birth))) # 512
 # nbr death
-NROW(which(!is.na(germ_available$date_death))) # 83
+NROW(which(!is.na(gerrmline_patient_data$date_death))) # 83
 # nbr diag
-NROW(which(!is.na(germ_available$date_of_diagnosis_1))) # 507
+NROW(which(!is.na(gerrmline_patient_data$date_of_diagnosis_1))) # 509
 
 # nbr had bmt1 
-NROW(which(!is.na(germ_available$date_of_first_bmt_1))) # 240
-bmtINgerm <- germ_available[which(!is.na(germ_available$date_of_first_bmt_1)),]
+NROW(which(!is.na(gerrmline_patient_data$date_of_first_bmt))) # 240
+bmtINgerm <- gerrmline_patient_data[!is.na(gerrmline_patient_data$date_of_first_bmt),]
 # nbr had drug1
-NROW(which(!is.na(germ_available$drug_start_date_1))) # 416
-drugINgerm <- germ_available[which(!is.na(germ_available$drug_start_date_1)),]
+NROW(which(!is.na(gerrmline_patient_data$drug_start_date_1))) # 416
+drugINgerm <- gerrmline_patient_data[!is.na(gerrmline_patient_data$drug_start_date_1),]
 # nbr commun in bmt1 and drug
-had_GERM_BMT_DRUGS <- germ_available[which(!is.na(bmtINgerm$drug_start_date_1)),] # 240
-NROW(which(!is.na(drugINgerm$date_of_first_bmt_1))) # same
+had_GERM_BMT_DRUGS <- gerrmline_patient_data[!is.na(bmtINgerm$drug_start_date_1),] # 240
+NROW(which(!is.na(drugINgerm$date_of_first_bmt))) # same
 NROW(which(!is.na(bmtINgerm$drug_start_date_1)))
 
 
 myCol1 <- brewer.pal(3, "Pastel1")
 myCol2 <- brewer.pal(3, "Pastel2")
 
-draw.triple.venn(nrow(germ_available), 
+draw.triple.venn(nrow(gerrmline_patient_data), 
                  nrow(bmtINgerm),
                  nrow(drugINgerm),
                  n12 = nrow(bmtINgerm), n23 = nrow(had_GERM_BMT_DRUGS),

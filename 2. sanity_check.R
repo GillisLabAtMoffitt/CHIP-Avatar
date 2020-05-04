@@ -45,45 +45,45 @@ sanity_check <- Global_data %>%
     rad_start_date_1 >= rad_start_date_2 ~ "not good"
     )) %>% 
   mutate(sct_check = case_when(
-    date_of_first_bmt_1 < date_of_second_bmt_1 &
-      date_of_second_bmt_1 < date_of_third_bmt_1 ~ "OK",
-    date_of_first_bmt_1 < date_of_second_bmt_1 ~ "OK",
-      date_of_second_bmt_1 >= date_of_third_bmt_1 |
-    date_of_first_bmt_1 >= date_of_second_bmt_1 ~ "not good"
+    date_of_first_bmt < date_of_second_bmt &
+      date_of_second_bmt < date_of_third_bmt ~ "OK",
+    date_of_first_bmt < date_of_second_bmt ~ "OK",
+      date_of_second_bmt >= date_of_third_bmt |
+    date_of_first_bmt >= date_of_second_bmt ~ "not good"
   )) %>% 
   mutate(treat_check = case_when(
-    drug_start_date_1 < drug_start_date_2 &
-      drug_start_date_2 < drug_start_date_3 &
-      drug_start_date_3 < drug_start_date_4 &
-      drug_start_date_4 < drug_start_date_5 &
-      drug_start_date_5 < drug_start_date_6 &
-      drug_start_date_6 < drug_start_date_7 &
-      drug_start_date_7 < drug_start_date_8 &
-      drug_start_date_8 < drug_start_date_9 &
-      drug_start_date_9 < drug_start_date_10 &
-      drug_start_date_10 < drug_start_date_11 &
-      drug_start_date_11 < drug_start_date_12 &
-      drug_start_date_12 < drug_start_date_13 &
-      drug_start_date_13 < drug_start_date_14 &
-      drug_start_date_14 < drug_start_date_15 &
-      drug_start_date_15 < drug_start_date_16 &
-      drug_start_date_16 < drug_start_date_17 ~ "OK",
-    drug_start_date_1 >= drug_start_date_2 |
-      drug_start_date_2 >= drug_start_date_3 |
-      drug_start_date_3 >= drug_start_date_4 |
-      drug_start_date_4 >= drug_start_date_5 |
-      drug_start_date_5 >= drug_start_date_6 |
-      drug_start_date_6 >= drug_start_date_7 |
-      drug_start_date_7 >= drug_start_date_8 |
-      drug_start_date_8 >= drug_start_date_9 |
-      drug_start_date_9 >= drug_start_date_10 |
-      drug_start_date_10 >= drug_start_date_11 |
-      drug_start_date_11 >= drug_start_date_12 |
-      drug_start_date_12 >= drug_start_date_13 |
-      drug_start_date_13 >= drug_start_date_14 |
-      drug_start_date_14 >= drug_start_date_15 |
-      drug_start_date_15 >= drug_start_date_16 |
-      drug_start_date_16 >= drug_start_date_17 ~ "not good"
+    drug_start_date_1 <= drug_start_date_2 &
+      drug_start_date_2 <= drug_start_date_3 &
+      drug_start_date_3 <= drug_start_date_4 &
+      drug_start_date_4 <= drug_start_date_5 &
+      drug_start_date_5 <= drug_start_date_6 &
+      drug_start_date_6 <= drug_start_date_7 &
+      drug_start_date_7 <= drug_start_date_8 &
+      drug_start_date_8 <= drug_start_date_9 &
+      drug_start_date_9 <= drug_start_date_10 &
+      drug_start_date_10 <= drug_start_date_11 &
+      drug_start_date_11 <= drug_start_date_12 &
+      drug_start_date_12 <= drug_start_date_13 &
+      drug_start_date_13 <= drug_start_date_14 &
+      drug_start_date_14 <= drug_start_date_15 &
+      drug_start_date_15 <= drug_start_date_16 &
+      drug_start_date_16 <= drug_start_date_17 ~ "OK",
+    drug_start_date_1 > drug_start_date_2 |
+      drug_start_date_2 > drug_start_date_3 |
+      drug_start_date_3 > drug_start_date_4 |
+      drug_start_date_4 > drug_start_date_5 |
+      drug_start_date_5 > drug_start_date_6 |
+      drug_start_date_6 > drug_start_date_7 |
+      drug_start_date_7 > drug_start_date_8 |
+      drug_start_date_8 > drug_start_date_9 |
+      drug_start_date_9 > drug_start_date_10 |
+      drug_start_date_10 > drug_start_date_11 |
+      drug_start_date_11 > drug_start_date_12 |
+      drug_start_date_12 > drug_start_date_13 |
+      drug_start_date_13 > drug_start_date_14 |
+      drug_start_date_14 > drug_start_date_15 |
+      drug_start_date_15 > drug_start_date_16 |
+      drug_start_date_16 > drug_start_date_17 ~ "not good"
   )) %>% 
   mutate(birth_BF_lastdate = case_when(
     last_date_available > Date_of_Birth ~ "OK",
@@ -105,7 +105,7 @@ sanity_check <- Global_data %>%
     rad_start_date_1 > date_of_diagnosis_1 ~ "OK"
   )) %>% 
   mutate(bmt_after_diag = case_when(
-    date_of_first_bmt_1 > date_of_diagnosis_1 ~ "OK"
+    date_of_first_bmt > date_of_diagnosis_1 ~ "OK"
   )) %>% 
   mutate(drug_after_diag = case_when(
     drug_start_date_1 > date_of_diagnosis_1 ~ "OK"
@@ -137,10 +137,10 @@ table_sanity_check <- as.data.table(matrix(c("check", "radiation_check", "treatm
                               sum(str_count(sanity_check$drug_after_diag, "not good"), na.rm = TRUE)
                               ), ncol = 14, byrow=TRUE))
 
-# write.csv(table_sanity_check, paste0(path, "/sanity check.csv"))
+write.csv(table_sanity_check, paste0(path, "/sanity check.csv"))
 
 wrong_date_bmt <- as.data.table(sanity_check[which(sanity_check$sct_check == "not good"), c("avatar_id", "date_of_first_bmt_1", "date_of_second_bmt_1")])
-# write.csv(wrong_date_bmt, paste0(path, "/wrong_date_bmt.csv"))
+write.csv(wrong_date_bmt, paste0(path, "/wrong_date_bmt.csv"))
 
 wrong_date_drug <- sanity_check[which(sanity_check$treat_check == "not good"), ] %>% 
   select("avatar_id", starts_with("drug_start"), starts_with("drug_name"))

@@ -1,45 +1,45 @@
 # Here we centered the data on the ones having a germline collection date
 
 ################################################################################# TABLE disease status year ####
-head(Combined_data_MM)
-"Combined_data_MM"$Disease_Status_germline
-Disease_status_table <- table(Combined_data_MM$Disease_Status_germline)
-# write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
+head(gerrmline_patient_data)
+gerrmline_patient_data$Disease_Status_germline
+Disease_status_table <- table(gerrmline_patient_data$Disease_Status_germline)
+write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
 
 ################################################################################# TABLE Year of germline sample collection ####
-Amyloidosis_Diagnostic <- which(Combined_data_MM$Disease_Status_germline == "Amyloidosis- Diagnostic marrow")#1  
-Early_Relapse <- which(Combined_data_MM$Disease_Status_germline == "Early Relapse Multiple Myeloma") # 208 
-Late_Relapse <- which(Combined_data_MM$Disease_Status_germline == "Late Relapse Multiple Myeloma")  #66  
-Mgus <- which(Combined_data_MM$Disease_Status_germline == "Mgus") #50
-Myelofib <- which(Combined_data_MM$Disease_Status_germline == "MYELOFIBROSIS")    #1                                 
-Normal_marrow <- which(Combined_data_MM$Disease_Status_germline == "Normal marrow") #1
-Post_Treat <-which(Combined_data_MM$Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma")  #9 
-Refractory_anemia <- which(Combined_data_MM$Disease_Status_germline == "Refractory anemia with ring sideroblasts")  #1                  
-SmolderingMM <- which(Combined_data_MM$Disease_Status_germline == "Smoldering Multiple Myeloma") #47
-Solitary_Plasmacytoma <- which(Combined_data_MM$Disease_Status_germline == "Solitary Plasmacytoma")    #4              
-Walderstrom <- which(Combined_data_MM$Disease_Status_germline == "WALDENSTROM MACROGLOBULINEMIA") #1
-Pre_Treat <- which(Combined_data_MM$Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") #117
+Amyloidosis_Diagnostic <- which(gerrmline_patient_data$Disease_Status_germline == "Amyloidosis- Diagnostic marrow")#1  
+Early_Relapse <- which(gerrmline_patient_data$Disease_Status_germline == "Early Relapse Multiple Myeloma") # 208 
+Late_Relapse <- which(gerrmline_patient_data$Disease_Status_germline == "Late Relapse Multiple Myeloma")  #66  
+Mgus <- which(gerrmline_patient_data$Disease_Status_germline == "Mgus") #50
+Myelofib <- which(gerrmline_patient_data$Disease_Status_germline == "MYELOFIBROSIS")    #1                                 
+Normal_marrow <- which(gerrmline_patient_data$Disease_Status_germline == "Normal marrow") #1
+Post_Treat <-which(gerrmline_patient_data$Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma")  #9 
+Refractory_anemia <- which(gerrmline_patient_data$Disease_Status_germline == "Refractory anemia with ring sideroblasts")  #1                  
+SmolderingMM <- which(gerrmline_patient_data$Disease_Status_germline == "Smoldering Multiple Myeloma") #47
+Solitary_Plasmacytoma <- which(gerrmline_patient_data$Disease_Status_germline == "Solitary Plasmacytoma")    #4              
+Walderstrom <- which(gerrmline_patient_data$Disease_Status_germline == "WALDENSTROM MACROGLOBULINEMIA") #1
+Pre_Treat <- which(gerrmline_patient_data$Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") #117
 
-Pre_Treat <- Combined_data_MM[Pre_Treat, ]
-Post_Treat <- Combined_data_MM[Post_Treat, ]
-Amyloidosis_Diagnostic <- Combined_data_MM[Amyloidosis_Diagnostic, ]
-Early_Relapse <- Combined_data_MM[Early_Relapse, ]
-Late_Relapse <- Combined_data_MM[Late_Relapse, ]
-Mgus <- Combined_data_MM[Mgus, ]
-Myelofib <- Combined_data_MM[Myelofib, ]
-Normal_marrow <- Combined_data_MM[Normal_marrow, ]
-Refractory_anemia <- Combined_data_MM[Refractory_anemia, ]
-SmolderingMM <- Combined_data_MM[SmolderingMM, ]
-Solitary_Plasmacytoma <- Combined_data_MM[Solitary_Plasmacytoma, ]
-Walderstrom <- Combined_data_MM[Walderstrom, ]
+Pre_Treat <- gerrmline_patient_data[Pre_Treat, ]
+Post_Treat <- gerrmline_patient_data[Post_Treat, ]
+Amyloidosis_Diagnostic <- gerrmline_patient_data[Amyloidosis_Diagnostic, ]
+Early_Relapse <- gerrmline_patient_data[Early_Relapse, ]
+Late_Relapse <- gerrmline_patient_data[Late_Relapse, ]
+Mgus <- gerrmline_patient_data[Mgus, ]
+Myelofib <- gerrmline_patient_data[Myelofib, ]
+Normal_marrow <- gerrmline_patient_data[Normal_marrow, ]
+Refractory_anemia <- gerrmline_patient_data[Refractory_anemia, ]
+SmolderingMM <- gerrmline_patient_data[SmolderingMM, ]
+Solitary_Plasmacytoma <- gerrmline_patient_data[Solitary_Plasmacytoma, ]
+Walderstrom <- gerrmline_patient_data[Walderstrom, ]
 
 disease_status_by_year <- matrix(
   c("group", "nbr of patients", "earliest date", "latest date","2011", "2012", "2013","2014","2015","2016","2017","2018","2019",
     
-    "General", nrow(Combined_data_MM), as.character(min(Combined_data_MM$collectiondt_germline)), as.character(max(Combined_data_MM$collectiondt_germline)), 
-    sum(str_count(Combined_data_MM$collectiondt_germline, "2011")),sum(str_count(Combined_data_MM$collectiondt_germline, "2012")),sum(str_count(Combined_data_MM$collectiondt_germline, "2013")),
-    sum(str_count(Combined_data_MM$collectiondt_germline, "2014")),sum(str_count(Combined_data_MM$collectiondt_germline, "2015")),sum(str_count(Combined_data_MM$collectiondt_germline, "2016")),
-    sum(str_count(Combined_data_MM$collectiondt_germline, "2015")),sum(str_count(Combined_data_MM$collectiondt_germline, "2018")),sum(str_count(Combined_data_MM$collectiondt_germline, "2019")),
+    "General", nrow(gerrmline_patient_data), as.character(min(gerrmline_patient_data$collectiondt_germline)), as.character(max(gerrmline_patient_data$collectiondt_germline)), 
+    sum(str_count(gerrmline_patient_data$collectiondt_germline, "2011")),sum(str_count(gerrmline_patient_data$collectiondt_germline, "2012")),sum(str_count(gerrmline_patient_data$collectiondt_germline, "2013")),
+    sum(str_count(gerrmline_patient_data$collectiondt_germline, "2014")),sum(str_count(gerrmline_patient_data$collectiondt_germline, "2015")),sum(str_count(gerrmline_patient_data$collectiondt_germline, "2016")),
+    sum(str_count(gerrmline_patient_data$collectiondt_germline, "2015")),sum(str_count(gerrmline_patient_data$collectiondt_germline, "2018")),sum(str_count(gerrmline_patient_data$collectiondt_germline, "2019")),
     "Pre Treatment Newly Diagnosed", nrow(Pre_Treat), as.character(min(Pre_Treat$collectiondt_germline)),as.character(max(Pre_Treat$collectiondt_germline)),
     sum(str_count(Pre_Treat$collectiondt_germline, "2011")),sum(str_count(Pre_Treat$collectiondt_germline, "2012")),
     sum(str_count(Pre_Treat$collectiondt_germline, "2013")),sum(str_count(Pre_Treat$collectiondt_germline, "2014")),
@@ -113,7 +113,7 @@ disease_status_by_year <- matrix(
     sum(str_count(Walderstrom$collectiondt_germline, "2017")),sum(str_count(Walderstrom$collectiondt_germline, "2018")),
     sum(str_count(Walderstrom$collectiondt_germline, "2019"))), ncol = 13, byrow=TRUE)
 
-# write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
+write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
 # disease_status_by_year <- as.table(disease_status_by_year)
 # write.csv(disease_status_by_year,paste0(path, "/Year of germline sample collection.csv"))
 
@@ -140,16 +140,16 @@ germ_compared_dates <- Global_data[!is.na(Global_data$collectiondt_germline),] %
     collectiondt_germline <= drug_start_date_1 ~ "OK"
   )) %>% 
   mutate(germlineBFbmt1 = case_when(
-    collectiondt_germline > date_of_first_bmt_1  ~ ":(",
-    collectiondt_germline <= date_of_first_bmt_1  ~ "OK"
+    collectiondt_germline > date_of_first_bmt  ~ ":(",
+    collectiondt_germline <= date_of_first_bmt  ~ "OK"
   )) %>% 
   mutate(germlineBFbmt2 = case_when(
-    collectiondt_germline > date_of_second_bmt_1  ~ ":(",
-    collectiondt_germline <= date_of_second_bmt_1  ~ "OK"
+    collectiondt_germline > date_of_second_bmt  ~ ":(",
+    collectiondt_germline <= date_of_second_bmt  ~ "OK"
   )) %>% 
   mutate(germlineBFbmt3 = case_when(
-    collectiondt_germline > date_of_third_bmt_1 ~ ":(",
-    collectiondt_germline <= date_of_third_bmt_1 ~ "OK"
+    collectiondt_germline > date_of_third_bmt ~ ":(",
+    collectiondt_germline <= date_of_third_bmt ~ "OK"
   )) %>% 
   mutate(germlineBFrad1 = case_when(
     collectiondt_germline <= rad_start_date_1 ~ "OK",
@@ -169,11 +169,11 @@ germ_compared_dates <- Global_data[!is.na(Global_data$collectiondt_germline),] %
   )) %>% 
   mutate(germBFdrugsbmt1 = case_when(
     collectiondt_germline <= drug_start_date_1 &
-      collectiondt_germline <= date_of_first_bmt_1  ~ "OK"
+      collectiondt_germline <= date_of_first_bmt  ~ "OK"
   )) %>% 
   mutate(germBFdbr = case_when(
     collectiondt_germline <= drug_start_date_1 &
-      collectiondt_germline <= date_of_first_bmt_1 &
+      collectiondt_germline <= date_of_first_bmt &
       collectiondt_germline <= rad_start_date_1 ~ "OK"
   )) %>% 
   # mutate(bmt1_BF_drug = case_when(
@@ -192,33 +192,47 @@ germ_compared_dates <- Global_data[!is.na(Global_data$collectiondt_germline),] %
     collectiondt_germline < collectiondt_tumor_1 ~ "Germ first",
     collectiondt_germline > collectiondt_tumor_1 ~ "tumorWES first",
     collectiondt_germline == collectiondt_tumor_1 ~ "same date"
+  )) %>% 
+  mutate(birth_BF_lastdate = case_when(
+    last_date_available > Date_of_Birth ~ "OK",
+    last_date_available <= Date_of_Birth ~ "not good"
+  )) %>% 
+  mutate(birth_BF_diag = case_when(
+    date_of_diagnosis_1 > Date_of_Birth ~ "OK",
+    date_of_diagnosis_1 <= Date_of_Birth ~ "not good"
+  )) %>% 
+  mutate(diag_BF_lastdate = case_when(
+    last_date_available > date_of_diagnosis_1 ~ "OK",
+    last_date_available <= date_of_diagnosis_1 ~ "not good"
   ))
 
-# write.csv(germ_compared_dates, paste0(path, "/compared germline dates and Demographics.csv"))
+write.csv(germ_compared_dates, paste0(path, "/compared germline dates and Demographics.csv"))
 tab <- table(germ_compared_dates$GermBFtumorWES)
 barplot(tab, main = "Frequency of collection date first observed", ylim = c(0,500))
 
 
 #------------------------------------------------------------- Table
-
-
+germ_compared_dates[which(germ_compared_dates$diag_BF_lastdate == "not good"), c("avatar_id", "date_of_diagnosis_1", "last_date_available")]
+germ_compared_dates[which(germ_compared_dates$avatar_id == "A000506"),]
+A000506
 germline_compared_dates <-matrix(
   c("Category", "nbr in germline population", "comments",
     "birth date available", sum(!is.na(germ_compared_dates$Date_of_Birth)), "",
     "diagnosis date available", sum(!is.na(germ_compared_dates$date_of_diagnosis_1)),  "",
-    "last date available", sum(!is.na(germ_compared_dates$last_date_available)),  "", "death date available", sum(!is.na(germ_compared_dates$date_death_1)), "",
-    "nbr of patients born before last date", sum(str_count(germ_compared_dates$check_birthBFlastdate, "OK"), na.rm = TRUE), "",
-    "nbr of patients diag before last date", sum(str_count(germ_compared_dates$check_diagBFlastdate, "OK"), na.rm = TRUE), "3 patients present same date diagnosis/last day",
+    "last date available", sum(!is.na(germ_compared_dates$last_date_available)),  "", 
+    "death date available", sum(!is.na(germ_compared_dates$date_death)), "",
+    "nbr of patients born before last date", sum(str_count(germ_compared_dates$birth_BF_lastdate, "OK"), na.rm = TRUE), "",
+    "nbr of patients diag before last date", sum(str_count(germ_compared_dates$diag_BF_lastdate, "OK"), na.rm = TRUE), "2 patients present same date diagnosis/last day, 1 patient diag date is wrong as he got diag in 2017 but had drug in 2012, 2013, 2014",
     "germline date available", sum(!is.na(germ_compared_dates$collectiondt_germline)),  "",
     "drug date available", sum(!is.na(germ_compared_dates$drug_start_date_1)),  "",
-    "bmt1 date available", sum(!is.na(germ_compared_dates$date_of_first_bmt_1)),  "",
+    "bmt1 date available", sum(!is.na(germ_compared_dates$date_of_first_bmt)),  "",
     "rad date available", sum(!is.na(germ_compared_dates$rad_start_date_1)),  "",
-    "nbr of patients germline before drugs", sum(str_count(germ_compared_dates$germlineBFdrugs, "OK"), na.rm = TRUE), "6 patients same date. They would be pretreatment newly diagn",
+    "nbr of patients germline before drugs", sum(str_count(germ_compared_dates$germlineBFdrugs, "OK"), na.rm = TRUE), "",
     "nbr of patients germline before bmt1", sum(str_count(germ_compared_dates$germlineBFbmt1, "OK"), na.rm = TRUE), "",
     "nbr of patients germline before bmt2", sum(str_count(germ_compared_dates$germlineBFbmt2, "OK"), na.rm = TRUE), "",
     "nbr of patients germline before bmt3", sum(str_count(germ_compared_dates$germlineBFbmt3, "OK"), na.rm = TRUE),  "",
     "nbr of patients germline before radiation", sum(str_count(germ_compared_dates$germlineBFrad1, "OK"), na.rm = TRUE), "",
-    "nbr of patients germline before drugs and bmt1", sum(str_count(germ_compared_dates$germBFdrugsbmt1, "OK"), na.rm = TRUE),  "up to 42 if include =drug date",
+    "nbr of patients germline before drugs and bmt1", sum(str_count(germ_compared_dates$germBFdrugsbmt1, "OK"), na.rm = TRUE),  "",
     "nbr of patients germline before drugs, bmt1 and radiation", sum(str_count(germ_compared_dates$germBFdbr, "OK"), na.rm = TRUE), ""
     ),
   ncol = 3, byrow=TRUE)
@@ -263,13 +277,9 @@ venn.diagram(
 )
 
 
-# germ_BF_drugs <- f[which(f$germlineBFdrugs =="OK"),]
-# germ_BF_bmt1 <- f[which(f$germlineBFbmt1 == "OK"),]
-# germ_BF_drugsBMT <- f[which(f$germBEFOREdrugsBMT == "OK"),]
-germ_available <-  f[which(!is.na(f$collectiondt_germline)),]
 
 venn.diagram(
-  x = list(germ_available$avatar_id, germ_BF_drugs$avatar_id, germ_BF_bmt1$avatar_id),
+  x = list(gerrmline_patient_data$avatar_id, germ_BF_drugs$avatar_id, germ_BF_bmt1$avatar_id),
   category.names = c("Germline available", "Germline before drugs" , "Germline before BMT1"),
   filename = 'Patient who had Germline sequenced before drugs and BMT in Total Germline population.png',
   output=TRUE,
@@ -301,14 +311,12 @@ venn.diagram(
   cat.fontfamily = "sans",
   rotation = 1
 )
+
+
 #################################################################################################  II  ### Disease status when Germline collection
 
-# in f
-colnames(germ_compared_dates)
-
-
 disease_stat_germVStreatment <- matrix(
-  c("Disease_Status.germline", 
+  c("Disease_Status_germline", 
     "Pre Treatment Newly Diagnosed Multiple Myeloma",
     "Post Treatment Newly Diagnosed Multiple Myeloma",
     "Amyloidosis", 
@@ -322,59 +330,57 @@ disease_stat_germVStreatment <- matrix(
     "Solitary Plasmacytoma", 
     "WALDENSTROM MACROGLOBULINEMIA", 
     "nbr of patients germline before drugs",
-    sum(str_count(germ_BF_drugs$Disease_Status.germline, "Pre Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugs$Disease_Status.germline, "Post Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugs$Disease_Status.germline, "Amyloidosis"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugs$Disease_Status.germline, "Early Relapse Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugs$Disease_Status.germline, "Late Relapse Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugs$Disease_Status.germline, "Mgus"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugs$Disease_Status.germline, "MYELOFIBROSIS"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugs$Disease_Status.germline, "Normal marrow"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugs$Disease_Status.germline, "Refractory anemia with ring sideroblasts"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugs$Disease_Status.germline, "Smoldering Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugs$Disease_Status.germline, "Solitary Plasmacytoma"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugs$Disease_Status.germline, "WALDENSTROM MACROGLOBULINEMIA"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugs$Disease_Status_germline, "Pre Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugs$Disease_Status_germline, "Post Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugs$Disease_Status_germline, "Amyloidosis"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugs$Disease_Status_germline, "Early Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugs$Disease_Status_germline, "Late Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugs$Disease_Status_germline, "Mgus"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugs$Disease_Status_germline, "MYELOFIBROSIS"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugs$Disease_Status_germline, "Normal marrow"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugs$Disease_Status_germline, "Refractory anemia with ring sideroblasts"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugs$Disease_Status_germline, "Smoldering Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugs$Disease_Status_germline, "Solitary Plasmacytoma"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugs$Disease_Status_germline, "WALDENSTROM MACROGLOBULINEMIA"), na.rm = TRUE),
     "nbr of patients germline before bmt1",
-    sum(str_count(germ_BF_bmt1$Disease_Status.germline, "Pre Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_bmt1$Disease_Status.germline, "Post Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_bmt1$Disease_Status.germline, "Amyloidosis"), na.rm = TRUE),
-    sum(str_count(germ_BF_bmt1$Disease_Status.germline, "Early Relapse Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_bmt1$Disease_Status.germline, "Late Relapse Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_bmt1$Disease_Status.germline, "Mgus"), na.rm = TRUE),
-    sum(str_count(germ_BF_bmt1$Disease_Status.germline, "MYELOFIBROSIS"), na.rm = TRUE),
-    sum(str_count(germ_BF_bmt1$Disease_Status.germline, "Normal marrow"), na.rm = TRUE),
-    sum(str_count(germ_BF_bmt1$Disease_Status.germline, "Refractory anemia with ring sideroblasts"), na.rm = TRUE),
-    sum(str_count(germ_BF_bmt1$Disease_Status.germline, "Smoldering Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_bmt1$Disease_Status.germline, "Solitary Plasmacytoma"), na.rm = TRUE),
-    sum(str_count(germ_BF_bmt1$Disease_Status.germline, "WALDENSTROM MACROGLOBULINEMIA"), na.rm = TRUE),
+    sum(str_count(germ_BF_bmt1$Disease_Status_germline, "Pre Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_bmt1$Disease_Status_germline, "Post Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_bmt1$Disease_Status_germline, "Amyloidosis"), na.rm = TRUE),
+    sum(str_count(germ_BF_bmt1$Disease_Status_germline, "Early Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_bmt1$Disease_Status_germline, "Late Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_bmt1$Disease_Status_germline, "Mgus"), na.rm = TRUE),
+    sum(str_count(germ_BF_bmt1$Disease_Status_germline, "MYELOFIBROSIS"), na.rm = TRUE),
+    sum(str_count(germ_BF_bmt1$Disease_Status_germline, "Normal marrow"), na.rm = TRUE),
+    sum(str_count(germ_BF_bmt1$Disease_Status_germline, "Refractory anemia with ring sideroblasts"), na.rm = TRUE),
+    sum(str_count(germ_BF_bmt1$Disease_Status_germline, "Smoldering Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_bmt1$Disease_Status_germline, "Solitary Plasmacytoma"), na.rm = TRUE),
+    sum(str_count(germ_BF_bmt1$Disease_Status_germline, "WALDENSTROM MACROGLOBULINEMIA"), na.rm = TRUE),
     "nbr of patients germline before drugs and bmt1",
-    sum(str_count(germ_BF_drugsBMT$Disease_Status.germline, "Pre Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugsBMT$Disease_Status.germline, "Post Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugsBMT$Disease_Status.germline, "Amyloidosis"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugsBMT$Disease_Status.germline, "Early Relapse Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugsBMT$Disease_Status.germline, "Late Relapse Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugsBMT$Disease_Status.germline, "Mgus"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugsBMT$Disease_Status.germline, "MYELOFIBROSIS"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugsBMT$Disease_Status.germline, "Normal marrow"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugsBMT$Disease_Status.germline, "Refractory anemia with ring sideroblasts"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugsBMT$Disease_Status.germline, "Smoldering Multiple Myeloma"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugsBMT$Disease_Status.germline, "Solitary Plasmacytoma"), na.rm = TRUE),
-    sum(str_count(germ_BF_drugsBMT$Disease_Status.germline, "WALDENSTROM MACROGLOBULINEMIA"), na.rm = TRUE)),
+    sum(str_count(germ_BF_drugsBMT$Disease_Status_germline, "Pre Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugsBMT$Disease_Status_germline, "Post Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugsBMT$Disease_Status_germline, "Amyloidosis"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugsBMT$Disease_Status_germline, "Early Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugsBMT$Disease_Status_germline, "Late Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugsBMT$Disease_Status_germline, "Mgus"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugsBMT$Disease_Status_germline, "MYELOFIBROSIS"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugsBMT$Disease_Status_germline, "Normal marrow"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugsBMT$Disease_Status_germline, "Refractory anemia with ring sideroblasts"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugsBMT$Disease_Status_germline, "Smoldering Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugsBMT$Disease_Status_germline, "Solitary Plasmacytoma"), na.rm = TRUE),
+    sum(str_count(germ_BF_drugsBMT$Disease_Status_germline, "WALDENSTROM MACROGLOBULINEMIA"), na.rm = TRUE)),
   
   ncol = 4, byrow = FALSE)
-disease_stat_germVStreatment <- as.table(disease_stat_germVStreatment)
-disease_stat_germVStreatment
-
+#disease_stat_germVStreatment <- as.table(disease_stat_germVStreatment)
 write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germline dates.csv"))
+
 
 ###########################################################################################################################################
 
-temp <- germ_BF_drugs[(germ_BF_drugs$Disease_Status.germline == "Early Relapse Multiple Myeloma"), c("avatar_id", "Date_of_Birth", "date_of_diagnosis_1",
-                                                                                             "date_of_first_bmt_1", "GermBFtumorWES",
-                                                                                             "collectiondt_germline","Disease_Status.germline", 
-                                                                                             "collectiondt_1", "Disease_Status_1",
-                                                                                             "date_death_1", "date_last_follow_up_1",
-                                                                                             "date_last_follow_up_2", "drug_start_date_1",
+temp <- germ_BF_drugs[(germ_BF_drugs$Disease_Status_germline == "Early Relapse Multiple Myeloma"), c("avatar_id", "Date_of_Birth", "date_of_diagnosis_1",
+                                                                                             "date_of_first_bmt", "GermBFtumorWES",
+                                                                                             "collectiondt_germline","Disease_Status_germline", 
+                                                                                             "collectiondt_tumor_1", "Disease_Status_tumor_1",
+                                                                                             "date_death", "date_last_follow_up",
+                                                                                             "drug_start_date_1",
                                                                                              "rad_start_date_1", "versionMM_1")]
 write.csv(temp, paste0(path, "/temp file.csv"))
-

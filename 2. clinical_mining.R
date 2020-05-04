@@ -1,5 +1,5 @@
 # We have 512 unique patient IDs in Sequencing, does they match the treatment
-Treatment$avatar_id == Germline$avatar_id # No
+# Treatment$avatar_id == Germline$avatar_id # No
 
 #library(UpSetR)
 
@@ -257,24 +257,24 @@ library(RColorBrewer)
 # Who had BMT or/and drugs in the Germline available patient samples
 
 # nbr of germline collection
-NROW(gerrmline_patient_data) #512
+NROW(germline_patient_data) #512
 # nbr tcc id
-NROW(which(!is.na(gerrmline_patient_data$TCC_ID))) # 512
+NROW(which(!is.na(germline_patient_data$TCC_ID))) # 512
 # nbr birth
-NROW(which(!is.na(gerrmline_patient_data$Date_of_Birth))) # 512
+NROW(which(!is.na(germline_patient_data$Date_of_Birth))) # 512
 # nbr death
-NROW(which(!is.na(gerrmline_patient_data$date_death))) # 83
+NROW(which(!is.na(germline_patient_data$date_death))) # 83
 # nbr diag
-NROW(which(!is.na(gerrmline_patient_data$date_of_diagnosis_1))) # 509
+NROW(which(!is.na(germline_patient_data$date_of_diagnosis_1))) # 509
 
 # nbr had bmt1 
-NROW(which(!is.na(gerrmline_patient_data$date_of_first_bmt))) # 240
-bmtINgerm <- gerrmline_patient_data[!is.na(gerrmline_patient_data$date_of_first_bmt),]
+NROW(which(!is.na(germline_patient_data$date_of_first_bmt))) # 240
+bmtINgerm <- germline_patient_data[!is.na(germline_patient_data$date_of_first_bmt),]
 # nbr had drug1
-NROW(which(!is.na(gerrmline_patient_data$drug_start_date_1))) # 416
-drugINgerm <- gerrmline_patient_data[!is.na(gerrmline_patient_data$drug_start_date_1),]
+NROW(which(!is.na(germline_patient_data$drug_start_date_1))) # 416
+drugINgerm <- germline_patient_data[!is.na(germline_patient_data$drug_start_date_1),]
 # nbr commun in bmt1 and drug
-had_GERM_BMT_DRUGS <- gerrmline_patient_data[!is.na(bmtINgerm$drug_start_date_1),] # 240
+had_GERM_BMT_DRUGS <- germline_patient_data[!is.na(bmtINgerm$drug_start_date_1),] # 240
 NROW(which(!is.na(drugINgerm$date_of_first_bmt))) # same
 NROW(which(!is.na(bmtINgerm$drug_start_date_1)))
 
@@ -282,7 +282,7 @@ NROW(which(!is.na(bmtINgerm$drug_start_date_1)))
 myCol1 <- brewer.pal(3, "Pastel1")
 myCol2 <- brewer.pal(3, "Pastel2")
 
-draw.triple.venn(nrow(gerrmline_patient_data), 
+draw.triple.venn(nrow(germline_patient_data), 
                  nrow(bmtINgerm),
                  nrow(drugINgerm),
                  n12 = nrow(bmtINgerm), n23 = nrow(had_GERM_BMT_DRUGS),
@@ -295,4 +295,4 @@ draw.triple.venn(nrow(gerrmline_patient_data),
                  cat.col = c("darkgreen", "red", "blue"), # label color
                  cat.pos = c(-25,5,25), cat.dist = c(0,0,0),
                  cat.cex = 1, cat.fontface = "bold")
-
+rm(myCol1, myCol2)

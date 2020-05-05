@@ -31,7 +31,8 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c3,
+  fill = c("#00204DFF", "#FFEA46FF", "#7C7B78FF"), 
+  # darkbluegrey "#00204DFF" = clinical , 
   margin = 0.2,
   
   # Numbers
@@ -86,8 +87,9 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = m3,
-  
+  fill = c("#00204DFF", "#B63679FF", "#FCFDBFFF"),
+  # darkbluegrey "#00204DFF" = clinical , lightgrey "#7C7B78FF" = bmt , yellow "#FFEA46FF" = germ
+  # pink #B63679FF = treat
   # Numbers
   cex = .6,
   fontface = "bold",
@@ -120,8 +122,11 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = p4,
+  fill = c("#00204DFF", "#B63679FF", "#ED7953FF", "#F0F921FF"),
+  # older purple #0D0887FF darkbluegrey "#00204DFF" = clinical , pink #B63679FF = treatment ,
+  # lightorange #ED7953FF = bmt , yellow #F0F921FF = radiation
   margin = 0.2,
+  #  lightgrey "#7C7B78FF" = yellow, yellow "#FFEA46FF" = germ
   
   # Numbers
   cex = .6,
@@ -148,7 +153,8 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = p2,
+  fill = c("#00204DFF", "#F0F921FF"), 
+  # darkbluegrey "#00204DFF" = clinical , yellow #F0F921FF = germ
   margin = 0.05,
   
   # Numbers
@@ -178,7 +184,9 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = i4,
+  fill = c("#00204DFF", "#B63679FF", "#ED6925FF", "#FCFFA4FF"),
+  # darkbluegrey "#00204DFF" = clinical , pink #B63679FF = treat , 
+  # ornage #ED6925FF = bmt , really light yellow #FCFFA4FF = germ
   margin = 0.2,
   
   # Numbers
@@ -208,6 +216,8 @@ venn.diagram(
   lwd = 2,
   lty = 'blank',
   fill = c5,
+  # pink #B63679FF = treat
+  # darkbluegrey "#00204DFF" = clinical
   margin = 0.2,
   
   # Numbers
@@ -235,7 +245,8 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = m3,
+  fill = c("#B63679FF", "#B63679FF", "#FCFFA4FF"),
+  # lightgrey #000004FF  # pink #B63679FF = treat, pink #B63679FF = bmt , TOO lightyellow #FCFDBFFF = germ
   
   # Numbers
   cex = .6,

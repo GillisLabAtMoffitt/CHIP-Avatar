@@ -22,7 +22,7 @@ Age_data$Age_at_lastfollowup <- interval(start= Global_data$Date_of_Birth, end= 
 Age_data$Age_at_lastfollowup <- round(Age_data$Age_at_lastfollowup, 3)
 summary(Age_data$Age_at_lastfollowup, na.rm = TRUE)
 
-Age_data$Age_at_lastdate <- interval(start= Global_data$Date_of_Birth, end= f$last_date_available)/                      
+Age_data$Age_at_lastdate <- interval(start= Global_data$Date_of_Birth, end= Global_data$last_date_available)/                      
   duration(n=1, unit="years")
 Age_data$Age_at_lastdate <- round(Age_data$Age_at_lastdate, 3)
 summary(Age_data$Age_at_lastdate, na.rm = TRUE)
@@ -32,7 +32,7 @@ Age_data$Age_at_firstdrug <- interval(start= Global_data$Date_of_Birth, end= Glo
 Age_data$Age_at_firstdrug <- round(Age_data$Age_at_firstdrug, 3)
 summary(Age_data$Age_at_firstdrug, na.rm = TRUE)
 
-Age_data$Age_at_firstbmt <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_first_bmt_1)/                      
+Age_data$Age_at_firstbmt <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_first_bmt)/                      
   duration(n=1, unit="years")
 Age_data$Age_at_firstbmt <- round(Age_data$Age_at_firstbmt, 3)
 summary(Age_data$Age_at_firstbmt, na.rm = TRUE)

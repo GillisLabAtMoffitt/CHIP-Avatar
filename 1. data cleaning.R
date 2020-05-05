@@ -29,6 +29,11 @@ print(paste("We have", length(Germ$avatar_id) ,"subject-id with",
             length(unique(Germ$avatar_id)) ,"unique id in Germ"))
 print(paste("We have", length(Germ2$avatar_id) ,"subject-id with", 
             length(unique(Germ2$avatar_id)) ,"unique id in Germ2"))
+Germ3 <-
+  readxl::read_xlsx(paste0(path,
+                           "/Raghu MM/Germline_MM_Disease_Status_05052020_OUT .xlsx")) %>% 
+  select(c("Avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status")) %>% 
+  `colnames<-`(c(c("avatar_id", "collectiondt_germline", "WES_HUDSON_ALPHA_germline", "Disease_Status_germline")))
 #-----------------------------------------------------------------------------------------------------------------
 WES <-
   readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_WES_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
@@ -528,28 +533,27 @@ Seq_WES_Raghu <-
         )
   ) 
 
-########### Binds
 Seq_WES_Raghu <- merge.data.frame(Germ2, Seq_WES_Raghu, 
                           by.x = "avatar_id", by.y = "avatar_id",
                           all.x = TRUE, all.y = TRUE) 
-
-Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu)
-Germline <- Germline %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
-                             SLID_germline , .keep_all = TRUE) 
-write.csv(Germline, paste0(path, "/Combined germline data and dates MM.csv"))
-
-
 #######################################################################################  III  # For 3rd sequencing file
-Germline2 <- bind_rows(Germline, Sequencing2, .id = "seq_version")
-Germline2 <- Germline2 %>% distinct(avatar_id, 
-                                  SLID_germline , .keep_all = TRUE) 
-write.csv(Germline2, paste0(path, "/Combined germline data with new sequencing.csv"))
+Sequencing2 <- merge.data.frame(Germ3, Sequencing2, 
+                               by.x = "avatar_id", by.y = "avatar_id",
+                               all.x = TRUE, all.y = TRUE) %>% 
+  arrange(collectiondt_germline)
+
+########### Binds
+
+Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu,Sequencing2, .id = "vers")
+Germline <- Germline %>% distinct(avatar_id,
+                             SLID_germline , .keep_all = TRUE) 
+write.csv(Germline, paste0(path, "/Combined germline_seq data.csv"))
 
 #------------------------------------
 # Cleaning
-rm(Sequencing, Sequencing2, WES, WES_seq, Seq_WES_Raghu, Germ, Germ2)
+rm(Sequencing, Sequencing2, WES, WES_seq, Seq_WES_Raghu, Germ, Germ2, Germ3, Combined_data_MM)
 ##################################################################################################  IV  ## Merge
-b <- merge.data.frame(Germline2[, c("avatar_id", "moffitt_sample_id_germline",
+b <- merge.data.frame(Germline[, c("avatar_id", "moffitt_sample_id_germline",
                                    "collectiondt_germline", "Disease_Status_germline", 
                                            "collectiondt_tumor_1", "Disease_Status_tumor_1")],
                       MM_history, by.x = "avatar_id", by.y = "avatar_id", 

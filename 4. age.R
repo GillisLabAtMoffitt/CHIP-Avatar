@@ -85,7 +85,7 @@ write.csv(t,paste0(path, "/Age repartition per gender.csv"))
 # Ethnicity
 pdf(paste0(path, "/Age repartition per ethnicity.pdf"), height = 6, width = 9)
 p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Ethnicity, y=Age_at_diagosis), fill=Ethnicity) + 
-  geom_boxplot(color= c("darkred", "darkgreen")) +
+  #geom_boxplot(color= c("darkred", "darkgreen")) +
   ggtitle("Age repartition per ethnicity")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 p
@@ -111,10 +111,11 @@ Age_data <- Age_data %>%
   ))
 pdf(paste0(path, "/Age repartition per race_ethnicity.pdf"), height = 6, width = 9)
 p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Race_Ethnicity, y=Age_at_diagosis), fill=Race_Ethnicity) + 
-  geom_boxplot(color= viridis::plasma(n=4)) +
+  # geom_boxplot(color= viridis::plasma(n=4)) +
   ggtitle("Age repartition per race/ethnicity")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 dev.off()
+
 t <- as.data.table(layer_data(p, 1)) %>% 
   select(c("ymin", "middle", "ymax")) %>% 
   `colnames<-`(c("min", "median", "max"))
@@ -123,7 +124,7 @@ write.csv(t,paste0(path, "/Age repartition per race_ethnicity"))
 # Disease status
 pdf(paste0(path, "/Age repartition per disease status.pdf"), height = 6, width = 9)
 p <-  ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)) %>% filter(!is.na(Disease_Status_germline)), 
-             aes(x=Age_at_diagosis, y=Disease_Status.germline)) + geom_point() +
+             aes(x=Age_at_diagosis, y=Disease_Status_germline)) + geom_point() +
   ggtitle("Age repartition per disease status")
 
 #p <-  ggplot(data=subset(Age_data, !is.na(Age_at_diagosis)), aes(x=Age_at_diagosis, y=Disease_Status.germline)) + geom_point()

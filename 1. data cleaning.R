@@ -13,14 +13,17 @@ Demo_RedCap_V4ish <-
   select(c("avatar_id","TCC_ID","Date_of_Birth", "Gender", "Ethnicity", "Race"))
 #-----------------------------------------------------------------------------------------------------------------
 Germ <- 
-  readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
-  select(c("avatar_id","moffitt_sample_id","collectiondt", "WES_HUDSON_ALPHA",
+  readxl::read_xlsx(paste0(path, 
+                           "/Raghu MM/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
+  select(c("avatar_id", "collectiondt", "WES_HUDSON_ALPHA",
            "Disease_Status")) %>% 
-  `colnames<-`(c("avatar_id","moffitt_sample_id_germline","collectiondt_germline", "WES_HUDSON_ALPHA_germline",
+  `colnames<-`(c("avatar_id", "collectiondt_germline", "WES_HUDSON_ALPHA_germline",
                  "Disease_Status_germline"))
-Germ2 <- readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_Germl_Disease_Classification_2patient_from_2nd_sequencingfile.xlsx")) %>% 
-  `colnames<-`(c("avatar_id","moffitt_sample_id_germline","collectiondt_germline", "WES_HUDSON_ALPHA_germline",
-                 "Disease_Status_germline"))
+Germ2 <-
+  readxl::read_xlsx(paste0(path,
+                           "/Raghu MM/Moffitt_Germl_Disease_Classification_2patient_from_2nd_sequencingfile.xlsx")) %>%
+  select(-moffitt_sample_id) %>% 
+  `colnames<-`(c("avatar_id", "collectiondt_germline", "WES_HUDSON_ALPHA_germline", "Disease_Status_germline"))
 # We have 510 + 2 avatar-id which are unique
 print(paste("We have", length(Germ$avatar_id) ,"subject-id with", 
             length(unique(Germ$avatar_id)) ,"unique id in Germ"))
@@ -43,23 +46,11 @@ Sequencing <-
     "SLID_germline", 
     "SLID_tumor" , "moffitt_sample_id_tumor", 
     "moffitt_sample_id_germline",
-    "BaitSet", "ClinicalSpecimenLinkage_WES.Batch"))
+    "BaitSet", "ClinicalSpecimenLinkage_WES.Batch")) # , "ClinicalSpecimenLinkage_HistologyBehavior"
 print(paste("We have", length(Sequencing$SLID_tumor) ,"samples in Sequencing with", 
             length(unique(Sequencing$SLID_germline)) ,"unique id"))
 # Sequencing$moffitt_sample_id_tumor == Sequencing$moffitt_sample_id # yes so remove one var
 # Sequencing$subject == Sequencing$avatar_id # yes so remove one var
-Sequencing2 <- 
-  read.delim(paste0(path, "/Jamie/wes_somatic_mutations_metadata_v0.4.4.1.txt")) %>% 
-  filter(clinicalSpecimenLinkageDiseaseType == "HEM - Myeloma Spectrum") %>% 
-  select(c(
-    "slid_germline", 
-    "slid_tumor", "moffittSampleId_tumor", 
-    "moffittSampleId_germline",
-    "baitSet", "clinicalSpecimenLinkageDiseaseType")) %>% 
-  `colnames<-`(c("SLID_germline", 
-                 "SLID_tumor" , "moffitt_sample_id_tumor", 
-                 "moffitt_sample_id_germline",
-                 "BaitSet", "ClinicalSpecimenLinkage_WES.Batch"))
 #-----------------------------------------------------------------------------------------------------------------
 Seq_WES_Raghu <- 
   readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Metadata_WES_V044.xlsx")) %>% 
@@ -75,6 +66,40 @@ print(paste("We have", length(Seq_WES_Raghu$SLID_tumor) ,"samples in Seq_WES_Rag
 # Seq_WES_Raghu$SLID_tumor == Seq_WES_Raghu$SLID # yes
 # Seq_WES_Raghu$subject == Seq_WES_Raghu$ClinicalSpecimenLinkage_subject # yes
 # Seq_WES_R$collectiondt_germline == Seq_WES_R$collectiondt_tumor # No -> That's good
+#-----------------------------------------------------------------------------------------------------------------
+# Sequencing2 <- 
+#   read.delim(paste0(path, "/Jamie/wes_somatic_mutations_metadata_v0.4.4.1.txt")) %>% 
+#   filter(clinicalSpecimenLinkageDiseaseType == "HEM - Myeloma Spectrum") %>% 
+#   select(c("subject",
+#            "slid_germline", 
+#            "slid_tumor", "moffittSampleId_tumor", 
+#            "moffittSampleId_germline",
+#            "baitSet", "clinicalSpecimenLinkageDiseaseType")) %>% 
+#   `colnames<-`(c("avatar_id", "SLID_germline", 
+#                  "SLID_tumor" , "moffitt_sample_id_tumor", 
+#                  "moffitt_sample_id_germline",
+#                  "BaitSet", "clinicalSpecimenLinkageDiseaseType"))
+# print(paste("We have", length(Sequencing2$SLID_tumor) ,"samples in Sequencing with", 
+#             length(unique(Sequencing2$SLID_germline)) ,"unique id"))
+# 
+# Sequencing2 <- dcast(setDT(Sequencing2), avatar_id+SLID_germline+moffitt_sample_id_germline ~ rowid(avatar_id),
+#                      value.var = c(
+#                        "SLID_tumor",
+#                        "moffitt_sample_id_tumor",
+#                        "BaitSet", "clinicalSpecimenLinkageDiseaseType")) 
+
+Sequencing2 <- 
+  readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Metadata_WES_V0441.xlsx")) %>% 
+  select(c(avatar_id = "subject", 
+           "SLID_germline", moffitt_sample_id_germline = "moffittSampleId_germline", 
+           "collectiondt_germline", 
+           "SLID_tumor" , moffitt_sample_id_tumor = "moffittSampleId_tumor", "collectiondt_tumor", 
+           BaitSet = "baitSet", "clinicalSpecimenLinkageDiseaseTy"))
+Sequencing2 <- dcast(setDT(Sequencing2), avatar_id+SLID_germline+moffitt_sample_id_germline ~ rowid(avatar_id),
+                     value.var = c(
+                       "SLID_tumor",
+                       "moffitt_sample_id_tumor",
+                       "BaitSet", "clinicalSpecimenLinkageDiseaseTy")) 
 #-----------------------------------------------------------------------------------------------------------------
 ClinicalCap_V1 <-
   fs::path(
@@ -412,11 +437,14 @@ radiation <- bind_rows(RadiationV1, RadiationV2, RadiationV4, .id = "versionRad"
 Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
                      c("rad_start_date", "rad_stop_date"))
 write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
+
+
 #------------------------------------
 # Cleaning
 rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
    Comorbidities, Alc_SmoV4, RadiationV1, RadiationV2, RadiationV4)
-# Plot
+#######################################################################################  II  ## Plot
+
 # jpeg("barplot2.jpg", width = 350, height = 350)
 par(mar=c(3.5, 7.1, 4.1, 2.1)) # bottom left top right
 par(cex.sub = .7)
@@ -461,10 +489,8 @@ WES_seq <-
 # Really important to order by dates otherwise cannot find the duplicated lines
 WES_seq <- WES_seq[order(WES_seq$collectiondt_tumor), ]
 WES_seq <-
-  dcast(setDT(WES_seq), avatar_id ~ rowid(avatar_id),
+  dcast(setDT(WES_seq), avatar_id+SLID_germline+moffitt_sample_id_germline ~ rowid(avatar_id),
     value.var = c(
-      "SLID_germline",
-      "moffitt_sample_id_germline",
       "BaitSet",
       "ClinicalSpecimenLinkage_WES.Batch",
       "SLID_tumor",
@@ -493,29 +519,37 @@ Combined_data_MM <- merge.data.frame(Germ, WES_seq,
 # Really important to order by dates otherwise cannot find the duplicated lines
 Seq_WES_Raghu <- Seq_WES_Raghu[order(Seq_WES_Raghu$collectiondt_tumor), ]
 Seq_WES_Raghu <-
-  dcast(setDT(Seq_WES_Raghu), avatar_id ~ rowid(avatar_id),
+  dcast(setDT(Seq_WES_Raghu), avatar_id+SLID_germline+moffitt_sample_id_germline ~ rowid(avatar_id),
         value.var = c(
           "SLID_tumor",
           "moffitt_sample_id_tumor",
           "collectiondt_tumor",
-          "SLID_germline",
-          "moffitt_sample_id_germline",
           "BaitSet"
         )
   ) 
 
 ########### Binds
-Seq_WES_Raghu <- merge.data.frame(Seq_WES_Raghu, Germ2, 
+Seq_WES_Raghu <- merge.data.frame(Germ2, Seq_WES_Raghu, 
                           by.x = "avatar_id", by.y = "avatar_id",
                           all.x = TRUE, all.y = TRUE) 
 
 Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu)
 Germline <- Germline %>% distinct(avatar_id, moffitt_sample_id_tumor_1, collectiondt_tumor_1, 
-                             SLID_germline_1 , .keep_all = TRUE) 
+                             SLID_germline , .keep_all = TRUE) 
 write.csv(Germline, paste0(path, "/Combined germline data and dates MM.csv"))
+
+
+#######################################################################################  III  # For 3rd sequencing file
+Germline2 <- bind_rows(Germline, Sequencing2, .id = "seq_version")
+Germline2 <- Germline2 %>% distinct(avatar_id, 
+                                  SLID_germline , .keep_all = TRUE) 
+write.csv(Germline2, paste0(path, "/Combined germline data with new sequencing.csv"))
+
+#------------------------------------
+# Cleaning
 rm(Sequencing, Sequencing2, WES, WES_seq, Seq_WES_Raghu, Germ, Germ2)
 ##################################################################################################  IV  ## Merge
-b <- merge.data.frame(Germline[, c("avatar_id", "moffitt_sample_id_germline",
+b <- merge.data.frame(Germline2[, c("avatar_id", "moffitt_sample_id_germline",
                                    "collectiondt_germline", "Disease_Status_germline", 
                                            "collectiondt_tumor_1", "Disease_Status_tumor_1")],
                       MM_history, by.x = "avatar_id", by.y = "avatar_id", 
@@ -534,13 +568,16 @@ f <- merge.data.frame(e, Radiation,by.x = "avatar_id", by.y = "avatar_id",
                       all.x = TRUE, all.y = TRUE, suffixes = c(".x",".y"))
 
 Global_data <- merge.data.frame(Demo_RedCap_V4ish, f, by.x = "avatar_id", by.y = "avatar_id", all.x = FALSE, all.y = TRUE)
-# write.csv(Global_data, paste0(path, "/Global_data.csv"))
+write.csv(Global_data, paste0(path, "/Global_data.csv"))
+
+#------------------------------------
+# Cleaning
 rm(b,c,d,e,f)
 
-
+##################################################################################################  IV  ## Germline
 # Create dataframe for only the patients who had germline sequenced
-germline_patient_data <- Global_data[!is.na(Global_data$collectiondt_germline),]
-# write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
+germline_patient_data <- Global_data[!is.na(Global_data$moffitt_sample_id_germline),]
+write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
 
 
 # Create dataframe for all start dates 

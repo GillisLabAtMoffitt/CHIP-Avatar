@@ -16,7 +16,7 @@ color_vir <- list(p2 <- c(viridis::plasma(n = 2)),
                   c5 <- c(viridis::cividis(n = 5)))
 
 venn.diagram(
-  x = list(MM_history$avatar_id, Germline$avatar_id, Demo_RedCap_V4ish$avatar_id),
+  x = list(MM_history$avatar_id, Germline2$avatar_id, Demo_RedCap_V4ish$avatar_id),
   category.names = c("Clinical data" , "Germline data", "Demographics data"),
   filename = 'Germline patients in Demographic and Clinical data.png',
   output=TRUE,
@@ -133,7 +133,7 @@ venn.diagram(
 )
 
 venn.diagram(
-  x = list(MM_history$avatar_id, Germline$avatar_id),
+  x = list(MM_history$avatar_id, Germline2$avatar_id),
   category.names = c("Clinical data" , "Germline data"),
   filename = 'Patient who had Germline sequenced.png',
   output=TRUE,
@@ -163,7 +163,7 @@ venn.diagram(
 )
 
 venn.diagram(
-  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id),
+  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline2$avatar_id),
   category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data"),
   filename = 'Patient who had Drugs, BMT and Germline sequenced.png',
   output=TRUE,
@@ -192,7 +192,7 @@ venn.diagram(
 )
 
 venn.diagram(
-  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id, Radiation$avatar_id),
+  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline2$avatar_id, Radiation$avatar_id),
   category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data", "Radiation"),
   filename = 'Patient who had Drugs, BMT, Radiation and Germline sequenced.png',
   output=TRUE,
@@ -220,7 +220,7 @@ venn.diagram(
 )
 
 venn.diagram(
-  x = list(Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id),
+  x = list(Treatment$avatar_id, SCT$avatar_id, Germline2$avatar_id),
   category.names = c("Treatment" , "BMT", "Germline data"),
   filename = 'Patient who had Drugs, BMT and Germline sequenced 2.png',
   output=TRUE,

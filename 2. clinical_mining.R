@@ -73,7 +73,7 @@ venn.diagram(
 # Patient who had Drugs and BMT
 venn.diagram(
   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id),
-  category.names = c("Clinical data" , "Treatment" , "BMT"),
+  category.names = c("Clinical data" , "Drugs" , "BMT"),
   filename = 'Patients treated with Drugs and or BMT in Clinical data.png',
   output=TRUE,
   
@@ -108,7 +108,7 @@ venn.diagram(
 # Patient who had Drugs and BMT
 venn.diagram(
   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Radiation$avatar_id),
-  category.names = c("Clinical data" , "Treatment" , "BMT", "Radiation"),
+  category.names = c("Clinical data" , "Drugs" , "BMT", "Radiation"),
   filename = 'Patients treated with Drugs BMT Radiation in Clinical data.png',
   output=TRUE,
   
@@ -123,7 +123,7 @@ venn.diagram(
   lwd = 2,
   lty = 'blank',
   fill = c("#00204DFF", "#B63679FF", "#ED7953FF", "#F0F921FF"),
-  # older purple #0D0887FF darkbluegrey "#00204DFF" = clinical , pink #B63679FF = treatment ,
+  # older purple #0D0887FF darkbluegrey "#00204DFF" = clinical , pink #B63679FF = Drugs ,
   # lightorange #ED7953FF = bmt , yellow #F0F921FF = radiation
   margin = 0.2,
   #  lightgrey "#7C7B78FF" = yellow, yellow "#FFEA46FF" = germ
@@ -170,7 +170,7 @@ venn.diagram(
 
 venn.diagram(
   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id),
-  category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data"),
+  category.names = c("Clinical data" , "Drugs" , "BMT", "Germline data"),
   filename = 'Patient who had Drugs, BMT and Germline sequenced.png',
   output=TRUE,
   
@@ -201,7 +201,7 @@ venn.diagram(
 
 venn.diagram(
   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id, Radiation$avatar_id),
-  category.names = c("Clinical data" , "Treatment" , "BMT", "Germline data", "Radiation"),
+  category.names = c("Clinical data" , "Drugs" , "BMT", "Germline data", "Radiation"),
   filename = 'Patient who had Drugs, BMT, Radiation and Germline sequenced.png',
   output=TRUE,
   
@@ -231,7 +231,7 @@ venn.diagram(
 
 venn.diagram(
   x = list(Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id),
-  category.names = c("Treatment" , "BMT", "Germline data"),
+  category.names = c("Drugs" , "BMT", "Germline data"),
   filename = 'Patient who had Drugs, BMT and Germline sequenced 2.png',
   output=TRUE,
   

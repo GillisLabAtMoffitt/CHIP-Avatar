@@ -72,7 +72,7 @@ dev.off()
 # Gender
 pdf(paste0(path, "/Age repartition per gender.pdf"), height = 6, width = 9)
 p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Gender, y=Age_at_diagosis), fill=Gender) + 
-  geom_boxplot(color= c("purple3", "royalblue2")) +
+  geom_boxplot(color= c("purple3", "royalblue2", "red")) +
   ggtitle("Age repartition per gender")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 dev.off()
@@ -94,7 +94,7 @@ dev.off()
 # Race
 pdf(paste0(path, "/Age repartition per race.pdf"), height = 6, width = 9)
 p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Race, y=Age_at_diagosis), fill=Race) + 
-  geom_boxplot(color= viridis::plasma(n=3)) +
+  geom_boxplot(color= viridis::plasma(n=4)) +
   ggtitle("Age repartition per race")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 p

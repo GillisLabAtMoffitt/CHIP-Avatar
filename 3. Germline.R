@@ -372,7 +372,7 @@ disease_stat_germVStreatment <- matrix(
   
   ncol = 4, byrow = FALSE)
 disease_stat_germVStreatment <- as.table(disease_stat_germVStreatment)
-write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germline dates.csv"))
+# write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germline dates.csv"))
 
 
 ###########################################################################################################################################

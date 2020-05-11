@@ -547,7 +547,7 @@ Sequencing2 <- merge.data.frame(Germ3, Sequencing2,
 Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu,Sequencing2, .id = "vers")
 Germline <- Germline %>% distinct(avatar_id,
                              SLID_germline , .keep_all = TRUE) 
-write.csv(Germline, paste0(path, "/Combined germline_seq data.csv"))
+# write.csv(Germline, paste0(path, "/Combined germline_seq data.csv"))
 
 #------------------------------------
 # Cleaning
@@ -572,7 +572,7 @@ f <- merge.data.frame(e, Radiation,by.x = "avatar_id", by.y = "avatar_id",
                       all.x = TRUE, all.y = TRUE, suffixes = c(".x",".y"))
 
 Global_data <- merge.data.frame(Demo_RedCap_V4ish, f, by.x = "avatar_id", by.y = "avatar_id", all.x = FALSE, all.y = TRUE)
-write.csv(Global_data, paste0(path, "/Global_data.csv"))
+# write.csv(Global_data, paste0(path, "/Global_data.csv"))
 
 #------------------------------------
 # Cleaning
@@ -581,7 +581,7 @@ rm(b,c,d,e,f)
 ##################################################################################################  IV  ## Germline
 # Create dataframe for only the patients who had germline sequenced
 germline_patient_data <- Global_data[!is.na(Global_data$moffitt_sample_id_germline),]
-write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
+# write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
 
 
 # Create dataframe for all start dates 

@@ -1,8 +1,6 @@
 # We have 512 unique patient IDs in Sequencing, does they match the treatment
 # Treatment$avatar_id == Germline$avatar_id # No
 
-#library(UpSetR)
-
 color_vir <- list(p2 <- c(viridis::plasma(n = 2)),
                   p3 <- c(viridis::plasma(n = 3)),
                   p4 <- c(viridis::plasma(n = 4)),
@@ -31,8 +29,8 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("#00204DFF", "#FFEA46FF", "#7C7B78FF"), 
-  # darkbluegrey "#00204DFF" = clinical , 
+  fill = c("#ED7953FF", "#FFEA46FF", "#00204DFF"), 
+  #  = clinical , Really light grey #7C7B78FF = BMT, darkbluegrey "#00204DFF" = Demo
   margin = 0.2,
   
   # Numbers
@@ -87,10 +85,10 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("#00204DFF", "#B63679FF", "#FCFDBFFF"),
-  # darkbluegrey "#00204DFF" = clinical , lightgrey "#7C7B78FF" = bmt , yellow "#FFEA46FF" = germ
-  # pink #B63679FF = treat
-  # Numbers
+  fill = c("#ED7953FF", "#B63679FF", "#7C7B78FF"),
+  #  , lightgrey "#7C7B78FF" = bmt , yellow "#FFEA46FF" = germ
+  # darkbluegrey "#00204DFF" = clinical, pink #B63679FF = treat
+  # Numbers 
   cex = .6,
   fontface = "bold",
   fontfamily = "sans",
@@ -122,9 +120,9 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("#00204DFF", "#B63679FF", "#ED7953FF", "#F0F921FF"),
+  fill = c("#ED7953FF", "#B63679FF", "#7C7B78FF", "#F0F921FF"),
   # older purple #0D0887FF darkbluegrey "#00204DFF" = clinical , pink #B63679FF = Drugs ,
-  # lightorange #ED7953FF = bmt , yellow #F0F921FF = radiation
+  #  , yellow #F0F921FF = radiation
   margin = 0.2,
   #  lightgrey "#7C7B78FF" = yellow, yellow "#FFEA46FF" = germ
   
@@ -153,7 +151,7 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("#00204DFF", "#F0F921FF"), 
+  fill = c("#ED7953FF", "#F0F921FF"), 
   # darkbluegrey "#00204DFF" = clinical , yellow #F0F921FF = germ
   margin = 0.05,
   
@@ -184,9 +182,9 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("#00204DFF", "#B63679FF", "#ED6925FF", "#FCFFA4FF"),
+  fill = c("#ED7953FF", "#B63679FF", "#7C7B78FF", "#FCFFA4FF"), # clin, drug, bmt, germ
   # darkbluegrey "#00204DFF" = clinical , pink #B63679FF = treat , 
-  # ornage #ED6925FF = bmt , really light yellow #FCFFA4FF = germ
+  #  , really light yellow #FCFFA4FF = germ
   margin = 0.2,
   
   # Numbers
@@ -199,35 +197,35 @@ venn.diagram(
   
 )
 
-venn.diagram(
-  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id, Radiation$avatar_id),
-  category.names = c("Clinical data" , "Drugs" , "BMT", "Germline data", "Radiation"),
-  filename = 'Patient who had Drugs, BMT, Radiation and Germline sequenced.png',
-  output=TRUE,
-  
-  # Output features
-  imagetype="png" ,
-  height = 1000 , 
-  width = 1000 , 
-  resolution = 300,
-  compression = "lzw",
-  
-  # Circles
-  lwd = 2,
-  lty = 'blank',
-  fill = c5,
-  # pink #B63679FF = treat
-  # darkbluegrey "#00204DFF" = clinical
-  margin = 0.2,
-  
-  # Numbers
-  cex = .6,
-  fontface = "bold",
-  fontfamily = "sans",
-  ext.percent = 5,
-  #cat.pos = c(-38, 30, -30, 30),
-  #cat.dist = c(0.28, 0.25, 0.15, 0.15)
-)
+# venn.diagram(
+#   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id, Radiation$avatar_id),
+#   category.names = c("Clinical data" , "Drugs" , "BMT", "Germline data", "Radiation"),
+#   filename = 'Patient who had Drugs, BMT, Radiation and Germline sequenced.png',
+#   output=TRUE,
+#   
+#   # Output features
+#   imagetype="png" ,
+#   height = 1000 , 
+#   width = 1000 , 
+#   resolution = 300,
+#   compression = "lzw",
+#   
+#   # Circles
+#   lwd = 2,
+#   lty = 'blank',
+#   fill = c5,
+#   # pink #B63679FF = treat
+#   # darkbluegrey "#00204DFF" = clinical
+#   margin = 0.2,
+#   
+#   # Numbers
+#   cex = .6,
+#   fontface = "bold",
+#   fontfamily = "sans",
+#   ext.percent = 5,
+#   #cat.pos = c(-38, 30, -30, 30),
+#   #cat.dist = c(0.28, 0.25, 0.15, 0.15)
+# )
 
 venn.diagram(
   x = list(Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id),
@@ -245,8 +243,8 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("#B63679FF", "#B63679FF", "#FCFFA4FF"),
-  # lightgrey #000004FF  # pink #B63679FF = treat, pink #B63679FF = bmt , TOO lightyellow #FCFDBFFF = germ
+  fill = c("#B63679FF", "#7C7B78FF", "#FCFFA4FF"), # drug, bmt, germ
+  # lightgrey #000004FF  # pink #B63679FF = treat, Really light grey #7C7B78FF = BMT , TOO lightyellow #FCFDBFFF = germ
   
   # Numbers
   cex = .6,

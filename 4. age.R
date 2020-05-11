@@ -52,7 +52,11 @@ Age_data$Age_at_tumorcollect <- interval(start= Global_data$Date_of_Birth, end= 
 Age_data$Age_at_tumorcollect <- round(Age_data$Age_at_tumorcollect, 3)
 summary(Age_data$Age_at_tumorcollect, na.rm = TRUE)
 
-pdf(paste0(path, "/Age at diagnosis repartition.pdf"), height = 6, width = 9)
+age_germline_patient_data <- Age_data[!is.na(age_data$moffitt_sample_id_germline),]
+
+################################################################################# Demo in all patients ####
+
+# pdf(paste0(path, "/Age at diagnosis repartition.pdf"), height = 6, width = 9)
 p <- qplot(x =Age_at_diagosis, data=subset(Age_data,!is.na(Age_at_diagosis)), fill=..count.., geom="histogram") 
 p + scale_fill_viridis_c(
   alpha = 1,
@@ -66,16 +70,18 @@ p + scale_fill_viridis_c(
   guide = "colourbar",
   aesthetics = "fill"
 )
-layer_data(p, 1)
-dev.off()
+# dev.off()
 
 # Gender
 pdf(paste0(path, "/Age repartition per gender.pdf"), height = 6, width = 9)
-p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Gender, y=Age_at_diagosis), fill=Gender) + 
-  geom_boxplot(color= c("purple3", "royalblue2", "red")) +
-  ggtitle("Age repartition per gender")
+p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis), !is.na(Gender)),
+            aes(x=Gender, y=Age_at_diagosis), fill=Gender) + 
+  geom_boxplot(color= c("purple3", "royalblue2")) +
+  theme_minimal() +
+  labs(x="Gender", y="Age at diagosis", title="Age repartition per gender")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 dev.off()
+
 t <- as.data.table(layer_data(p, 1)) %>% 
   select(c("ymin", "middle", "ymax")) %>% 
   `colnames<-`(c("min", "median", "max"))
@@ -84,42 +90,49 @@ write.csv(t,paste0(path, "/Age repartition per gender.csv"))
 
 # Ethnicity
 pdf(paste0(path, "/Age repartition per ethnicity.pdf"), height = 6, width = 9)
-p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Ethnicity, y=Age_at_diagosis), fill=Ethnicity) + 
-  #geom_boxplot(color= c("darkred", "darkgreen")) +
-  ggtitle("Age repartition per ethnicity")
+p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis), (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic")), 
+            aes(x=Ethnicity, y=Age_at_diagosis), fill=Ethnicity) + 
+  geom_boxplot(color = c("darkred", "darkgrey")) + 
+  theme_minimal() +
+  labs(x="Ethnicity", y="Age at diagosis", title="Age repartition per ethnicity")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
-p
 dev.off()
 
 # Race
 pdf(paste0(path, "/Age repartition per race.pdf"), height = 6, width = 9)
-p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Race, y=Age_at_diagosis), fill=Race) + 
-  geom_boxplot(color= viridis::plasma(n=4)) +
-  ggtitle("Age repartition per race")
-p + geom_jitter(shape=16, position=position_jitter(0.2))
-p
-dev.off()
-
-Age_data <- Age_data %>% 
-  mutate(Race_Ethnicity = case_when(
-    Ethnicity == "Hispanic" ~ "Hispanic",
-    Race == "African American" ~ "African American",
-    Race == "White" &
-      Ethnicity == "Non- Hispanic" ~ "Caucasian",
-    Race == "Others" &
-      Ethnicity == "Non- Hispanic" ~ "Non-Hispanic"
-  ))
-pdf(paste0(path, "/Age repartition per race_ethnicity.pdf"), height = 6, width = 9)
-p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Race_Ethnicity, y=Age_at_diagosis), fill=Race_Ethnicity) + 
-  # geom_boxplot(color= viridis::plasma(n=4)) +
-  ggtitle("Age repartition per race/ethnicity")
+p <- Age_data %>% filter(!is.na(Race)) %>% 
+  mutate_at(("Race"), ~ case_when(
+    . == "African American" ~ "Black",
+    TRUE ~ .
+    )) %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black", "Others"))) %>% 
+  ggplot(aes(x=Race, y=Age_at_diagosis), fill=Race) + 
+  geom_boxplot(color= c("#60136EFF", "#A92E5EFF", "#E65D2FFF")) +
+  theme_minimal() +
+  labs(x="Race", y="Age at diagosis", title="Age repartition per race")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 dev.off()
 
-t <- as.data.table(layer_data(p, 1)) %>% 
-  select(c("ymin", "middle", "ymax")) %>% 
-  `colnames<-`(c("min", "median", "max"))
-write.csv(t,paste0(path, "/Age repartition per race_ethnicity"))
+# Age_data <- Age_data %>% 
+#   mutate(Race_Ethnicity = case_when(
+#     Ethnicity == "Hispanic" ~ "Hispanic",
+#     Race == "African American" ~ "African American",
+#     Race == "White" &
+#       Ethnicity == "Non- Hispanic" ~ "Caucasian",
+#     Race == "Others" &
+#       Ethnicity == "Non- Hispanic" ~ "Non-Hispanic"
+#   ))
+# # pdf(paste0(path, "/Age repartition per race_ethnicity.pdf"), height = 6, width = 9)
+# p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)), aes(x=Race_Ethnicity, y=Age_at_diagosis), fill=Race_Ethnicity) + 
+#   # geom_boxplot(color= viridis::plasma(n=4)) +
+#   ggtitle("Age repartition per race/ethnicity")
+# p + geom_jitter(shape=16, position=position_jitter(0.2))
+# # dev.off()
+# 
+# t <- as.data.table(layer_data(p, 1)) %>% 
+#   select(c("ymin", "middle", "ymax")) %>% 
+#   `colnames<-`(c("min", "median", "max"))
+# # write.csv(t,paste0(path, "/Age repartition per race_ethnicity"))
 
 # Disease status
 pdf(paste0(path, "/Age repartition per disease status.pdf"), height = 6, width = 9)
@@ -131,49 +144,106 @@ p <-  ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)) %>% filter(!is.na(Dise
 p
 dev.off()
 
+################################################################################# Demo in germline patients ####
+
+pdf(paste0(path, "/Germline patients Age at diagnosis repartition.pdf"), height = 6, width = 9)
+p <- qplot(x =Age_at_diagosis, 
+           data=subset(age_germline_patient_data,!is.na(Age_at_diagosis)), fill=..count.., geom="histogram") 
+p + scale_fill_viridis_c(
+  alpha = 1,
+  begin = 0,
+  end = 1,
+  direction = 1,
+  option = "magma",
+  values = NULL,
+  space = "Lab",
+  na.value = "grey50",
+  guide = "colourbar",
+  aesthetics = "fill"
+) +
+  theme_minimal()
+dev.off()
+
+# Gender
+pdf(paste0(path, "/Germline patients Age repartition per gender.pdf"), height = 6, width = 9)
+p <- ggplot(age_germline_patient_data %>% filter(!is.na(Age_at_diagosis), !is.na(Gender)),
+            aes(x=Gender, y=Age_at_diagosis), fill=Gender) + 
+  geom_boxplot(color= c("purple3", "royalblue2")) +
+  theme_minimal() +
+  labs(x="Gender", y="Age at diagosis", title="Age repartition per gender")
+p + geom_jitter(shape=16, position=position_jitter(0.2))
+dev.off()
+
+# t <- as.data.table(layer_data(p, 1)) %>% 
+#   select(c("ymin", "middle", "ymax")) %>% 
+#   `colnames<-`(c("min", "median", "max"))
+# write.csv(t,paste0(path, "/Age repartition per gender.csv"))
 
 
-#######################################################################
+# Ethnicity
+pdf(paste0(path, "/Germline patients Age repartition per ethnicity.pdf"), height = 6, width = 9)
+p <- ggplot(age_germline_patient_data %>% filter(!is.na(Age_at_diagosis), (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic")), 
+            aes(x=Ethnicity, y=Age_at_diagosis), fill=Ethnicity) + 
+  geom_boxplot(color = c("darkred", "darkgrey")) + 
+  theme_minimal() +
+  labs(x="Ethnicity", y="Age at diagosis", title="Age repartition per ethnicity")
+p + geom_jitter(shape=16, position=position_jitter(0.2))
+dev.off()
 
-colnames(Age_data)
+# Race
+pdf(paste0(path, "/Germline patients Age repartition per race.pdf"), height = 6, width = 9)
+p <- age_germline_patient_data %>% filter(!is.na(Race)) %>% 
+  mutate_at(("Race"), ~ case_when(
+    . == "African American" ~ "Black",
+    TRUE ~ .
+  )) %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black", "Others"))) %>% 
+  ggplot(aes(x=Race, y=Age_at_diagosis), fill=Race) + 
+  geom_boxplot(color= c("#60136EFF", "#A92E5EFF", "#E65D2FFF")) +
+  theme_minimal() +
+  labs(x="Race", y="Age at diagosis", title="Age repartition per race")
+p + geom_jitter(shape=16, position=position_jitter(0.2))
+dev.off()
 
 
-library(candela)
-candela("GanttChart",
-        data = a, label = names, 
-        start = "start", end = "end", level = "level", width = "auto", height = "auto")
 
-library(DiagrammeR)
-df <- data.frame(task = c("task1", "task2", "task3"),
-                 #status = c("done", "active", "crit"),
-                 #pos = c("first_1", "first_2", "first_3"),
-                 start = Age_data$Age_at_diagosis,
-                 end = Age_data$Age_at_firstdrug)
-mermaid(
-  paste0(
-    # mermaid "header", each component separated with "\n" (line break)
-    "gantt", "\n", 
-    "dateFormat  YYYY-MM-DD", "\n", 
-    "title A Very Nice Gantt Diagram", "\n",
-    # unite the first two columns (task & status) and separate them with ":"
-    # then, unite the other columns and separate them with ","
-    # this will create the required mermaid "body"
-    paste(df %>%
-            unite(i, task, sep = ":") %>%
-            unite(j, i, start, end, sep = ",") %>%
-            .$j, 
-          collapse = "\n"
-    ), "\n"
-  )
+
+####################################################################### Demographics
+mul_myeloma <- Age_data %>% 
+  filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
+           Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
+           Disease_Status_germline == "Early Relapse Multiple Myeloma" |
+           Disease_Status_germline == "Late Relapse Multiple Myeloma")
+
+Smoldering <- Age_data %>% 
+  filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
+Mgus <- Age_data %>% 
+  filter(Disease_Status_germline == "Mgus")
+
+demographics_of_MM <- matrix(c(
+  "", "MM", "MGUS", "Smoldering",
+  "total", NROW(mul_myeloma), NROW(Mgus), NROW(Smoldering),
+  "Age at Diagnosis", 
+  paste0(round((summary(mul_myeloma$Age)["Median"]), digits = 2), ", (range:", (round(summary(mul_myeloma$Age)["Min."], digits = 2)) , "-", (round(summary(mul_myeloma$Age)["Max."], digits = 2)), ")")
+  , 
+  paste0(round((summary(Mgus$Age)["Median"]), digits = 2), ", (range:", (round(summary(Mgus$Age)["Min."], digits = 2)) , "-", (round(summary(Mgus$Age)["Max."], digits = 2)), ")")
+  , 
+  paste0(round((summary(Smoldering$Age)["Median"]), digits = 2), ", (range:", (round(summary(Smoldering$Age)["Min."], digits = 2)) , "-", (round(summary(Smoldering$Age)["Max."], digits = 2)), ")")
+  ,
+  "Sex", "", "", "",
+  "Male", sum(str_count(mul_myeloma$Gender, "Male"), na.rm = TRUE), sum(str_count(Mgus$Gender, "Male"), na.rm = TRUE), sum(str_count(Smoldering$Gender, "Male"), na.rm = TRUE),
+  "Female", sum(str_count(mul_myeloma$Gender, "Female"), na.rm = TRUE), sum(str_count(Mgus$Gender, "Female"), na.rm = TRUE), sum(str_count(Smoldering$Gender, "Female"), na.rm = TRUE),
+  "Race", "", "", "", 
+  "White", sum(str_count(mul_myeloma$Race, "White"), na.rm = TRUE), sum(str_count(Mgus$Race, "White"), na.rm = TRUE), sum(str_count(Smoldering$Race, "White"), na.rm = TRUE),
+  "Black", sum(str_count(mul_myeloma$Race, "African"), na.rm = TRUE), sum(str_count(Mgus$Race, "African"), na.rm = TRUE), sum(str_count(Smoldering$Race, "African"), na.rm = TRUE),
+  "Other", sum(str_count(mul_myeloma$Race, "Other"), na.rm = TRUE), sum(str_count(Mgus$Race, "Other"), na.rm = TRUE), sum(str_count(Smoldering$Race, "Other"), na.rm = TRUE),
+  "Ethnicity", "", "", "",
+  "Hispanic", sum(str_count(mul_myeloma$Ethnicity, "Hispanic"), na.rm = TRUE), sum(str_count(Mgus$Ethnicity, "Hispanic"), na.rm = TRUE), sum(str_count(Smoldering$Ethnicity, "Hispanic"), na.rm = TRUE),
+  "Non-Hispanic", sum(str_count(mul_myeloma$Ethnicity, "Non- Hispanic"), na.rm = TRUE), sum(str_count(Mgus$Ethnicity, "Non- Hispanic"), na.rm = TRUE), sum(str_count(Smoldering$Ethnicity, "Non- Hispanic"), na.rm = TRUE)
+  ), 
+  ncol = 4, byrow = TRUE
 )
-# m$x$config = list(ganttConfig = list(
-#   axisFormatter = list(list(
-#     "%b %d, %Y" 
-#     ,htmlwidgets::JS(
-#       'function(d){ return d.getDay() == 1 }' 
-#     )
-#   ))
-# ))
+write.csv(demographics_of_MM, paste0(path, "/Demographics of MM patients with WES.csv"))
 
 
 

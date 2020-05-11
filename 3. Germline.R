@@ -7,7 +7,7 @@ Disease_status_table <- table(germline_patient_data$Disease_Status_germline)
 write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
 
 ################################################################################# TABLE Year of germline sample collection ####
-Amyloidosis_Diagnostic <- which(germline_patient_data$Disease_Status_germline == "Amyloidosis- Diagnostic marrow")#1  
+Amyloidosis_Diagnostic <- which(germline_patient_data$Disease_Status_germline == "Amyloidosis")#1  
 Early_Relapse <- which(germline_patient_data$Disease_Status_germline == "Early Relapse Multiple Myeloma") # 208 
 Late_Relapse <- which(germline_patient_data$Disease_Status_germline == "Late Relapse Multiple Myeloma")  #66  
 Mgus <- which(germline_patient_data$Disease_Status_germline == "Mgus") #50
@@ -119,15 +119,9 @@ write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classifi
 
 rm(
   Amyloidosis_Diagnostic,
-  Early_Relapse,
-  Late_Relapse,
-  Mgus,
   Myelofib,
   Normal_marrow,
-  Post_Treat,
-  Pre_Treat,
   Refractory_anemia,
-  SmolderingMM,
   Solitary_Plasmacytoma,
   Walderstrom
 )

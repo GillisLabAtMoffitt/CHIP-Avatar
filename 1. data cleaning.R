@@ -266,7 +266,7 @@ RadiationV4 <-
                                  sheet = "Radiation") %>%
     select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
-j# peg("barplot1.jpg", width = 350, height = 350)
+# jpeg("barplot1.jpg", width = 350, height = 350)
 par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
 par(cex.sub = .7)
 barplot(
@@ -447,7 +447,7 @@ write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
 #------------------------------------
 # Cleaning
 rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
-   Comorbidities, Alc_SmoV4, RadiationV1, RadiationV2, RadiationV4)
+   Alc_SmoV4, RadiationV1, RadiationV2, RadiationV4)
 #######################################################################################  II  ## Plot
 
 # jpeg("barplot2.jpg", width = 350, height = 350)

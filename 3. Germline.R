@@ -113,7 +113,7 @@ disease_status_by_year <- matrix(
     sum(str_count(Walderstrom$collectiondt_germline, "2017")),sum(str_count(Walderstrom$collectiondt_germline, "2018")),
     sum(str_count(Walderstrom$collectiondt_germline, "2019"))), ncol = 13, byrow=TRUE)
 
-write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
+# write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
 # disease_status_by_year <- as.table(disease_status_by_year)
 # write.csv(disease_status_by_year,paste0(path, "/Year of germline sample collection.csv"))
 
@@ -234,7 +234,7 @@ germline_compared_dates <-matrix(
   ncol = 3, byrow=TRUE)
 # germline_compared_dates <- as.table(germline_compared_dates)
 # germline_compared_dates
-write.csv(germline_compared_dates, paste0(path, "/table compared germline dates and Demographics.csv"))
+# write.csv(germline_compared_dates, paste0(path, "/table compared germline dates and Demographics.csv"))
 
 rm(tab, germline_compared_dates)
 

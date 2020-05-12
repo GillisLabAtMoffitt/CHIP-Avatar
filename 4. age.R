@@ -244,14 +244,14 @@ demographics_of_MM <- matrix(c(
   "Black", sum(str_count(mul_myeloma$Race, "African"), na.rm = TRUE), sum(str_count(Mgus$Race, "African"), na.rm = TRUE), sum(str_count(Smoldering$Race, "African"), na.rm = TRUE),
   "Other", sum(str_count(mul_myeloma$Race, "Other"), na.rm = TRUE), sum(str_count(Mgus$Race, "Other"), na.rm = TRUE), sum(str_count(Smoldering$Race, "Other"), na.rm = TRUE),
   "Ethnicity", "", "", "",
-  "Hispanic", sum(str_count(mul_myeloma$Ethnicity, "Hispanic"), na.rm = TRUE), sum(str_count(Mgus$Ethnicity, "Hispanic"), na.rm = TRUE), sum(str_count(Smoldering$Ethnicity, "Hispanic"), na.rm = TRUE),
+  "Hispanic", sum(str_count(mul_myeloma$Ethnicity, "^Hispanic"), na.rm = TRUE), sum(str_count(Mgus$Ethnicity, "^Hispanic"), na.rm = TRUE), sum(str_count(Smoldering$Ethnicity, "^Hispanic"), na.rm = TRUE),
   "Non-Hispanic", sum(str_count(mul_myeloma$Ethnicity, "Non- Hispanic"), na.rm = TRUE), sum(str_count(Mgus$Ethnicity, "Non- Hispanic"), na.rm = TRUE), sum(str_count(Smoldering$Ethnicity, "Non- Hispanic"), na.rm = TRUE)
   ), 
   ncol = 4, byrow = TRUE
 )
-# write.csv(demographics_of_MM, paste0(path, "/Demographics of MM patients with WES.csv"))
+write.csv(demographics_of_MM, paste0(path, "/Demographics of MM patients with WES.csv"))
 
 
-
-
+sum(str_count(mul_myeloma$Ethnicity, "Hispanic"), na.rm = TRUE)
+str_count(mul_myeloma$Ethnicity, "^Hispanic")
 

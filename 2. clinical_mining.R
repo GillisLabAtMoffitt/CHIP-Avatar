@@ -266,24 +266,24 @@ library(RColorBrewer)
 # Who had BMT or/and drugs in the Germline available patient samples
 
 # nbr of germline collection
-NROW(germline_patient_data) #512
+NROW(germline_patient_data) #533
 # nbr tcc id
-NROW(which(!is.na(germline_patient_data$TCC_ID))) # 512
+NROW(which(!is.na(germline_patient_data$TCC_ID))) # 533
 # nbr birth
-NROW(which(!is.na(germline_patient_data$Date_of_Birth))) # 512
+NROW(which(!is.na(germline_patient_data$Date_of_Birth))) # 533
 # nbr death
-NROW(which(!is.na(germline_patient_data$date_death))) # 83
+NROW(which(!is.na(germline_patient_data$date_death))) # 89
 # nbr diag
-NROW(which(!is.na(germline_patient_data$date_of_diagnosis_1))) # 509
+NROW(which(!is.na(germline_patient_data$date_of_diagnosis_1))) # 532
 
 # nbr had bmt1 
-NROW(which(!is.na(germline_patient_data$date_of_first_bmt))) # 240
+NROW(which(!is.na(germline_patient_data$date_of_first_bmt))) # 251
 bmtINgerm <- germline_patient_data[!is.na(germline_patient_data$date_of_first_bmt),]
 # nbr had drug1
-NROW(which(!is.na(germline_patient_data$drug_start_date_1))) # 416
+NROW(which(!is.na(germline_patient_data$drug_start_date_1))) # 435
 drugINgerm <- germline_patient_data[!is.na(germline_patient_data$drug_start_date_1),]
 # nbr commun in bmt1 and drug
-had_GERM_BMT_DRUGS <- germline_patient_data[!is.na(bmtINgerm$drug_start_date_1),] # 240
+had_GERM_BMT_DRUGS <- germline_patient_data[!is.na(bmtINgerm$drug_start_date_1),] # 251
 NROW(which(!is.na(drugINgerm$date_of_first_bmt))) # same
 NROW(which(!is.na(bmtINgerm$drug_start_date_1)))
 
@@ -305,3 +305,6 @@ draw.triple.venn(nrow(germline_patient_data),
                  cat.pos = c(-25,5,25), cat.dist = c(0,0,0),
                  cat.cex = 1, cat.fontface = "bold")
 rm(myCol1, myCol2)
+
+# Cleaning
+rm(Demo_RedCap_V4ish)

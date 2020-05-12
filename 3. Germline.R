@@ -113,7 +113,7 @@ disease_status_by_year <- matrix(
     sum(str_count(Walderstrom$collectiondt_germline, "2017")),sum(str_count(Walderstrom$collectiondt_germline, "2018")),
     sum(str_count(Walderstrom$collectiondt_germline, "2019"))), ncol = 13, byrow=TRUE)
 
-write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
+# write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
 # disease_status_by_year <- as.table(disease_status_by_year)
 # write.csv(disease_status_by_year,paste0(path, "/Year of germline sample collection.csv"))
 
@@ -203,10 +203,10 @@ germline_patient_data <- germline_patient_data %>%
     last_date_available <= date_of_diagnosis_1 ~ "not good"
   ))
 
-write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))
+# write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))
 tab <- table(germline_patient_data$GermBFtumorWES)
 barplot(tab, main = "Frequency of collection date first observed", ylim = c(0,500))
-
+tab
 
 #------------------------------------------------------------- Table
 germline_patient_data[which(germline_patient_data$diag_BF_lastdate == "not good"), c("avatar_id", "date_of_diagnosis_1", "last_date_available")]
@@ -234,7 +234,7 @@ germline_compared_dates <-matrix(
   ncol = 3, byrow=TRUE)
 # germline_compared_dates <- as.table(germline_compared_dates)
 # germline_compared_dates
-write.csv(germline_compared_dates, paste0(path, "/table compared germline dates and Demographics.csv"))
+# write.csv(germline_compared_dates, paste0(path, "/table compared germline dates and Demographics.csv"))
 
 rm(tab, germline_compared_dates)
 
@@ -369,7 +369,7 @@ disease_stat_germVStreatment <- matrix(
   
   ncol = 4, byrow = FALSE)
 disease_stat_germVStreatment <- as.table(disease_stat_germVStreatment)
-write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germline dates.csv"))
+# write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germline dates.csv"))
 
 
 ###########################################################################################################################################

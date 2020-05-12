@@ -128,9 +128,9 @@ MM_history <-
                     sheet = "Myeloma_Disease_History") %>%
   select(c("avatar_id", "date_of_diagnosis", "disease_stage"))
 #-----------------------------------------------------------------------------------------------------------------
-Comorbidities <-
-  readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
-                    sheet = "Comorbidities") #%>% 
+# Comorbidities <-
+#   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
+#                     sheet = "Comorbidities") #%>% 
 #select(c("avatar_id","smoking_status", "alcohol_use"))
 #-----------------------------------------------------------------------------------------------------------------
 # Biopsy <-
@@ -266,7 +266,7 @@ RadiationV4 <-
                                  sheet = "Radiation") %>%
     select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
-# jpeg("barplot1.jpg", width = 350, height = 350)
+j# peg("barplot1.jpg", width = 350, height = 350)
 par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
 par(cex.sub = .7)
 barplot(
@@ -294,7 +294,7 @@ barplot(
   )
 legend("bottomright", legend = c("version1", "version2", "version4"),
        col = c("purple", "orange", "yellow"),
-       bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(-0.05, 0.05)) # horiz, vert
+       bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(0.05, 0.05)) # horiz, vert
 # dev.off()
 
 #######################################################################################  II  ## Bind Version

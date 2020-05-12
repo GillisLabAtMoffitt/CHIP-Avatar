@@ -4,7 +4,7 @@
 head(germline_patient_data)
 germline_patient_data$Disease_Status_germline
 Disease_status_table <- table(germline_patient_data$Disease_Status_germline)
-write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
+# write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
 
 ################################################################################# TABLE Year of germline sample collection ####
 Amyloidosis_Diagnostic <- which(germline_patient_data$Disease_Status_germline == "Amyloidosis")#1  
@@ -46,12 +46,12 @@ disease_status_by_year <- matrix(
     sum(str_count(Pre_Treat$collectiondt_germline, "2015")),sum(str_count(Pre_Treat$collectiondt_germline, "2016")),
     sum(str_count(Pre_Treat$collectiondt_germline, "2017")),sum(str_count(Pre_Treat$collectiondt_germline, "2018")),
     sum(str_count(Pre_Treat$collectiondt_germline, "2019")),
-    "Post Treatment Newly Diagnosed", nrow(Normal_marrow), as.character(min(Normal_marrow$collectiondt_germline)),as.character(max(Normal_marrow$collectiondt_germline)),
-    sum(str_count(Normal_marrow$collectiondt_germline, "2011")),sum(str_count(Normal_marrow$collectiondt_germline, "2012")),
-    sum(str_count(Normal_marrow$collectiondt_germline, "2013")),sum(str_count(Normal_marrow$collectiondt_germline, "2014")),
-    sum(str_count(Normal_marrow$collectiondt_germline, "2015")),sum(str_count(Normal_marrow$collectiondt_germline, "2016")),
-    sum(str_count(Normal_marrow$collectiondt_germline, "2017")),sum(str_count(Normal_marrow$collectiondt_germline, "2018")),
-    sum(str_count(Normal_marrow$collectiondt_germline, "2019")),
+    "Post Treatment Newly Diagnosed", nrow(Post_Treat), as.character(min(Post_Treat$collectiondt_germline)),as.character(max(Post_Treat$collectiondt_germline)),
+    sum(str_count(Post_Treat$collectiondt_germline, "2011")),sum(str_count(Post_Treat$collectiondt_germline, "2012")),
+    sum(str_count(Post_Treat$collectiondt_germline, "2013")),sum(str_count(Post_Treat$collectiondt_germline, "2014")),
+    sum(str_count(Post_Treat$collectiondt_germline, "2015")),sum(str_count(Post_Treat$collectiondt_germline, "2016")),
+    sum(str_count(Post_Treat$collectiondt_germline, "2017")),sum(str_count(Post_Treat$collectiondt_germline, "2018")),
+    sum(str_count(Post_Treat$collectiondt_germline, "2019")),
     "Amyloidosis-Diagnostic marrow", nrow(Amyloidosis_Diagnostic), as.character(min(Amyloidosis_Diagnostic$collectiondt_germline)),as.character(max(Amyloidosis_Diagnostic$collectiondt_germline)),
     sum(str_count(Amyloidosis_Diagnostic$collectiondt_germline, "2011")),sum(str_count(Amyloidosis_Diagnostic$collectiondt_germline, "2012")),
     sum(str_count(Amyloidosis_Diagnostic$collectiondt_germline, "2013")),sum(str_count(Amyloidosis_Diagnostic$collectiondt_germline, "2014")),
@@ -203,10 +203,10 @@ germline_patient_data <- germline_patient_data %>%
     last_date_available <= date_of_diagnosis_1 ~ "not good"
   ))
 
-write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))
+# write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))
 tab <- table(germline_patient_data$GermBFtumorWES)
 barplot(tab, main = "Frequency of collection date first observed", ylim = c(0,500))
-
+tab
 
 #------------------------------------------------------------- Table
 germline_patient_data[which(germline_patient_data$diag_BF_lastdate == "not good"), c("avatar_id", "date_of_diagnosis_1", "last_date_available")]
@@ -218,7 +218,7 @@ germline_compared_dates <-matrix(
     "last date available", sum(!is.na(germline_patient_data$last_date_available)),  "", 
     "death date available", sum(!is.na(germline_patient_data$date_death)), "",
     "nbr of patients born before last date", sum(str_count(germline_patient_data$birth_BF_lastdate, "OK"), na.rm = TRUE), "",
-    "nbr of patients diag before last date", sum(str_count(germline_patient_data$diag_BF_lastdate, "OK"), na.rm = TRUE), "2 patients present same date diagnosis/last day, 1 patient diag date is wrong as he got diag in 2017 but had drug in 2012, 2013, 2014",
+    "nbr of patients diag before last date", sum(str_count(germline_patient_data$diag_BF_lastdate, "OK"), na.rm = TRUE), "2 patients present same date diagnosis/last day",
     "germline date available", sum(!is.na(germline_patient_data$collectiondt_germline)),  "",
     "drug date available", sum(!is.na(germline_patient_data$drug_start_date_1)),  "",
     "bmt1 date available", sum(!is.na(germline_patient_data$date_of_first_bmt)),  "",
@@ -369,7 +369,7 @@ disease_stat_germVStreatment <- matrix(
   
   ncol = 4, byrow = FALSE)
 disease_stat_germVStreatment <- as.table(disease_stat_germVStreatment)
-write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germline dates.csv"))
+# write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germline dates.csv"))
 
 
 ###########################################################################################################################################

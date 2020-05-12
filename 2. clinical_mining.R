@@ -1,17 +1,17 @@
 # We have 512 unique patient IDs in Sequencing, does they match the treatment
 # Treatment$avatar_id == Germline$avatar_id # No
 
-color_vir <- list(p2 <- c(viridis::plasma(n = 2)),
-                  p3 <- c(viridis::plasma(n = 3)),
-                  p4 <- c(viridis::plasma(n = 4)),
-                  m2 <- c(viridis::magma(n = 2)),
-                  m3 <- c(viridis::magma(n = 3)),
-                  m4 <- c(viridis::magma(n = 4)),
-                  i3 <- c(viridis::inferno(n = 3)),
-                  i4 <- c(viridis::inferno(n = 4)),
-                  c3 <- c(viridis::cividis(n = 3)),
-                  c4 <- c(viridis::cividis(n = 4)),
-                  c5 <- c(viridis::cividis(n = 5)))
+# color_vir <- list(p2 <- c(viridis::plasma(n = 2)),
+#                   p3 <- c(viridis::plasma(n = 3)),
+#                   p4 <- c(viridis::plasma(n = 4)),
+#                   m2 <- c(viridis::magma(n = 2)),
+#                   m3 <- c(viridis::magma(n = 3)),
+#                   m4 <- c(viridis::magma(n = 4)),
+#                   i3 <- c(viridis::inferno(n = 3)),
+#                   i4 <- c(viridis::inferno(n = 4)),
+#                   c3 <- c(viridis::cividis(n = 3)),
+#                   c4 <- c(viridis::cividis(n = 4)),
+#                   c5 <- c(viridis::cividis(n = 5)))
 
 venn.diagram(
   x = list(MM_history$avatar_id, Germline$avatar_id, Demo_RedCap_V4ish$avatar_id),
@@ -29,15 +29,17 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("#ED7953FF", "#FFEA46FF", "#00204DFF"), 
-  #  = clinical , Really light grey #7C7B78FF = BMT, darkbluegrey "#00204DFF" = Demo
+  fill = c("darkgrey", "#FEA873FF", "#00204DFF"),# clin, germ, demo
   margin = 0.2,
   
   # Numbers
   cex = .6,
   fontface = "bold",
   fontfamily = "sans",
-  ext.percent = 5
+  cat.pos = c(-30, 30, 180),
+  cat.dist = c(0.09, 0.09, 0.05),
+  ext.percent = 2
+  #ext.percent = 5
 )
 
 # venn.diagram(
@@ -85,9 +87,8 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("#ED7953FF", "#B63679FF", "#7C7B78FF"),
-  #  , lightgrey "#7C7B78FF" = bmt , yellow "#FFEA46FF" = germ
-  # darkbluegrey "#00204DFF" = clinical, pink #B63679FF = treat
+  fill = c("darkgrey", "#FFEA46FF", "#C83E73FF"), # clin, drug, bmt "darkgrey", "#ED7953FF", "#A3307EFF"
+  
   # Numbers 
   cex = .6,
   fontface = "bold",
@@ -97,10 +98,12 @@ venn.diagram(
   cat.cex = 0.6,
   cat.fontface = "bold",
   cat.default.pos = "outer",
-  cat.pos = c(-27, 27, 135),
-  cat.dist = c(0.055, 0.055, 0.015),
-  cat.fontfamily = "sans",
-  rotation = 1
+  cat.pos = c(0, 0, 0),
+  cat.dist = c(0.02, -0.015, -0.045),
+  # cat.fontfamily = "sans",
+  # ext.text = TRUE,
+  # ext.percent = 100,
+  # ext.pos = 3
 )
 
 # Patient who had Drugs and BMT
@@ -120,8 +123,8 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("#ED7953FF", "#B63679FF", "#7C7B78FF", "#F0F921FF"),
-  # older purple #0D0887FF darkbluegrey "#00204DFF" = clinical , pink #B63679FF = Drugs ,
+  fill = c("darkgrey", "#FFEA46FF", "#C83E73FF", "#ED7953FF"), # clin, drugs, bmt, rad
+  # older purple #0D0887FF darkbluegrey "#00204DFF" = clinical , salmon #ED7953FF = Drugs ,
   #  , yellow #F0F921FF = radiation
   margin = 0.2,
   #  lightgrey "#7C7B78FF" = yellow, yellow "#FFEA46FF" = germ
@@ -132,7 +135,7 @@ venn.diagram(
   fontfamily = "sans",
   ext.percent = 5,
   cat.pos = c(-38, 30, -30, 30),
-  cat.dist = c(0.28, 0.25, 0.15, 0.15)
+  cat.dist = c(0.28, 0.25, 0.13, 0.13) # clin, drug, bmt, rad
 )
 
 venn.diagram(
@@ -151,8 +154,8 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("#ED7953FF", "#F0F921FF"), 
-  # darkbluegrey "#00204DFF" = clinical , yellow #F0F921FF = germ
+  fill = c("darkgrey", "#FEA873FF"), # clin, germ
+  # darkbluegrey "#00204DFF" = clinical , yellow #FFEA46FF = germ
   margin = 0.05,
   
   # Numbers
@@ -182,9 +185,9 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("#ED7953FF", "#B63679FF", "#7C7B78FF", "#FCFFA4FF"), # clin, drug, bmt, germ
-  # darkbluegrey "#00204DFF" = clinical , pink #B63679FF = treat , 
-  #  , really light yellow #FCFFA4FF = germ
+  fill = c("darkgrey", "#FFEA46FF", "#C83E73FF", "#FEA873FF"), # clin, drug, bmt, germ
+  # darkbluegrey "#00204DFF" = clinical , salmon #ED7953FF = treat , 
+  #  , yellow #FFEA46FF = germ
   margin = 0.2,
   
   # Numbers
@@ -193,7 +196,7 @@ venn.diagram(
   fontfamily = "sans",
   ext.percent = 5,
   cat.pos = c(-38, 30, -30, 30),
-  cat.dist = c(0.28, 0.25, 0.15, 0.15)
+  cat.dist = c(0.28, 0.25, 0.13, 0.13)
   
 )
 
@@ -243,8 +246,8 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("#B63679FF", "#7C7B78FF", "#FCFFA4FF"), # drug, bmt, germ
-  # lightgrey #000004FF  # pink #B63679FF = treat, Really light grey #7C7B78FF = BMT , TOO lightyellow #FCFDBFFF = germ
+  fill = c("#FFEA46FF", "#C83E73FF", "#FEA873FF"), # drug, bmt, germ
+  # lightgrey #000004FF  # salmon #ED7953FF = treat, Really light grey #7C7B78FF = BMT , #FFEA46FF = germ
   
   # Numbers
   cex = .6,
@@ -255,8 +258,8 @@ venn.diagram(
   cat.cex = 0.6,
   cat.fontface = "bold",
   cat.default.pos = "outer",
-  cat.pos = c(200, 165, 0), # germ treat
-  cat.dist = c(0.020, -0.035, 0.045), # x BMT germ
+  cat.pos = c(195, 167, 0), # germ treat
+  cat.dist = c(0.020, -0.035, 0.05), # x BMT germ
   cat.fontfamily = "sans"
 )
 

@@ -248,7 +248,7 @@ germ_BF_drug_bmt_rad <- germline_patient_data[which(germline_patient_data$germBF
 
 venn.diagram(
   x = list(germ_BF_drugs$avatar_id, germ_BF_bmt1$avatar_id),
-  category.names = c("Germline before drugs" , "Germline before BMT1"),
+  category.names = c("Germline \nbefore drugs" , "Germline before BMT1"),
   filename = 'Patient who had Germline sequenced before drugs and BMT.png',
   output=TRUE,
   
@@ -262,15 +262,15 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = m2,
+  fill = c("#2A406CFF", "#E95562FF"), # # , #2A406CFF = before bmt
   margin = 0.09,
   
   # Numbers
   cex = .6,
   fontface = "bold",
   fontfamily = "sans",
-  cat.pos = c(-20, 165),
-  cat.dist = c(0.045, 0.045),
+  cat.pos = c(0, 180),
+  cat.dist = c(-0.07, 0.025),
   cat.cex = .8
 )
 
@@ -278,7 +278,7 @@ venn.diagram(
 
 venn.diagram(
   x = list(germline_patient_data$avatar_id, germ_BF_drugs$avatar_id, germ_BF_bmt1$avatar_id),
-  category.names = c("Germline available", "Germline before drugs" , "Germline before BMT1"),
+  category.names = c("Germline available", "Germline \nbefore drugs" , "Germline before BMT1"),
   filename = 'Patient who had Germline sequenced before drugs and BMT in Total Germline population.png',
   output=TRUE,
   
@@ -292,7 +292,7 @@ venn.diagram(
   # Circles
   lwd = 2,
   lty = 'blank',
-  fill = c("lightblue", "#B63679FF", "red"),
+  fill = c("#FFEA46FF", "#2A406CFF", "#E95562FF"), # germ, before bmt, 
   margin = 0.09,
   
   # Numbers
@@ -304,8 +304,8 @@ venn.diagram(
   cat.cex = 0.6,
   cat.fontface = "bold",
   cat.default.pos = "outer",
-  cat.pos = c(-30, 27, 150),
-  cat.dist = c(0.075, 0.045, 0.045),
+  cat.pos = c(-27, 153, 0), # germ , bmt, drugs
+  cat.dist = c(0.015, -0.025, 0.015), # germ, drugs, bmt
   cat.fontfamily = "sans",
   rotation = 1
 )

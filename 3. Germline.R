@@ -7,18 +7,18 @@ Disease_status_table <- table(germline_patient_data$Disease_Status_germline)
 # write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
 
 ################################################################################# TABLE Year of germline sample collection ####
-Amyloidosis_Diagnostic <- which(germline_patient_data$Disease_Status_germline == "Amyloidosis")#1  
-Early_Relapse <- which(germline_patient_data$Disease_Status_germline == "Early Relapse Multiple Myeloma") # 208 
-Late_Relapse <- which(germline_patient_data$Disease_Status_germline == "Late Relapse Multiple Myeloma")  #66  
-Mgus <- which(germline_patient_data$Disease_Status_germline == "Mgus") #50
+Amyloidosis_Diagnostic <- which(germline_patient_data$Disease_Status_germline == "Amyloidosis")#2  
+Early_Relapse <- which(germline_patient_data$Disease_Status_germline == "Early Relapse Multiple Myeloma") # 215 
+Late_Relapse <- which(germline_patient_data$Disease_Status_germline == "Late Relapse Multiple Myeloma")  #68  
+Mgus <- which(germline_patient_data$Disease_Status_germline == "Mgus") #54
 Myelofib <- which(germline_patient_data$Disease_Status_germline == "MYELOFIBROSIS")    #1                                 
 Normal_marrow <- which(germline_patient_data$Disease_Status_germline == "Normal marrow") #1
-Post_Treat <-which(germline_patient_data$Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma")  #9 
+Post_Treat <-which(germline_patient_data$Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma")  #10 
 Refractory_anemia <- which(germline_patient_data$Disease_Status_germline == "Refractory anemia with ring sideroblasts")  #1                  
 SmolderingMM <- which(germline_patient_data$Disease_Status_germline == "Smoldering Multiple Myeloma") #47
-Solitary_Plasmacytoma <- which(germline_patient_data$Disease_Status_germline == "Solitary Plasmacytoma")    #4              
+Solitary_Plasmacytoma <- which(germline_patient_data$Disease_Status_germline == "Solitary Plasmacytoma")    #5              
 Walderstrom <- which(germline_patient_data$Disease_Status_germline == "WALDENSTROM MACROGLOBULINEMIA") #1
-Pre_Treat <- which(germline_patient_data$Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") #117
+Pre_Treat <- which(germline_patient_data$Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") #127
 
 Pre_Treat <- germline_patient_data[Pre_Treat, ]
 Post_Treat <- germline_patient_data[Post_Treat, ]
@@ -243,7 +243,7 @@ rm(tab, germline_compared_dates)
 
 #------------------------------------------------------------- Venn
 germ_BF_drugs <- germline_patient_data[which(germline_patient_data$germlineBFdrugs =="OK"),]
-germ_BF_bmt1 <- germline_patient_data[which(germline_patient_data$germlineBFbmt1 == "OK"),]
+germ_BF_bmt1 <- germline_patient_data[which(germline_patient_data$germlineBFbmt1 == "OK"),] # 375
 germ_BF_drugsBMT <- germline_patient_data[which(germline_patient_data$germBFdrugsbmt == "OK"),]
 germ_BF_rad <- germline_patient_data[which(germline_patient_data$germlineBFrad1 == "OK"),]
 germ_BF_drug_bmt_rad <- germline_patient_data[which(germline_patient_data$germBFdbr == "OK"),]
@@ -296,6 +296,78 @@ venn.diagram(
   lty = 'blank',
   fill = c("#FFEA46FF", "#2A406CFF", "#E95562FF"), # germ, before bmt, 
   margin = 0.09,
+  ,
+  
+  # Numbers
+  ext.text = TRUE,
+  # # ext.percent = c(.5,.5,.5),
+  # ext.text = TRUE,
+  ext.dist = 5,
+  ext.length = 5,
+  # ext.pos = -4,
+  cex = .6,
+  # fontface = "bold",
+  # fontfamily = "sans",
+  # 
+  # 
+  # # Set names
+  # cat.cex = 0.6,
+  # cat.fontface = "bold",
+  # cat.default.pos = "outer",
+  # cat.pos = c(-27, 153, 0), # germ , bmt, drugs
+  # cat.dist = c(0.015, -0.025, 0.015), # germ, drugs, bmt
+  # cat.fontfamily = "sans"
+)
+
+Mul_Myeloma <- germline_patient_data %>% 
+      filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
+               Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
+               Disease_Status_germline == "Early Relapse Multiple Myeloma" |
+               Disease_Status_germline == "Late Relapse Multiple Myeloma")
+Smoldering <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
+Mgus <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Mgus")
+
+germ_BF_drugs_MM <- germ_BF_drugs %>% 
+  filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
+           Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
+           Disease_Status_germline == "Early Relapse Multiple Myeloma" |
+           Disease_Status_germline == "Late Relapse Multiple Myeloma")
+germ_BF_bmt1_MM <- germ_BF_bmt1 %>% 
+  filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
+           Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
+           Disease_Status_germline == "Early Relapse Multiple Myeloma" |
+           Disease_Status_germline == "Late Relapse Multiple Myeloma")
+
+germ_BF_drugs_mgus <- germ_BF_drugs %>% 
+  filter(Disease_Status_germline == "Mgus")
+germ_BF_bmt1_mgus <- germ_BF_bmt1 %>% 
+  filter(Disease_Status_germline == "Mgus")
+
+germ_BF_drugs_smoldering <- germ_BF_drugs %>% 
+  filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
+germ_BF_bmt1_smoldering <- germ_BF_bmt1 %>% 
+  filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
+###########################################################################
+venn.diagram(
+  x = list(Mul_Myeloma$avatar_id, germ_BF_drugs_MM$avatar_id, germ_BF_bmt1_MM$avatar_id),
+  category.names = c("Germline available", "Germline \nbefore drugs" , "Germline before BMT1"),
+  filename = 'Patient who had Germline sequenced before drugs and BMT in MM Germline population.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 700 , 
+  width = 700 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = c(viridis::cividis(n=3)), # c("#FFEA46FF", "#2A406CFF", "#E95562FF"), # germ, before bmt, 
+  margin = 0.09,
   
   # Numbers
   cex = .6,
@@ -306,12 +378,80 @@ venn.diagram(
   cat.cex = 0.6,
   cat.fontface = "bold",
   cat.default.pos = "outer",
-  cat.pos = c(-27, 153, 0), # germ , bmt, drugs
-  cat.dist = c(0.015, -0.025, 0.015), # germ, drugs, bmt
+  #cat.pos = c(-27, 153, 0), # germ , bmt, drugs
+  #cat.dist = c(0.015, -0.025, 0.015), # germ, drugs, bmt
   cat.fontfamily = "sans",
   rotation = 1
 )
-
+venn.diagram(
+  x = list(Mgus$avatar_id, germ_BF_drugs_mgus$avatar_id, germ_BF_bmt1_mgus$avatar_id),
+  category.names = c("Germline available", "Germline before drugs" , "Germline before BMT1"),
+  filename = 'Patient who had Germline sequenced before drugs and BMT in MGUS Germline population_eulerF.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 700 , 
+  width = 700 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = c(viridis::magma(n=3)), # c("#FFEA46FF", "#2A406CFF", "#E95562FF"), # germ, before bmt, 
+  margin = 0.09,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  
+  # Set names
+  cat.cex = 0.6,
+  cat.fontface = "bold",
+  cat.default.pos = "outer",
+  #cat.pos = c(-27, 153, 0), # germ , bmt, drugs
+  #cat.dist = c(0.015, -0.025, 0.015), # germ, drugs, bmt
+  cat.fontfamily = "sans",
+  euler.d = FALSE,
+  scaled = FALSE
+)
+venn.diagram(
+  x = list(Smoldering$avatar_id, germ_BF_drugs_smoldering$avatar_id, germ_BF_bmt1_smoldering$avatar_id),
+  category.names = c("Germline available", "Germline \nbefore drugs" , "Germline before BMT1"),
+  filename = 'Patient who had Germline sequenced before drugs and BMT in Smoldering Germline population eulerF.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 700 , 
+  width = 700 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = c(viridis::cividis(n=3)), # c("#FFEA46FF", "#2A406CFF", "#E95562FF"), # germ, before bmt, 
+  margin = 0.09,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  
+  # Set names
+  cat.cex = 0.6,
+  cat.fontface = "bold",
+  cat.default.pos = "outer",
+  #cat.pos = c(-27, 153, 0), # germ , bmt, drugs
+  #cat.dist = c(0.015, -0.025, 0.015), # germ, drugs, bmt
+  cat.fontfamily = "sans",
+  rotation = 1,
+  euler.d = FALSE,
+  scaled = FALSE
+)
 
 #################################################################################################  II  ### Disease status when Germline collection
 

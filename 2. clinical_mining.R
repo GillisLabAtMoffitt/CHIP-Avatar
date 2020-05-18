@@ -465,3 +465,4 @@ drug_table_4 <- as.data.table(table(regimen1$drug_name_)) %>%
 
 # Cleaning
 rm(drug_table, Pre_Treat, Post_Treat, Early_Relapse, Late_Relapse, Smoldering, Mgus)
+rm(TREATM, TREATME, TREATMEN)

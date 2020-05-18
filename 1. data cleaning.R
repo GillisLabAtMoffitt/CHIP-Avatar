@@ -6,7 +6,7 @@ library(viridis)
 library(lubridate)
 
 #######################################################################################  I  ### Load data
-path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Cassin", "CHIP in Avatar")
+path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
 #-----------------------------------------------------------------------------------------------------------------
 Demo_RedCap_V4ish <-
   readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Avatar_Demographics_All_MM_modif_04292020.xlsx")) %>%
@@ -72,28 +72,7 @@ print(paste("We have", length(Seq_WES_Raghu$SLID_tumor) ,"samples in Seq_WES_Rag
 # Seq_WES_Raghu$subject == Seq_WES_Raghu$ClinicalSpecimenLinkage_subject # yes
 # Seq_WES_R$collectiondt_germline == Seq_WES_R$collectiondt_tumor # No -> That's good
 #-----------------------------------------------------------------------------------------------------------------
-# Sequencing2 <- 
-#   read.delim(paste0(path, "/Jamie/wes_somatic_mutations_metadata_v0.4.4.1.txt")) %>% 
-#   filter(clinicalSpecimenLinkageDiseaseType == "HEM - Myeloma Spectrum") %>% 
-#   select(c("subject",
-#            "slid_germline", 
-#            "slid_tumor", "moffittSampleId_tumor", 
-#            "moffittSampleId_germline",
-#            "baitSet", "clinicalSpecimenLinkageDiseaseType")) %>% 
-#   `colnames<-`(c("avatar_id", "SLID_germline", 
-#                  "SLID_tumor" , "moffitt_sample_id_tumor", 
-#                  "moffitt_sample_id_germline",
-#                  "BaitSet", "clinicalSpecimenLinkageDiseaseType"))
-# print(paste("We have", length(Sequencing2$SLID_tumor) ,"samples in Sequencing with", 
-#             length(unique(Sequencing2$SLID_germline)) ,"unique id"))
-# 
-# Sequencing2 <- dcast(setDT(Sequencing2), avatar_id+SLID_germline+moffitt_sample_id_germline ~ rowid(avatar_id),
-#                      value.var = c(
-#                        "SLID_tumor",
-#                        "moffitt_sample_id_tumor",
-#                        "BaitSet", "clinicalSpecimenLinkageDiseaseType")) 
-
-Sequencing2 <- 
+Sequencing2 <- # warning message due to a TRUE added in a num var by Raghu (he copy paste an extra patient)
   readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Metadata_WES_V0441.xlsx")) %>% 
   select(c(avatar_id = "subject", 
            "SLID_germline", moffitt_sample_id_germline = "moffittSampleId_germline", 
@@ -111,7 +90,7 @@ ClinicalCap_V1 <-
     "",
     "Volumes",
     "Gillis_Research",
-    "Christelle Colin-Cassin",
+    "Christelle Colin-Leitzinger",
     "CHIP in Avatar",
     "Raghu MM",
     "extracted Avatar V124 data and dict",
@@ -170,7 +149,7 @@ RadiationV1 <- readxl::read_xlsx(paste0(ClinicalCap_V1, "/Radiation_Version1_Pat
       "",
       "Volumes",
       "Gillis_Research",
-      "Christelle Colin-Cassin",
+      "Christelle Colin-Leitzinger",
       "CHIP in Avatar",
       "Raghu MM",
       "extracted Avatar V124 data and dict",
@@ -213,7 +192,7 @@ RadiationV2 <- readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Da
       "",
       "Volumes",
       "Gillis_Research",
-      "Christelle Colin-Cassin",
+      "Christelle Colin-Leitzinger",
       "CHIP in Avatar",
       "Raghu MM",
       "extracted Avatar V124 data and dict",
@@ -365,6 +344,10 @@ sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>%
   drop_na("date_of_first_bmt") %>% 
   distinct(avatar_id, date_of_first_bmt, .keep_all = TRUE)
 SCT <- sct
+
+duplicated(sct$avatar_id) # No duplicated ID so good, if there is need to pivot longer, remove dupl,
+# orrange by dates, pivot wider and rename 1st 2nd 3rd bmt
+
 # SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), 
 #              value.var = c("date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
 write.csv(SCT,paste0(path, "/simplified files/SCT simplify.csv"))

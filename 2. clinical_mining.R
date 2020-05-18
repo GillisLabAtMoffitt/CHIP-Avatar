@@ -88,6 +88,7 @@ venn.diagram(
   lwd = 2,
   lty = 'blank',
   fill = c("darkgrey", "#FFEA46FF", "#C83E73FF"), # clin, drug, bmt "darkgrey", "#ED7953FF", "#A3307EFF"
+  margin = 0.09,
   
   # Numbers 
   cex = .6,
@@ -96,14 +97,14 @@ venn.diagram(
   
   # Set names
   cat.cex = 0.6,
-  cat.fontface = "bold",
+  cat.fontface = "bold", # names
   cat.default.pos = "outer",
   cat.pos = c(0, 0, 0),
   cat.dist = c(0.02, -0.015, -0.045),
   # cat.fontfamily = "sans",
-  # ext.text = TRUE,
-  # ext.percent = 100,
-  # ext.pos = 3
+  ext.text = TRUE,
+  ext.percent = 100,
+  ext.pos = 3
 )
 
 # Patient who had Drugs and BMT
@@ -312,6 +313,44 @@ rm(myCol1, myCol2)
 
 ###################################################################################################  I  ## Treatment
 
+################### Radiation
+Pre_Treat <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma")
+Post_Treat <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma")
+Early_Relapse <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Early Relapse Multiple Myeloma")
+Late_Relapse <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Late Relapse Multiple Myeloma")
+Smoldering <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
+Mgus <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Mgus")
+
+treatment_number <- matrix(c(
+  "Treatment", "PreMM", "PostMM", "ER MM", "LR MM", "MGUS", "Smoldering",
+  "Drug", sum(!is.na(Pre_Treat$drug_start_date_1)), sum(!is.na(Post_Treat$drug_start_date_1)),
+  sum(!is.na(Early_Relapse$drug_start_date_1)), sum(!is.na(Late_Relapse$drug_start_date_1)),
+  sum(!is.na(Mgus$drug_start_date_1)), sum(!is.na(Smoldering$drug_start_date_1)),
+  "Radiation", sum(!is.na(Pre_Treat$rad_start_date_1)), sum(!is.na(Post_Treat$rad_start_date_1)),
+  sum(!is.na(Early_Relapse$rad_start_date_1)), sum(!is.na(Late_Relapse$rad_start_date_1)),
+  sum(!is.na(Mgus$rad_start_date_1)), sum(!is.na(Smoldering$rad_start_date_1)),
+  "SCT", sum(!is.na(Pre_Treat$date_of_first_bmt)), sum(!is.na(Post_Treat$date_of_first_bmt)),
+  sum(!is.na(Early_Relapse$date_of_first_bmt)), sum(!is.na(Late_Relapse$date_of_first_bmt)),
+  sum(!is.na(Mgus$date_of_first_bmt)), sum(!is.na(Smoldering$date_of_first_bmt)),
+  "No treatment", sum(is.na(Pre_Treat$drug_start_date_1) & is.na(Pre_Treat$rad_start_date_1) & is.na(Pre_Treat$date_of_first_bmt)),
+  sum(is.na(Post_Treat$drug_start_date_1) & is.na(Post_Treat$rad_start_date_1) & is.na(Post_Treat$date_of_first_bmt)),
+  sum(is.na(Early_Relapse$drug_start_date_1) & is.na(Early_Relapse$rad_start_date_1) & is.na(Early_Relapse$date_of_first_bmt)),
+  sum(is.na(Late_Relapse$drug_start_date_1) & is.na(Late_Relapse$rad_start_date_1) & is.na(Late_Relapse$date_of_first_bmt)),
+  sum(is.na(Mgus$drug_start_date_1) & is.na(Mgus$rad_start_date_1) & is.na(Mgus$date_of_first_bmt)),
+  sum(is.na(Smoldering$drug_start_date_1) & is.na(Smoldering$rad_start_date_1) & is.na(Smoldering$date_of_first_bmt))
+), ncol = 7, byrow = TRUE)
+
+# write.csv(treatment_number, paste0(path, "/Treatment of MM patients per disease status.csv"))
+
+
+############ More about drugs
+
 drug_table <- as.data.table(table(treatment$drug_name_))
 # write.csv(drug_table, paste0(path, "/drug in regimen.csv"))
 
@@ -354,7 +393,7 @@ drug_table_1 <- as.data.table(table(Pre_Treat$drug_name_)) %>%
   arrange(desc(N))
 # write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as pre-treat in first regimen.csv"))
 
-Post_Treat <-germline_patient_data %>% 
+Post_Treat <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma") %>% 
   select("avatar_id")
 Post_Treat <- merge.data.frame(Post_Treat, regimen1, all.x = TRUE, all.y = FALSE) %>% 
@@ -417,6 +456,12 @@ regimen1 <- regimen1 %>%
 drug_table_4 <- as.data.table(table(regimen1$drug_name_)) %>% 
   arrange(desc(N))
 # write.csv(drug_table_4, paste0(path, "/table drugs single used per patient in first regimen.csv"))
+
+
+
+
+
+
 
 # Cleaning
 rm(drug_table, Pre_Treat, Post_Treat, Early_Relapse, Late_Relapse, Smoldering, Mgus)

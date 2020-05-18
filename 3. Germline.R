@@ -205,7 +205,9 @@ germline_patient_data <- germline_patient_data %>%
 
 # write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))
 tab <- table(germline_patient_data$GermBFtumorWES)
+# jpeg("barplot3.jpg", width = 350, height = 350)
 barplot(tab, main = "Frequency of collection date first observed", ylim = c(0,500))
+# dev.off()
 tab
 
 #------------------------------------------------------------- Table

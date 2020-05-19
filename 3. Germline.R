@@ -453,7 +453,7 @@ venn.diagram(
   scaled = FALSE
 )
 
-#################################################################################################  II  ### Disease status when Germline collection
+#################################################################################################  II  ### Disease status at Germline collection
 
 disease_stat_germVStreatment <- matrix(
   c("Disease_Status_germline", 

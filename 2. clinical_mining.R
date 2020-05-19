@@ -313,7 +313,104 @@ rm(myCol1, myCol2)
 
 ###################################################################################################  I  ## Treatment
 
-################### Radiation
+################### Radiation / BMT
+
+bmt_patients <- germline_patient_data %>% 
+  filter(!is.na(germline_patient_data$date_of_first_bmt))
+rad_patients <- germline_patient_data %>% 
+  filter(!is.na(germline_patient_data$rad_start_date_1))
+drug_patients <- germline_patient_data %>% 
+  filter(!is.na(germline_patient_data$drug_start_date_1))
+a <- as.table(table(bmt_patients$Disease_Status_germline))
+b <- as.table(table(rad_patients$Disease_Status_germline))
+c <- as.table(table(drug_patients$Disease_Status_germline))
+write.csv(a, paste0(path, "/BMT patient number per disease status.csv"))
+write.csv(b, paste0(path, "/Radiation patient number per disease status.csv"))
+write.csv(c, paste0(path, "/Drug patient number per disease status.csv"))
+
+bmt_patients <- bmt_patients %>% 
+  mutate(germlineBFbmt1 = case_when(
+    collectiondt_germline > date_of_first_bmt  ~ "No",
+    collectiondt_germline <= date_of_first_bmt  ~ "OK"
+  )) %>% 
+  filter(germlineBFbmt1 == "OK")
+
+rad_patients <- rad_patients %>% 
+  mutate(germlineBFrad1 = case_when(
+    collectiondt_germline <= rad_start_date_1 ~ "OK",
+    collectiondt_germline > rad_start_date_1 ~ "No"
+  )) %>% 
+  filter(germlineBFrad1 == "OK")
+
+drug_patients <- drug_patients %>% 
+  mutate(germlineBFdrugs = case_when(
+    collectiondt_germline > drug_start_date_1 ~ "No",
+    collectiondt_germline <= drug_start_date_1 ~ "OK"
+  )) %>% 
+  filter(germlineBFdrugs == "OK")
+
+germ_before_treatment <- matrix(
+  c("Disease_Status_germline", 
+    "Pre Treatment Newly Diagnosed Multiple Myeloma",
+    "Post Treatment Newly Diagnosed Multiple Myeloma",
+    "Amyloidosis", 
+    "Early Relapse Multiple Myeloma", 
+    "Late Relapse Multiple Myeloma", 
+    "Mgus", 
+    "MYELOFIBROSIS", 
+    "Normal marrow", 
+    "Refractory anemia with ring sideroblasts", 
+    "Smoldering Multiple Myeloma", 
+    "Solitary Plasmacytoma", 
+    "WALDENSTROM MACROGLOBULINEMIA", 
+    "nbr of patients germline before drugs",
+    sum(str_count(drug_patients$Disease_Status_germline, "Pre Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Post Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Amyloidosis"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Early Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Late Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Mgus"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "MYELOFIBROSIS"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Normal marrow"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Refractory anemia with ring sideroblasts"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Smoldering Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Solitary Plasmacytoma"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "WALDENSTROM MACROGLOBULINEMIA"), na.rm = TRUE),
+    "nbr of patients germline before bmt1",
+    sum(str_count(bmt_patients$Disease_Status_germline, "Pre Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Post Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Amyloidosis"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Early Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Late Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Mgus"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "MYELOFIBROSIS"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Normal marrow"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Refractory anemia with ring sideroblasts"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Smoldering Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Solitary Plasmacytoma"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "WALDENSTROM MACROGLOBULINEMIA"), na.rm = TRUE),
+    "nbr of patients germline before radiation",
+    sum(str_count(rad_patients$Disease_Status_germline, "Pre Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Post Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Amyloidosis"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Early Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Late Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Mgus"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "MYELOFIBROSIS"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Normal marrow"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Refractory anemia with ring sideroblasts"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Smoldering Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Solitary Plasmacytoma"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "WALDENSTROM MACROGLOBULINEMIA"), na.rm = TRUE)),
+  
+  ncol = 4, byrow = FALSE)
+germ_before_treatment <- as.table(germ_before_treatment)
+# write.csv(germ_before_treatment, paste0(path, "/germ_before_treatment when treatment happened.csv"))
+
+
+
+
+
 Pre_Treat <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma")
 Post_Treat <- germline_patient_data %>% 
@@ -351,7 +448,8 @@ treatment_number <- matrix(c(
 
 ############ More about drugs
 
-drug_table <- as.data.table(table(treatment$drug_name_))
+# All the drugs received at all time counted multiple time per patients
+# drug_table <- as.data.table(table(treatment$drug_name_))
 # write.csv(drug_table, paste0(path, "/drug in regimen.csv"))
 
 drugs <- treatment %>% pivot_wider(id_cols = NULL,

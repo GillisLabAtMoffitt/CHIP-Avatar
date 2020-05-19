@@ -165,13 +165,13 @@ germline_patient_data <- germline_patient_data %>%
     collectiondt_germline > rad_start_date_4 ~ "No"
   )) %>% 
   mutate(germBFdrugsbmt = case_when(
-    collectiondt_germline <= drug_start_date_1 &
-      collectiondt_germline <= date_of_first_bmt  ~ "OK"
+    germlineBFdrugs == "OK" &
+      germlineBFbmt1 == "OK"                  ~ "OK"
   )) %>% 
   mutate(germBFdbr = case_when(
-    collectiondt_germline <= drug_start_date_1 &
-      collectiondt_germline <= date_of_first_bmt &
-      collectiondt_germline <= rad_start_date_1 ~ "OK"
+    germlineBFdrugs == "OK" &
+      germlineBFbmt1 == "OK" &
+      germlineBFrad1 == "OK"                  ~ "OK"
   )) %>% 
   # mutate(bmt1_BF_drug = case_when(
   #   date_of_first_bmt_1 < drug_start_date_1 ~ "OK",
@@ -251,7 +251,7 @@ germ_BF_drug_bmt_rad <- germline_patient_data[which(germline_patient_data$germBF
 venn.diagram(
   x = list(germ_BF_drugs$avatar_id, germ_BF_bmt1$avatar_id),
   category.names = c("Germline \nbefore drugs" , "Germline before BMT1"),
-  filename = 'Patient who had Germline sequenced before drugs and BMT.png',
+  filename = 'Patient who had Germline sequenced before or no drugs-and-BMT.png',
   output=TRUE,
   
   # Output features
@@ -273,15 +273,79 @@ venn.diagram(
   fontfamily = "sans",
   cat.pos = c(0, 180),
   cat.dist = c(-0.07, 0.025),
+  cat.cex = .8,
+  euler.d = FALSE,
+  scaled = FALSE
+)
+venn.diagram( # Limiting to patients who strickly had bmt or drugs
+  x = list(drug_patients$avatar_id, bmt_patients$avatar_id),
+  category.names = c("Germline \nbefore drugs" , "Germline \nbefore BMT"),
+  filename = 'Patient who had Germline sequenced strictly before drugs-and-BMT.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 700 , 
+  width = 700 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = c("#2A406CFF", "#E95562FF"), # # , #2A406CFF = before bmt
+  margin = 0.09,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  # cat.pos = c(0, 180),
+  # cat.dist = c(-0.07, 0.025),
   cat.cex = .8
 )
 
 
-
 venn.diagram(
   x = list(germline_patient_data$avatar_id, germ_BF_drugs$avatar_id, germ_BF_bmt1$avatar_id),
-  category.names = c("Germline available", "Germline \nbefore drugs" , "Germline before BMT1"),
-  filename = 'Patient who had Germline sequenced before drugs and BMT in Total Germline population.png',
+  category.names = c("Germline available", "Germline before drugs" , "Germline before BMT"),
+  filename = 'Patient who had Germline sequenced before or no drugs-and-BMT in Total Germline population eulerF.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 700 , 
+  width = 700 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = c("#FFEA46FF", "#2A406CFF", "#E95562FF"), # germ, before bmt, 
+  margin = 0.16,
+  
+  # Numbers
+  cex = .5,
+  fontface = "bold",
+  fontfamily = "sans",
+  # cat.pos = c(0, 180),
+  # cat.dist = c(-0.07, 0.025),
+   
+  # Set names
+  cat.cex = .7,
+  # cat.fontface = "bold",
+  # cat.default.pos = "outer",
+  cat.pos = c(-35, 35, 180), # germ, drugs, bmt
+  cat.dist = c(0.1, 0.1, 0.05), # germ, drugs, bmt
+  # cat.fontfamily = "sans"
+  euler.d = FALSE,
+  scaled = FALSE
+)
+venn.diagram( # Limiting to patients who strickly had bmt or drugs
+  x = list(germline_patient_data$avatar_id, drug_patients$avatar_id, bmt_patients$avatar_id),
+  category.names = c("Germline available", "Germline \nbefore drugs" , "Germline \nbefore BMT1"),
+  filename = 'Patient who had Germline sequenced strickly before drugs-and-BMT in Total Germline population.png',
   output=TRUE,
   
   # Output features
@@ -296,26 +360,20 @@ venn.diagram(
   lty = 'blank',
   fill = c("#FFEA46FF", "#2A406CFF", "#E95562FF"), # germ, before bmt, 
   margin = 0.09,
-  ,
   
   # Numbers
-  ext.text = TRUE,
-  # # ext.percent = c(.5,.5,.5),
-  # ext.text = TRUE,
-  ext.dist = 5,
-  ext.length = 5,
-  # ext.pos = -4,
   cex = .6,
-  # fontface = "bold",
-  # fontfamily = "sans",
-  # 
-  # 
-  # # Set names
-  # cat.cex = 0.6,
-  # cat.fontface = "bold",
-  # cat.default.pos = "outer",
-  # cat.pos = c(-27, 153, 0), # germ , bmt, drugs
-  # cat.dist = c(0.015, -0.025, 0.015), # germ, drugs, bmt
+  fontface = "bold",
+  fontfamily = "sans",
+  # cat.pos = c(0, 180),
+  # cat.dist = c(-0.07, 0.025),
+  
+  # Set names
+  cat.cex = 0.8,
+  cat.fontface = "bold",
+  cat.default.pos = "outer",
+  cat.pos = c(220, 0, 120), # bmt, germ , drugs
+  cat.dist = c(0.06, 0.05, 0.11)#, # germ, drugs, bmt
   # cat.fontfamily = "sans"
 )
 
@@ -328,7 +386,7 @@ Smoldering <- germline_patient_data %>%
   filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
 Mgus <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Mgus")
-
+####### Var for germline before or no drugs-and-bmt
 germ_BF_drugs_MM <- germ_BF_drugs %>% 
   filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
            Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
@@ -349,11 +407,36 @@ germ_BF_drugs_smoldering <- germ_BF_drugs %>%
   filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
 germ_BF_bmt1_smoldering <- germ_BF_bmt1 %>% 
   filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
-###########################################################################
+####### Var for germline strickly before drugs-and-bmt
+germ_stricBF_drugs_MM <- drug_patients %>% 
+  filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
+           Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
+           Disease_Status_germline == "Early Relapse Multiple Myeloma" |
+           Disease_Status_germline == "Late Relapse Multiple Myeloma")
+germ_stricBF_bmt1_MM <- bmt_patients %>% 
+  filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
+           Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
+           Disease_Status_germline == "Early Relapse Multiple Myeloma" |
+           Disease_Status_germline == "Late Relapse Multiple Myeloma")
+
+germ_stricBF_drugs_mgus <- drug_patients %>% 
+  filter(Disease_Status_germline == "Mgus")
+germ_stricBF_bmt1_mgus <- bmt_patients %>% 
+  filter(Disease_Status_germline == "Mgus")
+
+germ_stricBF_drugs_smoldering <- drug_patients %>% 
+  filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
+germ_stricBF_bmt1_smoldering <- bmt_patients %>% 
+  filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
+
+
+
+########################################################################### Venn treatment before germline
+# MM
 venn.diagram(
   x = list(Mul_Myeloma$avatar_id, germ_BF_drugs_MM$avatar_id, germ_BF_bmt1_MM$avatar_id),
-  category.names = c("Germline available", "Germline \nbefore drugs" , "Germline before BMT1"),
-  filename = 'Patient who had Germline sequenced before drugs and BMT in MM Germline population.png',
+  category.names = c("Germline available", "Germline before drugs" , "Germline before BMT1"),
+  filename = 'Patient who had Germline sequenced before or no drugs-and-BMT in MM Germline population eulerF.png',
   output=TRUE,
   
   # Output features
@@ -367,7 +450,7 @@ venn.diagram(
   lwd = 2,
   lty = 'blank',
   fill = c(viridis::cividis(n=3)), # c("#FFEA46FF", "#2A406CFF", "#E95562FF"), # germ, before bmt, 
-  margin = 0.09,
+  margin = 0.15,
   
   # Numbers
   cex = .6,
@@ -378,15 +461,53 @@ venn.diagram(
   cat.cex = 0.6,
   cat.fontface = "bold",
   cat.default.pos = "outer",
-  #cat.pos = c(-27, 153, 0), # germ , bmt, drugs
-  #cat.dist = c(0.015, -0.025, 0.015), # germ, drugs, bmt
-  cat.fontfamily = "sans",
-  rotation = 1
+  # cat.pos = c(-29, 43, 0), # germ , bmt, drugs
+  # cat.dist = c(0.019, -0.13, 0.011), # germ, drugs, bmt
+  # cat.fontfamily = "sans",
+  rotation = 1,
+  euler.d = FALSE,
+  scaled = FALSE
 )
+venn.diagram(
+  x = list(Mul_Myeloma$avatar_id, germ_stricBF_drugs_MM$avatar_id, germ_stricBF_bmt1_MM$avatar_id),#######################
+  category.names = c("Germline available", "Germline \nbefore drugs" , "Germline \nbefore BMT"),
+  filename = 'Patient who had Germline sequenced strickly before in MM Germline population.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 700 , 
+  width = 700 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = c("#FFEA46FF", "#2A406CFF", "#E95562FF"), # germ, before bmt, 
+  margin = 0.15,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  
+  # Set names
+  cat.cex = 0.6,
+  cat.fontface = "bold",
+  cat.default.pos = "outer",
+  cat.pos = c(220, 0, 120), # bmt, germ , drugs
+  cat.dist = c(0.06, 0.055, 0.1)#, # germ, drugs, bmt
+  #cat.pos = c(0, 43, 0)#, # germ , bmt, drug
+  # cat.dist = c(0.019, -0.13, 0.011), # germ, drugs, bmt
+  # cat.fontfamily = "sans"
+)
+
+# MGUS
 venn.diagram(
   x = list(Mgus$avatar_id, germ_BF_drugs_mgus$avatar_id, germ_BF_bmt1_mgus$avatar_id),
   category.names = c("Germline available", "Germline before drugs" , "Germline before BMT1"),
-  filename = 'Patient who had Germline sequenced before drugs and BMT in MGUS Germline population_eulerF.png',
+  filename = 'Patient who had Germline sequenced before or no drugs-and-BMT in MGUS Germline population eulerF.png',
   output=TRUE,
   
   # Output features
@@ -400,7 +521,7 @@ venn.diagram(
   lwd = 2,
   lty = 'blank',
   fill = c(viridis::magma(n=3)), # c("#FFEA46FF", "#2A406CFF", "#E95562FF"), # germ, before bmt, 
-  margin = 0.09,
+  margin = 0.15,
   
   # Numbers
   cex = .6,
@@ -413,14 +534,48 @@ venn.diagram(
   cat.default.pos = "outer",
   #cat.pos = c(-27, 153, 0), # germ , bmt, drugs
   #cat.dist = c(0.015, -0.025, 0.015), # germ, drugs, bmt
-  cat.fontfamily = "sans",
+  # cat.fontfamily = "sans",
   euler.d = FALSE,
   scaled = FALSE
 )
 venn.diagram(
+  x = list(Mgus$avatar_id, germ_stricBF_drugs_mgus$avatar_id, germ_stricBF_bmt1_mgus$avatar_id),
+  category.names = c("Germline available", "Germline before drugs" , "Germline before BMT1"),
+  filename = 'Patient who had Germline sequenced strickly before drugs-and-BMT in MGUS Germline population.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 700 , 
+  width = 700 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = c(viridis::magma(n=3)), # c("#FFEA46FF", "#2A406CFF", "#E95562FF"), # germ, before bmt, 
+  margin = 0.15,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  
+  # Set names
+  cat.cex = 0.6,
+  cat.fontface = "bold",
+  cat.default.pos = "outer"
+  #cat.pos = c(-27, 153, 0), # germ , bmt, drugs
+  #cat.dist = c(0.015, -0.025, 0.015), # germ, drugs, bmt
+  # cat.fontfamily = "sans",
+)
+
+# Smoldering
+venn.diagram(
   x = list(Smoldering$avatar_id, germ_BF_drugs_smoldering$avatar_id, germ_BF_bmt1_smoldering$avatar_id),
-  category.names = c("Germline available", "Germline \nbefore drugs" , "Germline before BMT1"),
-  filename = 'Patient who had Germline sequenced before drugs and BMT in Smoldering Germline population eulerF.png',
+  category.names = c("Germline available", "Germline before drugs" , "Germline before BMT1"),
+  filename = 'Patient who had Germline sequenced before or no drugs-and-BMT in Smoldering Germline population eulerF.png',
   output=TRUE,
   
   # Output features
@@ -434,7 +589,7 @@ venn.diagram(
   lwd = 2,
   lty = 'blank',
   fill = c(viridis::cividis(n=3)), # c("#FFEA46FF", "#2A406CFF", "#E95562FF"), # germ, before bmt, 
-  margin = 0.09,
+  margin = 0.18,
   
   # Numbers
   cex = .6,
@@ -452,7 +607,40 @@ venn.diagram(
   euler.d = FALSE,
   scaled = FALSE
 )
-
+venn.diagram(
+  x = list(Smoldering$avatar_id, germ_stricBF_drugs_smoldering$avatar_id, germ_stricBF_bmt1_smoldering$avatar_id),
+  category.names = c("Germline available", "Germline before drugs" , "Germline before BMT1"),
+  filename = 'Patient who had Germline sequenced strickly before drugs-and-BMT in Smoldering Germline population eulerF.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 700 , 
+  width = 700 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = c(viridis::cividis(n=3)), # c("#FFEA46FF", "#2A406CFF", "#E95562FF"), # germ, before bmt, 
+  margin = 0.15,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  
+  # Set names
+  cat.cex = 0.6,
+  cat.fontface = "bold",
+  cat.default.pos = "outer",
+  # cat.pos = c(0, 180, 0), # germ, drugs, bmt
+  # cat.dist = c(0.018, 0, 0.003), # germ, drugs, bmt
+  # cat.fontfamily = "sans",
+  euler.d = FALSE,
+  scaled = FALSE
+)
 #################################################################################################  II  ### Disease status at Germline collection
 
 disease_stat_germVStreatment <- matrix(

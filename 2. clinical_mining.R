@@ -88,6 +88,7 @@ venn.diagram(
   lwd = 2,
   lty = 'blank',
   fill = c("darkgrey", "#FFEA46FF", "#C83E73FF"), # clin, drug, bmt "darkgrey", "#ED7953FF", "#A3307EFF"
+  margin = 0.09,
   
   # Numbers 
   cex = .6,
@@ -96,14 +97,14 @@ venn.diagram(
   
   # Set names
   cat.cex = 0.6,
-  cat.fontface = "bold",
+  cat.fontface = "bold", # names
   cat.default.pos = "outer",
   cat.pos = c(0, 0, 0),
   cat.dist = c(0.02, -0.015, -0.045),
   # cat.fontfamily = "sans",
-  # ext.text = TRUE,
-  # ext.percent = 100,
-  # ext.pos = 3
+  ext.text = TRUE,
+  ext.percent = 100,
+  ext.pos = 3
 )
 
 # Patient who had Drugs and BMT
@@ -312,18 +313,214 @@ rm(myCol1, myCol2)
 
 ###################################################################################################  I  ## Treatment
 
-drug_table <- as.data.table(table(treatment$drug_name_))
+################### Radiation / BMT
+
+bmt_patients <- germline_patient_data %>% 
+  filter(!is.na(germline_patient_data$date_of_first_bmt))
+rad_patients <- germline_patient_data %>% 
+  filter(!is.na(germline_patient_data$rad_start_date_1))
+drug_patients <- germline_patient_data %>% 
+  filter(!is.na(germline_patient_data$drug_start_date_1))
+a <- as.table(table(bmt_patients$Disease_Status_germline))
+b <- as.table(table(rad_patients$Disease_Status_germline))
+c <- as.table(table(drug_patients$Disease_Status_germline))
+write.csv(a, paste0(path, "/BMT patient number per disease status.csv"))
+write.csv(b, paste0(path, "/Radiation patient number per disease status.csv"))
+write.csv(c, paste0(path, "/Drug patient number per disease status.csv"))
+
+bmt_patients <- bmt_patients %>% 
+  mutate(germlineBFbmt1 = case_when(
+    collectiondt_germline > date_of_first_bmt  ~ "No",
+    collectiondt_germline <= date_of_first_bmt  ~ "OK"
+  )) %>% 
+  filter(germlineBFbmt1 == "OK")
+
+rad_patients <- rad_patients %>% 
+  mutate(germlineBFrad1 = case_when(
+    collectiondt_germline <= rad_start_date_1 ~ "OK",
+    collectiondt_germline > rad_start_date_1 ~ "No"
+  )) %>% 
+  filter(germlineBFrad1 == "OK")
+
+drug_patients <- drug_patients %>% 
+  mutate(germlineBFdrugs = case_when(
+    collectiondt_germline > drug_start_date_1 ~ "No",
+    collectiondt_germline <= drug_start_date_1 ~ "OK"
+  )) %>% 
+  filter(germlineBFdrugs == "OK")
+
+germ_before_treatment <- matrix(
+  c("Disease_Status_germline", 
+    "Pre Treatment Newly Diagnosed Multiple Myeloma",
+    "Post Treatment Newly Diagnosed Multiple Myeloma",
+    "Amyloidosis", 
+    "Early Relapse Multiple Myeloma", 
+    "Late Relapse Multiple Myeloma", 
+    "Mgus", 
+    "MYELOFIBROSIS", 
+    "Normal marrow", 
+    "Refractory anemia with ring sideroblasts", 
+    "Smoldering Multiple Myeloma", 
+    "Solitary Plasmacytoma", 
+    "WALDENSTROM MACROGLOBULINEMIA", 
+    "nbr of patients germline before drugs",
+    sum(str_count(drug_patients$Disease_Status_germline, "Pre Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Post Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Amyloidosis"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Early Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Late Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Mgus"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "MYELOFIBROSIS"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Normal marrow"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Refractory anemia with ring sideroblasts"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Smoldering Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "Solitary Plasmacytoma"), na.rm = TRUE),
+    sum(str_count(drug_patients$Disease_Status_germline, "WALDENSTROM MACROGLOBULINEMIA"), na.rm = TRUE),
+    "nbr of patients germline before bmt",
+    sum(str_count(bmt_patients$Disease_Status_germline, "Pre Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Post Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Amyloidosis"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Early Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Late Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Mgus"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "MYELOFIBROSIS"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Normal marrow"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Refractory anemia with ring sideroblasts"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Smoldering Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "Solitary Plasmacytoma"), na.rm = TRUE),
+    sum(str_count(bmt_patients$Disease_Status_germline, "WALDENSTROM MACROGLOBULINEMIA"), na.rm = TRUE),
+    "nbr of patients germline before radiation",
+    sum(str_count(rad_patients$Disease_Status_germline, "Pre Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Post Treatment Newly Diagnosed Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Amyloidosis"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Early Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Late Relapse Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Mgus"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "MYELOFIBROSIS"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Normal marrow"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Refractory anemia with ring sideroblasts"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Smoldering Multiple Myeloma"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "Solitary Plasmacytoma"), na.rm = TRUE),
+    sum(str_count(rad_patients$Disease_Status_germline, "WALDENSTROM MACROGLOBULINEMIA"), na.rm = TRUE)),
+  
+  ncol = 4, byrow = FALSE)
+germ_before_treatment <- as.table(germ_before_treatment)
+# write.csv(germ_before_treatment, paste0(path, "/germ_before_treatment when treatment happened.csv"))
+
+
+
+# How many time paitents had KRd, VRd, Rd, DRd, Len, Len+dex by disease status?
+germline_patient_data <- germline_patient_data %>% 
+  mutate(drugs_first_regimen = case_when(
+    (str_detect(drug_name__1, "Cafilzomib") |
+       str_detect(drug_name__1, "Carfilzomib")) &
+      (str_detect(drug_name__1, "lena") |
+         str_detect(drug_name__1, "LENA") |
+         str_detect(drug_name__1, "Lena")) &
+      (str_detect(drug_name__1, "Dex") |
+         str_detect(drug_name__1, "dex"))                   ~ "KRd",
+    
+    str_detect(drug_name__1, "Daratu") &
+      (str_detect(drug_name__1, "lena") |
+         str_detect(drug_name__1, "LENA") |
+         str_detect(drug_name__1, "Lena")) &
+      (str_detect(drug_name__1, "Dex") |
+         str_detect(drug_name__1, "dex"))                ~ "DRd",
+    
+    str_detect(drug_name__1, "Bortezomib") &
+      (str_detect(drug_name__1, "lena") |
+         str_detect(drug_name__1, "LENA") |
+         str_detect(drug_name__1, "Lena")) &
+      (str_detect(drug_name__1, "Dex") |
+         str_detect(drug_name__1, "dex"))                ~ "VRd",
+    
+    (str_detect(drug_name__1, "lena") |
+       str_detect(drug_name__1, "LENA") |
+       str_detect(drug_name__1, "Lena")) &
+      (str_detect(drug_name__1, "Dex") |
+         str_detect(drug_name__1, "dex"))                ~ "Rd",
+    
+    (str_detect(drug_name__1, "lena") |
+       str_detect(drug_name__1, "LENA") |
+       str_detect(drug_name__1, "Lena"))                 ~ "Len"
+  ))
+table(germline_patient_data$drugs_first_regimen)
+
+
+Pre_Treat <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma")
+Post_Treat <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma")
+Early_Relapse <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Early Relapse Multiple Myeloma")
+Late_Relapse <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Late Relapse Multiple Myeloma")
+Smoldering <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
+Mgus <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Mgus")
+
+a <- matrix(c("drugs", "Pre MM", "Post MM", "ER MM", "LR MM", "MGUS", "Smoldering",
+              "KRd", sum(Pre_Treat$drugs_first_regimen == "KRd", na.rm = TRUE), sum(Post_Treat$drugs_first_regimen == "KRd", na.rm = TRUE),
+              sum(Early_Relapse$drugs_first_regimen == "KRd", na.rm = TRUE), sum(Late_Relapse$drugs_first_regimen == "KRd", na.rm = TRUE),
+              sum(Mgus$drugs_first_regimen == "KRd", na.rm = TRUE), sum(Smoldering$drugs_first_regimen == "KRd", na.rm = TRUE),
+              "DRd", sum(Pre_Treat$drugs_first_regimen == "DRd", na.rm = TRUE), sum(Post_Treat$drugs_first_regimen == "DRd", na.rm = TRUE),
+              sum(Early_Relapse$drugs_first_regimen == "DRd", na.rm = TRUE), sum(Late_Relapse$drugs_first_regimen == "DRd", na.rm = TRUE),
+              sum(Mgus$drugs_first_regimen == "DRd", na.rm = TRUE), sum(Smoldering$drugs_first_regimen == "DRd", na.rm = TRUE),
+              
+              "VRd", sum(Pre_Treat$drugs_first_regimen == "VRd", na.rm = TRUE)+2, sum(Post_Treat$drugs_first_regimen == "VRd", na.rm = TRUE),
+              sum(Early_Relapse$drugs_first_regimen == "VRd", na.rm = TRUE), sum(Late_Relapse$drugs_first_regimen == "VRd", na.rm = TRUE),
+              sum(Mgus$drugs_first_regimen == "VRd", na.rm = TRUE), sum(Smoldering$drugs_first_regimen == "VRd", na.rm = TRUE),
+              
+              "Rd", sum(Pre_Treat$drugs_first_regimen == "Rd", na.rm = TRUE), sum(Post_Treat$drugs_first_regimen == "Rd", na.rm = TRUE),
+              sum(Early_Relapse$drugs_first_regimen == "Rd", na.rm = TRUE), sum(Late_Relapse$drugs_first_regimen == "Rd", na.rm = TRUE),
+              sum(Mgus$drugs_first_regimen == "Rd", na.rm = TRUE), sum(Smoldering$drugs_first_regimen == "Rd", na.rm = TRUE),
+              
+              "Len", sum(Pre_Treat$drugs_first_regimen == "Len", na.rm = TRUE), sum(Post_Treat$drugs_first_regimen == "Len", na.rm = TRUE),
+              sum(Early_Relapse$drugs_first_regimen == "Len", na.rm = TRUE), sum(Late_Relapse$drugs_first_regimen == "Len", na.rm = TRUE),
+              sum(Mgus$drugs_first_regimen == "Len", na.rm = TRUE), sum(Smoldering$drugs_first_regimen == "DRd", na.rm = TRUE)
+), ncol = 7, byrow = TRUE)
+write.csv(a, paste0(path, "/table regimen type as first therapy.csv"))
+
+
+treatment_number <- matrix(c(
+  "Treatment", "PreMM", "PostMM", "ER MM", "LR MM", "MGUS", "Smoldering",
+  "Drug", sum(!is.na(Pre_Treat$drug_start_date_1)), sum(!is.na(Post_Treat$drug_start_date_1)),
+  sum(!is.na(Early_Relapse$drug_start_date_1)), sum(!is.na(Late_Relapse$drug_start_date_1)),
+  sum(!is.na(Mgus$drug_start_date_1)), sum(!is.na(Smoldering$drug_start_date_1)),
+  "Radiation", sum(!is.na(Pre_Treat$rad_start_date_1)), sum(!is.na(Post_Treat$rad_start_date_1)),
+  sum(!is.na(Early_Relapse$rad_start_date_1)), sum(!is.na(Late_Relapse$rad_start_date_1)),
+  sum(!is.na(Mgus$rad_start_date_1)), sum(!is.na(Smoldering$rad_start_date_1)),
+  "SCT", sum(!is.na(Pre_Treat$date_of_first_bmt)), sum(!is.na(Post_Treat$date_of_first_bmt)),
+  sum(!is.na(Early_Relapse$date_of_first_bmt)), sum(!is.na(Late_Relapse$date_of_first_bmt)),
+  sum(!is.na(Mgus$date_of_first_bmt)), sum(!is.na(Smoldering$date_of_first_bmt)),
+  "No treatment", sum(is.na(Pre_Treat$drug_start_date_1) & is.na(Pre_Treat$rad_start_date_1) & is.na(Pre_Treat$date_of_first_bmt)),
+  sum(is.na(Post_Treat$drug_start_date_1) & is.na(Post_Treat$rad_start_date_1) & is.na(Post_Treat$date_of_first_bmt)),
+  sum(is.na(Early_Relapse$drug_start_date_1) & is.na(Early_Relapse$rad_start_date_1) & is.na(Early_Relapse$date_of_first_bmt)),
+  sum(is.na(Late_Relapse$drug_start_date_1) & is.na(Late_Relapse$rad_start_date_1) & is.na(Late_Relapse$date_of_first_bmt)),
+  sum(is.na(Mgus$drug_start_date_1) & is.na(Mgus$rad_start_date_1) & is.na(Mgus$date_of_first_bmt)),
+  sum(is.na(Smoldering$drug_start_date_1) & is.na(Smoldering$rad_start_date_1) & is.na(Smoldering$date_of_first_bmt))
+), ncol = 7, byrow = TRUE)
+
+# write.csv(treatment_number, paste0(path, "/Treatment of MM patients per disease status.csv"))
+
+
+############ More about drugs
+
+# All the drugs received at all time counted multiple time per patients
+# drug_table <- as.data.table(table(treatment$drug_name_))
 # write.csv(drug_table, paste0(path, "/drug in regimen.csv"))
 
-drugs <- treatment %>% pivot_wider(id_cols = NULL,
-                                   names_from = avatar_id,
-                                   names_prefix = "",
-                                   names_sep = "_",
-                                   names_repair = "check_unique",
-                                   values_from = drug_name_,
-                                   values_fill = TRUE,
-                                   values_fn = NULL
-                                   )
+# drugs <- treatment %>% pivot_wider(id_cols = NULL,
+#                                    names_from = avatar_id,
+#                                    names_prefix = "",
+#                                    names_sep = "_",
+#                                    names_repair = "check_unique",
+#                                    values_from = drug_name_,
+#                                    values_fill = TRUE,
+#                                    values_fn = NULL
+#                                    )
+
 TREATM <- separate(treatment, drug_name_, paste("drug_name_", 1:7, sep="_"), sep = "; ", extra = "warn")
 TREATME <- TREATM %>% 
   pivot_longer(cols = drug_name__1:ncol(TREATM),
@@ -337,6 +534,7 @@ TREATMEN <- TREATME %>%
 drug_table_3 <- as.data.table(table(TREATMEN$drug_name_)) %>% 
   arrange(desc(N))
 # write.csv(drug_table_3, paste0(path, "/table alldrugs single used per patient.csv"))
+
 
 regimen1 <- Treatment[, c("avatar_id", "drug_name__1")] %>% 
   separate(drug_name__1, paste("drug_name_", 1:7, sep="_"), sep = "; ", extra = "warn")
@@ -354,7 +552,7 @@ drug_table_1 <- as.data.table(table(Pre_Treat$drug_name_)) %>%
   arrange(desc(N))
 # write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as pre-treat in first regimen.csv"))
 
-Post_Treat <-germline_patient_data %>% 
+Post_Treat <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma") %>% 
   select("avatar_id")
 Post_Treat <- merge.data.frame(Post_Treat, regimen1, all.x = TRUE, all.y = FALSE) %>% 
@@ -418,5 +616,9 @@ drug_table_4 <- as.data.table(table(regimen1$drug_name_)) %>%
   arrange(desc(N))
 # write.csv(drug_table_4, paste0(path, "/table drugs single used per patient in first regimen.csv"))
 
+
+
+
 # Cleaning
 rm(drug_table, Pre_Treat, Post_Treat, Early_Relapse, Late_Relapse, Smoldering, Mgus)
+rm(TREATM, TREATME, TREATMEN)

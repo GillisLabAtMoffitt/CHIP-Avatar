@@ -52,7 +52,20 @@ Age_data$Age_at_tumorcollect <- interval(start= Global_data$Date_of_Birth, end= 
 Age_data$Age_at_tumorcollect <- round(Age_data$Age_at_tumorcollect, 3)
 # summary(Age_data$Age_at_tumorcollect, na.rm = TRUE)
 
+
+# Create variable for plotting
 age_germline_patient_data <- Age_data[!is.na(Age_data$moffitt_sample_id_germline),]
+
+age_germline_patient_data <- age_germline_patient_data %>% 
+  mutate(Disease_Status_facet = case_when(
+    Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
+      Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myelom" |
+      Disease_Status_germline == "Early Relapse Multiple Myeloma" |
+      Disease_Status_germline == "Late Relapse Multiple Myeloma"                      ~ "MM",
+    Disease_Status_germline == "Mgus"                                                 ~ "MGUS",
+    Disease_Status_germline == "Smoldering Multiple Myeloma"                          ~ "Smoldering"
+  ))
+
 
 ################################################################################# Demo in all patients ####
 
@@ -83,7 +96,17 @@ p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis), !is.na(Gender)),
   labs(x="Gender", y="Age at Diagosis", title="Age repartition per gender in Avatar")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 # dev.off()
-
+# pdf(paste0(path, "/Age repartition by gender facet Disease status.pdf"), height = 6, width = 9)
+p <- ggplot(age_germline_patient_data %>%
+              mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MGUS", "Smoldering", "MM"))) %>%
+              filter(!is.na(Age_at_diagosis), !is.na(Gender), !is.na(Disease_Status_facet)),
+            aes(x=Gender, y=Age_at_diagosis), fill=Gender) + 
+  geom_boxplot(color= rep(c("purple3", "royalblue2"), 3)) +
+  theme_minimal() +
+  labs(x="Gender", y="Age at Diagosis", title="Age repartition per gender in Avatar")
+p + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  facet_grid(. ~ Disease_Status_facet)
+# dev.off()
 
 # t <- as.data.table(layer_data(p, 1)) %>% 
 #   select(c("ymin", "middle", "ymax")) %>% 
@@ -100,6 +123,18 @@ p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis), (Ethnicity == "Hispanic
   labs(x="Ethnicity", y="Age at Diagosis", title="Age repartition per ethnicity in Avatar")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 # dev.off()
+# pdf(paste0(path, "/Age repartition by ethnicity facet Disease status.pdf"), height = 6, width = 9)
+p <- ggplot(age_germline_patient_data %>% 
+              mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MGUS", "Smoldering", "MM"))) %>%
+              filter(!is.na(Age_at_diagosis), (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic"),
+                     !is.na(Disease_Status_facet)),
+            aes(x=Ethnicity, y=Age_at_diagosis), fill=Ethnicity) + 
+  geom_boxplot(color = rep(c("darkred", "darkgrey"),3)) + 
+  theme_minimal() +
+  labs(x="Ethnicity", y="Age at Diagosis", title="Age repartition per ethnicity in Avatar")
+p + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  facet_grid(. ~ Disease_Status_facet)
+# dev.off()
 
 # Race
 # pdf(paste0(path, "/Age repartition per race.pdf"), height = 6, width = 9)
@@ -114,6 +149,21 @@ p <- Age_data %>% filter(!is.na(Race)) %>%
   theme_minimal() +
   labs(x="Race", y="Age at Diagosis", title="Age repartition per race in Avatar")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
+# dev.off()
+# pdf(paste0(path, "/Age repartition by race facet Disease status.pdf"), height = 6, width = 9)
+p <- age_germline_patient_data %>% filter(!is.na(Race),!is.na(Disease_Status_facet)) %>% 
+  mutate_at(("Race"), ~ case_when(
+    . == "African American" ~ "Black",
+    TRUE ~ .
+  )) %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black", "Others"))) %>% 
+  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MGUS", "Smoldering", "MM"))) %>% 
+  ggplot(aes(x=Race, y=Age_at_diagosis), fill=Race) + 
+  geom_boxplot(color= c("#60136EFF", "#A92E5EFF", "#E65D2FFF", "#60136EFF", "#A92E5EFF", "#60136EFF", "#A92E5EFF", "#E65D2FFF")) +
+  theme_minimal() +
+  labs(x="Race", y="Age at Diagosis", title="Age repartition per race in Avatar")
+p + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  facet_grid(. ~ Disease_Status_facet)
 # dev.off()
 
 # Age_data <- Age_data %>% 

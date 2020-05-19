@@ -469,9 +469,9 @@ venn.diagram(
   scaled = FALSE
 )
 venn.diagram(
-  x = list(Mul_Myeloma$avatar_id, germ_stricBF_drugs_MM$avatar_id, germ_stricBF_bmt1_MM$avatar_id),#######################
-  category.names = c("Germline available", "Germline \nbefore drugs" , "Germline \nbefore BMT"),
-  filename = 'Patient who had Germline sequenced strickly before in MM Germline population.png',
+  x = list(Mul_Myeloma$avatar_id, germ_stricBF_drugs_MM$avatar_id, germ_stricBF_bmt1_MM$avatar_id),
+  category.names = c("Germline available", "Germline before drugs" , "Germline before BMT"),
+  filename = 'Patient who had Germline sequenced strickly before in MM Germline population eulerF.png',
   output=TRUE,
   
   # Output features
@@ -496,11 +496,11 @@ venn.diagram(
   cat.cex = 0.6,
   cat.fontface = "bold",
   cat.default.pos = "outer",
-  cat.pos = c(220, 0, 120), # bmt, germ , drugs
-  cat.dist = c(0.06, 0.055, 0.1)#, # germ, drugs, bmt
-  #cat.pos = c(0, 43, 0)#, # germ , bmt, drug
-  # cat.dist = c(0.019, -0.13, 0.011), # germ, drugs, bmt
-  # cat.fontfamily = "sans"
+  # cat.pos = c(220, 0, 120), # bmt, germ , drugs
+  # cat.dist = c(0.06, 0.055, 0.1), # germ, drugs, bmt
+  # cat.fontfamily = "sans",
+  euler.d = FALSE,
+  scaled = FALSE
 )
 
 # MGUS

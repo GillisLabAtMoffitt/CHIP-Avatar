@@ -409,6 +409,42 @@ germ_before_treatment <- as.table(germ_before_treatment)
 
 
 
+# How many time paitents had KRd, VRd, Rd, DRd, Len, Len+dex by disease status?
+germline_patient_data <- germline_patient_data %>% 
+  mutate(drugs_first_regimen = case_when(
+    (str_detect(drug_name__1, "Cafilzomib") |
+       str_detect(drug_name__1, "Carfilzomib")) &
+      (str_detect(drug_name__1, "lena") |
+         str_detect(drug_name__1, "LENA") |
+         str_detect(drug_name__1, "Lena")) &
+      (str_detect(drug_name__1, "Dex") |
+         str_detect(drug_name__1, "dex"))                   ~ "KRd",
+    
+    str_detect(drug_name__1, "Daratu") &
+      (str_detect(drug_name__1, "lena") |
+         str_detect(drug_name__1, "LENA") |
+         str_detect(drug_name__1, "Lena")) &
+      (str_detect(drug_name__1, "Dex") |
+         str_detect(drug_name__1, "dex"))                ~ "DRd",
+    
+    str_detect(drug_name__1, "Bortezomib") &
+      (str_detect(drug_name__1, "lena") |
+         str_detect(drug_name__1, "LENA") |
+         str_detect(drug_name__1, "Lena")) &
+      (str_detect(drug_name__1, "Dex") |
+         str_detect(drug_name__1, "dex"))                ~ "VRd",
+    
+    (str_detect(drug_name__1, "lena") |
+       str_detect(drug_name__1, "LENA") |
+       str_detect(drug_name__1, "Lena")) &
+      (str_detect(drug_name__1, "Dex") |
+         str_detect(drug_name__1, "dex"))                ~ "Rd",
+    
+    (str_detect(drug_name__1, "lena") |
+       str_detect(drug_name__1, "LENA") |
+       str_detect(drug_name__1, "Lena"))                 ~ "Len"
+  ))
+table(germline_patient_data$drugs_first_regimen)
 
 
 Pre_Treat <- germline_patient_data %>% 
@@ -423,6 +459,29 @@ Smoldering <- germline_patient_data %>%
   filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
 Mgus <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Mgus")
+
+a <- matrix(c("drugs", "Pre MM", "Post MM", "ER MM", "LR MM", "MGUS", "Smoldering",
+              "KRd", sum(Pre_Treat$drugs_first_regimen == "KRd", na.rm = TRUE), sum(Post_Treat$drugs_first_regimen == "KRd", na.rm = TRUE),
+              sum(Early_Relapse$drugs_first_regimen == "KRd", na.rm = TRUE), sum(Late_Relapse$drugs_first_regimen == "KRd", na.rm = TRUE),
+              sum(Mgus$drugs_first_regimen == "KRd", na.rm = TRUE), sum(Smoldering$drugs_first_regimen == "KRd", na.rm = TRUE),
+              "DRd", sum(Pre_Treat$drugs_first_regimen == "DRd", na.rm = TRUE), sum(Post_Treat$drugs_first_regimen == "DRd", na.rm = TRUE),
+              sum(Early_Relapse$drugs_first_regimen == "DRd", na.rm = TRUE), sum(Late_Relapse$drugs_first_regimen == "DRd", na.rm = TRUE),
+              sum(Mgus$drugs_first_regimen == "DRd", na.rm = TRUE), sum(Smoldering$drugs_first_regimen == "DRd", na.rm = TRUE),
+              
+              "VRd", sum(Pre_Treat$drugs_first_regimen == "VRd", na.rm = TRUE)+2, sum(Post_Treat$drugs_first_regimen == "VRd", na.rm = TRUE),
+              sum(Early_Relapse$drugs_first_regimen == "VRd", na.rm = TRUE), sum(Late_Relapse$drugs_first_regimen == "VRd", na.rm = TRUE),
+              sum(Mgus$drugs_first_regimen == "VRd", na.rm = TRUE), sum(Smoldering$drugs_first_regimen == "VRd", na.rm = TRUE),
+              
+              "Rd", sum(Pre_Treat$drugs_first_regimen == "Rd", na.rm = TRUE), sum(Post_Treat$drugs_first_regimen == "Rd", na.rm = TRUE),
+              sum(Early_Relapse$drugs_first_regimen == "Rd", na.rm = TRUE), sum(Late_Relapse$drugs_first_regimen == "Rd", na.rm = TRUE),
+              sum(Mgus$drugs_first_regimen == "Rd", na.rm = TRUE), sum(Smoldering$drugs_first_regimen == "Rd", na.rm = TRUE),
+              
+              "Len", sum(Pre_Treat$drugs_first_regimen == "Len", na.rm = TRUE), sum(Post_Treat$drugs_first_regimen == "Len", na.rm = TRUE),
+              sum(Early_Relapse$drugs_first_regimen == "Len", na.rm = TRUE), sum(Late_Relapse$drugs_first_regimen == "Len", na.rm = TRUE),
+              sum(Mgus$drugs_first_regimen == "Len", na.rm = TRUE), sum(Smoldering$drugs_first_regimen == "DRd", na.rm = TRUE)
+), ncol = 7, byrow = TRUE)
+write.csv(a, paste0(path, "/table regimen type as first therapy.csv"))
+
 
 treatment_number <- matrix(c(
   "Treatment", "PreMM", "PostMM", "ER MM", "LR MM", "MGUS", "Smoldering",
@@ -452,15 +511,16 @@ treatment_number <- matrix(c(
 # drug_table <- as.data.table(table(treatment$drug_name_))
 # write.csv(drug_table, paste0(path, "/drug in regimen.csv"))
 
-drugs <- treatment %>% pivot_wider(id_cols = NULL,
-                                   names_from = avatar_id,
-                                   names_prefix = "",
-                                   names_sep = "_",
-                                   names_repair = "check_unique",
-                                   values_from = drug_name_,
-                                   values_fill = TRUE,
-                                   values_fn = NULL
-                                   )
+# drugs <- treatment %>% pivot_wider(id_cols = NULL,
+#                                    names_from = avatar_id,
+#                                    names_prefix = "",
+#                                    names_sep = "_",
+#                                    names_repair = "check_unique",
+#                                    values_from = drug_name_,
+#                                    values_fill = TRUE,
+#                                    values_fn = NULL
+#                                    )
+
 TREATM <- separate(treatment, drug_name_, paste("drug_name_", 1:7, sep="_"), sep = "; ", extra = "warn")
 TREATME <- TREATM %>% 
   pivot_longer(cols = drug_name__1:ncol(TREATM),
@@ -474,6 +534,7 @@ TREATMEN <- TREATME %>%
 drug_table_3 <- as.data.table(table(TREATMEN$drug_name_)) %>% 
   arrange(desc(N))
 # write.csv(drug_table_3, paste0(path, "/table alldrugs single used per patient.csv"))
+
 
 regimen1 <- Treatment[, c("avatar_id", "drug_name__1")] %>% 
   separate(drug_name__1, paste("drug_name_", 1:7, sep="_"), sep = "; ", extra = "warn")
@@ -554,9 +615,6 @@ regimen1 <- regimen1 %>%
 drug_table_4 <- as.data.table(table(regimen1$drug_name_)) %>% 
   arrange(desc(N))
 # write.csv(drug_table_4, paste0(path, "/table drugs single used per patient in first regimen.csv"))
-
-
-
 
 
 

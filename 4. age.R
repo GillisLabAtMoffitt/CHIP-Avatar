@@ -105,7 +105,14 @@ p <- ggplot(age_germline_patient_data %>%
   theme_minimal() +
   labs(x="Gender", y="Age at Diagosis", title="Age repartition per gender in Avatar")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
-  facet_grid(. ~ Disease_Status_facet)
+  facet_grid(. ~ Disease_Status_facet) +
+  theme(strip.background = element_rect(colour="black", fill="white",
+                                        size=1.5, linetype="solid"))
+# +
+  # theme(strip.text.x = element_text(size=12, color="red",
+  #                                   face="bold.italic"),
+  #       strip.text.y = element_text(size=12, color="red",
+  #                                   face="bold.italic"))
 # dev.off()
 
 # t <- as.data.table(layer_data(p, 1)) %>% 

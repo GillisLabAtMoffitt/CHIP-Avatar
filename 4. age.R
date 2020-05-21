@@ -89,7 +89,7 @@ p + scale_fill_viridis_c(
 
 # Gender
 # pdf(paste0(path, "/Age repartition per gender.pdf"), height = 6, width = 9)
-p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis), !is.na(Gender)),
+p <- ggplot(age_germline_patient_data %>% filter(!is.na(Age_at_diagosis), !is.na(Gender)),
             aes(x=Gender, y=Age_at_diagosis), fill=Gender) + 
   geom_boxplot(color= c("purple3", "royalblue2")) +
   theme_minimal() +
@@ -123,7 +123,7 @@ p + geom_jitter(shape=16, position=position_jitter(0.2)) +
 
 # Ethnicity
 # pdf(paste0(path, "/Age repartition per ethnicity.pdf"), height = 6, width = 9)
-p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis), (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic")), 
+p <- ggplot(age_germline_patient_data %>% filter(!is.na(Age_at_diagosis), (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic")), 
             aes(x=Ethnicity, y=Age_at_diagosis), fill=Ethnicity) + 
   geom_boxplot(color = c("darkred", "darkgrey")) + 
   theme_minimal() +
@@ -144,8 +144,8 @@ p + geom_jitter(shape=16, position=position_jitter(0.2)) +
 # dev.off()
 
 # Race
-# pdf(paste0(path, "/Age repartition per race.pdf"), height = 6, width = 9)
-p <- Age_data %>% filter(!is.na(Race)) %>% 
+pdf(paste0(path, "/Age repartition per race.pdf"), height = 6, width = 9)
+p <- age_germline_patient_data %>% filter(!is.na(Race)) %>% 
   mutate_at(("Race"), ~ case_when(
     . == "African American" ~ "Black",
     TRUE ~ .
@@ -156,7 +156,7 @@ p <- Age_data %>% filter(!is.na(Race)) %>%
   theme_minimal() +
   labs(x="Race", y="Age at Diagosis", title="Age repartition per race in Avatar")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
-# dev.off()
+dev.off()
 # pdf(paste0(path, "/Age repartition by race facet Disease status.pdf"), height = 6, width = 9)
 p <- age_germline_patient_data %>% filter(!is.na(Race),!is.na(Disease_Status_facet)) %>% 
   mutate_at(("Race"), ~ case_when(
@@ -310,10 +310,10 @@ kruskal.test(Age_at_diagosis ~ Race, age_germline_patient_data %>%
 
 # For Smoldering patients
 wilcox.test(Age_at_diagosis ~ Gender, age_germline_patient_data %>% 
-              filter(Disease_Status_facet == "MGUS"))
+              filter(Disease_Status_facet == "Smoldering"))
 
 wilcox.test(Age_at_diagosis ~ Ethnicity, age_germline_patient_data %>% 
-              filter(Disease_Status_facet == "MGUS"),
+              filter(Disease_Status_facet == "Smoldering"),
             subset = Ethnicity %in% c("Hispanic", "Non- Hispanic"))
 
 kruskal.test(Age_at_diagosis ~ Race, age_germline_patient_data %>% 

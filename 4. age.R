@@ -105,7 +105,14 @@ p <- ggplot(age_germline_patient_data %>%
   theme_minimal() +
   labs(x="Gender", y="Age at Diagosis", title="Age repartition per gender in Avatar")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
-  facet_grid(. ~ Disease_Status_facet)
+  facet_grid(. ~ Disease_Status_facet) +
+  theme(strip.background = element_rect(colour="black", fill="white",
+                                        size=1.5, linetype="solid"))
+# +
+  # theme(strip.text.x = element_text(size=12, color="red",
+  #                                   face="bold.italic"),
+  #       strip.text.y = element_text(size=12, color="red",
+  #                                   face="bold.italic"))
 # dev.off()
 
 # t <- as.data.table(layer_data(p, 1)) %>% 
@@ -200,6 +207,15 @@ p + geom_jitter(shape=16, position=position_jitter(0.2))
 p
 # dev.off()
 
+########################################################################## Stats
+wilcox.test(Age_at_diagosis ~ Gender, Age_data)
+
+wilcox.test(Age_at_diagosis ~ Ethnicity, Age_data,
+            subset = Ethnicity %in% c("Hispanic", "Non- Hispanic"))
+
+kruskal.test(Age_at_diagosis ~ Race, Age_data)
+
+
 ################################################################################# Demo in germline patients ####
 
 # pdf(paste0(path, "/Germline patients Age at diagnosis repartition.pdf"), height = 6, width = 9)
@@ -261,9 +277,47 @@ p <- age_germline_patient_data %>% filter(!is.na(Race)) %>%
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 # dev.off()
 
+########################################################################## Stats
+# For germline patients
+wilcox.test(Age_at_diagosis ~ Gender, age_germline_patient_data)
 
+wilcox.test(Age_at_diagosis ~ Ethnicity, age_germline_patient_data,
+            subset = Ethnicity %in% c("Hispanic", "Non- Hispanic"))
 
+kruskal.test(Age_at_diagosis ~ Race, age_germline_patient_data)
 
+# For MM patients
+wilcox.test(Age_at_diagosis ~ Gender, age_germline_patient_data %>% 
+              filter(Disease_Status_facet == "MM"))
+
+wilcox.test(Age_at_diagosis ~ Ethnicity, age_germline_patient_data %>% 
+              filter(Disease_Status_facet == "MM"),
+            subset = Ethnicity %in% c("Hispanic", "Non- Hispanic"))
+
+kruskal.test(Age_at_diagosis ~ Race, age_germline_patient_data %>% 
+               filter(Disease_Status_facet == "MM"))
+
+# For MGUS patients
+wilcox.test(Age_at_diagosis ~ Gender, age_germline_patient_data %>% 
+              filter(Disease_Status_facet == "MGUS"))
+
+wilcox.test(Age_at_diagosis ~ Ethnicity, age_germline_patient_data %>% 
+              filter(Disease_Status_facet == "MGUS"),
+            subset = Ethnicity %in% c("Hispanic", "Non- Hispanic"))
+
+kruskal.test(Age_at_diagosis ~ Race, age_germline_patient_data %>% 
+               filter(Disease_Status_facet == "MGUS"))
+
+# For Smoldering patients
+wilcox.test(Age_at_diagosis ~ Gender, age_germline_patient_data %>% 
+              filter(Disease_Status_facet == "MGUS"))
+
+wilcox.test(Age_at_diagosis ~ Ethnicity, age_germline_patient_data %>% 
+              filter(Disease_Status_facet == "MGUS"),
+            subset = Ethnicity %in% c("Hispanic", "Non- Hispanic"))
+
+kruskal.test(Age_at_diagosis ~ Race, age_germline_patient_data %>% 
+               filter(Disease_Status_facet == "Smoldering"))
 ####################################################################### Demographics
 mul_myeloma <- Age_data %>% 
   filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |

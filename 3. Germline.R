@@ -7,31 +7,18 @@ Disease_status_table <- table(germline_patient_data$Disease_Status_germline)
 # write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
 
 ################################################################################# TABLE Year of germline sample collection ####
-Amyloidosis_Diagnostic <- which(germline_patient_data$Disease_Status_germline == "Amyloidosis")#2  
-Early_Relapse <- which(germline_patient_data$Disease_Status_germline == "Early Relapse Multiple Myeloma") # 215 
-Late_Relapse <- which(germline_patient_data$Disease_Status_germline == "Late Relapse Multiple Myeloma")  #68  
-Mgus <- which(germline_patient_data$Disease_Status_germline == "Mgus") #54
-Myelofib <- which(germline_patient_data$Disease_Status_germline == "MYELOFIBROSIS")    #1                                 
-Normal_marrow <- which(germline_patient_data$Disease_Status_germline == "Normal marrow") #1
-Post_Treat <-which(germline_patient_data$Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma")  #10 
-Refractory_anemia <- which(germline_patient_data$Disease_Status_germline == "Refractory anemia with ring sideroblasts")  #1                  
-SmolderingMM <- which(germline_patient_data$Disease_Status_germline == "Smoldering Multiple Myeloma") #47
-Solitary_Plasmacytoma <- which(germline_patient_data$Disease_Status_germline == "Solitary Plasmacytoma")    #5              
-Walderstrom <- which(germline_patient_data$Disease_Status_germline == "WALDENSTROM MACROGLOBULINEMIA") #1
-Pre_Treat <- which(germline_patient_data$Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") #127
-
-Pre_Treat <- germline_patient_data[Pre_Treat, ]
-Post_Treat <- germline_patient_data[Post_Treat, ]
-Amyloidosis_Diagnostic <- germline_patient_data[Amyloidosis_Diagnostic, ]
-Early_Relapse <- germline_patient_data[Early_Relapse, ]
-Late_Relapse <- germline_patient_data[Late_Relapse, ]
-Mgus <- germline_patient_data[Mgus, ]
-Myelofib <- germline_patient_data[Myelofib, ]
-Normal_marrow <- germline_patient_data[Normal_marrow, ]
-Refractory_anemia <- germline_patient_data[Refractory_anemia, ]
-SmolderingMM <- germline_patient_data[SmolderingMM, ]
-Solitary_Plasmacytoma <- germline_patient_data[Solitary_Plasmacytoma, ]
-Walderstrom <- germline_patient_data[Walderstrom, ]
+Amyloidosis_Diagnostic <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Amyloidosis") #2
+Myelofib <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "MYELOFIBROSIS")    #1  
+Normal_marrow <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Normal marrow") #2
+Refractory_anemia <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Refractory anemia with ring sideroblasts")  #1                  
+Solitary_Plasmacytoma <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "Solitary Plasmacytoma")    #5              
+Walderstrom <- germline_patient_data %>% 
+  filter(Disease_Status_germline == "WALDENSTROM MACROGLOBULINEMIA") #1
 
 disease_status_by_year <- matrix(
   c("group", "nbr of patients", "earliest date", "latest date","2011", "2012", "2013","2014","2015","2016","2017","2018","2019",
@@ -714,12 +701,14 @@ temp <- germ_BF_drugs[(germ_BF_drugs$Disease_Status_germline == "Early Relapse M
 # write.csv(temp, paste0(path, "/temp file.csv"))
 rm(temp)
 
+# Here is a list of patients classified as “Pre-treatment” but who HAD received drugs before germline.
 Pre_Treat <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") %>% 
   select(c("avatar_id", "collectiondt_germline",
            "drug_start_date_1", "germlineBFdrugs",
            "date_of_first_bmt", "germlineBFbmt1",
-           "rad_start_date_1", "germlineBFrad1"))
+           "rad_start_date_1", "germlineBFrad1")) %>% 
+  arrange(germlineBFdrugs)
 
 # write.csv(Pre_Treat, paste0(path, "/Pretreatment patient already treated.csv"))
 

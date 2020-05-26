@@ -350,7 +350,7 @@ demographics_of_MM <- matrix(c(
   "Ethnicity", "", "", "",
   "Hispanic", sum(str_count(mul_myeloma$Ethnicity, "^Hispanic"), na.rm = TRUE), sum(str_count(Mgus$Ethnicity, "^Hispanic"), na.rm = TRUE), sum(str_count(Smoldering$Ethnicity, "^Hispanic"), na.rm = TRUE),
   "Non-Hispanic", sum(str_count(mul_myeloma$Ethnicity, "Non- Hispanic"), na.rm = TRUE), sum(str_count(Mgus$Ethnicity, "Non- Hispanic"), na.rm = TRUE), sum(str_count(Smoldering$Ethnicity, "Non- Hispanic"), na.rm = TRUE)
-  ), 
+  "Unknown"), 
   ncol = 4, byrow = TRUE
 )
 write.csv(demographics_of_MM, paste0(path, "/Demographics of MM patients with WES.csv"))

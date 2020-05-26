@@ -170,7 +170,7 @@ TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "Treatment") %>%
   select(c("avatar_id", "drug_start_date" , "drug_name_", "drug_stop_date",
-           "drug_name_other")) %>%  # remove "treatment_line_"
+           "drug_name_other")) %>%  # didn't take "treatment_line_"
   unite(drug_name_, c(drug_name_,drug_name_other), sep = "; ", na.rm = TRUE, remove = FALSE)
 Qcd_TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
@@ -230,7 +230,8 @@ TreatmentV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                     sheet = "Treatment") %>%
   select(c("avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
-           "drug_name_other")) # remove "treatment_line_"
+           "drug_name_other")) %>%  # didn't take "treatment_line_"
+  unite(drug_name_, c(drug_name_,drug_name_other), sep = "; ", na.rm = TRUE, remove = FALSE)
 #-----------------------------------------------------------------------------------------------------------------
 SCTV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
@@ -336,7 +337,9 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
 # 1 patient said 3 in V2 and 11 in V1
 # 1 patient said 3 in V2 and 12 in V1
 write.csv(Vitals,paste0(path, "/simplified files/Vitals simplify.csv"))
-#-------------------------------------
+
+
+#------------------------------------- SCT
 sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>% 
   arrange(date_of_third_bmt) %>% 
   arrange(date_of_second_bmt) %>% 
@@ -351,8 +354,10 @@ duplicated(sct$avatar_id) # No duplicated ID so good, if there is need to pivot 
 # SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), 
 #              value.var = c("date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
 write.csv(SCT,paste0(path, "/simplified files/SCT simplify.csv"))
-#------------------------------------
-# remove row when QC'd row has no data
+
+
+#------------------------------------ Treatment
+# remove NA row in QC'd data
 Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
 Qcd_TreatmentV2 <- Qcd_TreatmentV2 %>% drop_na("drug_start_date", "drug_name_")
 # remove the Ids found in Qc'd from the Treatment 
@@ -360,58 +365,28 @@ uid <- paste(unique(Qcd_Treatment$avatar_id), collapse = '|')
 Treatment <- Treatment[(!grepl(uid, Treatment$avatar_id)),]
 uid <- paste(unique(Qcd_TreatmentV2$avatar_id), collapse = '|')
 TreatmentV2 <- TreatmentV2[(!grepl(uid, TreatmentV2$avatar_id)),]
-
 # Bind QC'd and Treatment for each version then remove duplicated raws
+# For even more tidy data
 Treatment <- bind_rows(Qcd_Treatment, Treatment, .id = "Treatment") %>% 
-  distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_, .keep_all = TRUE) # remove duplicated rows
+  distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_, .keep_all = TRUE) %>% # remove duplicated rows
+  mutate_at(("drug_name_"), ~ str_replace_all(., ",", ";"))
 TreatmentV2 <- bind_rows(Qcd_TreatmentV2, TreatmentV2, .id = "Treatment") %>% 
   distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_, .keep_all = TRUE) # remove duplicated rows
-# Cleanup
-rm(Qcd_Treatment, Qcd_TreatmentV2, uid)
-
-# Widen V2 and V4
-TreatmentV2 <- TreatmentV2 %>%
-  group_by(avatar_id,drug_start_date, drug_stop_date) %>%
-  summarise(drug_name_=paste(drug_name_,collapse='; '))
-TreatmentV4 <- TreatmentV4 %>%
-  group_by(avatar_id,drug_start_date, drug_stop_date) %>%
-  summarise(drug_name_=paste(drug_name_,collapse='; ')) 
+# Need to pivot longer Treatment from V1 because not same formating
+# Having one drug per row will help to remove duplicate in drugs after binding the 3 version together
+Treatment <- separate(Treatment, drug_name_, paste("drug_name_", 1:7, sep="_"), sep = "; ", extra = "warn") %>% 
+  pivot_longer(cols = drug_name__1:ncol(.),
+               names_to = "line", values_to = "drug_name_", values_drop_na = TRUE)
 
 # ready to bind
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
   distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_, .keep_all = TRUE) %>% 
   arrange(drug_start_date)
-#Treatm <- treatment %>% pivot_wider(values_from = drug_name_)
 Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
                    value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
-
 write.csv(Treatment,paste0(path, "/simplified files/Treatment simplify.csv"))
 
-# Another way of doing it which could be better by pivot longer, 
-# compare and pivot wider but couldn't figure out one last piece
-# TREATMENT <- Treatment
-# 
-# TREATM <- separate(TREATMENT, drug_name_, paste("drug_name_", 1:7, sep="_"), sep = "; ", extra = "warn")
-# TREATME <- TREATM %>% 
-#   pivot_longer(cols = drug_name__1:ncol(TREATM), 
-#                names_to = "line", values_to = "drug_name_", values_drop_na = TRUE)
-# 
-# Qcd_Treat <- separate(Qcd_Treatment, drug_name_, paste("drug_name_", 1:7, sep="_"), sep = "; ", extra = "warn")
-# Qcd_Treate <- Qcd_Treat %>% 
-#   pivot_longer(cols = drug_name__1:ncol(Qcd_Treat), 
-#                names_to = "line", values_to = "drug_name_", values_drop_na = TRUE)
-# 
-# 
-# Treat <- bind_rows(Qcd_Treate, TREATME, .id = "Treatment") %>% 
-#   distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_, .keep_all = TRUE) # remove duplicated rows
-# 
-# Treatm <- dcast(setDT(Treat), avatar_id+drug_start_date ~ rowid(avatar_id), 
-#                 value.var = c("drug_stop_date", "drug_name_"))
-# Treatm <- Treat %>% pivot_wider(names_from = line, values_from = drug_name_)
-# which(Treatm[, c("drug_name__1","drug_name__2")]== "") <-   NA
-# 
-# Treatme <- dcast(setDT(Treatm), avatar_id ~ rowid(avatar_id), 
-#                  value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
+
 #------------------------------------
 # Radiation V1 does't have a date format
 RadiationV1$rad_start_date <- as.POSIXct(strptime(RadiationV1$rad_start_date, 
@@ -429,11 +404,13 @@ write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
 
 #------------------------------------
 # Cleaning
-rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4,
+rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, 
+   VitalsV2, VitalsV4, SCTV2, SCTV4, TreatmentV2, TreatmentV4, Qcd_Treatment, Qcd_TreatmentV2, uid,
    Alc_SmoV4, RadiationV1, RadiationV2, RadiationV4)
-#######################################################################################  II  ## Plot
 
-# jpeg("barplot2.jpg", width = 350, height = 350)
+
+#######################################################################################  II  ## Plot
+jpeg("barplot2.jpg", width = 350, height = 350)
 par(mar=c(3.5, 7.1, 4.1, 2.1)) # bottom left top right
 par(cex.sub = .7)
 barplot(
@@ -452,7 +429,7 @@ barplot(
   cex.axis = .8,
   cex.names = .8
 )
-# dev.off()
+dev.off()
 
 #######################################################################################  III  # Merge WES and Sequencing
 #######################################################################################  III  # For 1st sequencing file
@@ -530,7 +507,7 @@ Sequencing2 <- merge.data.frame(Germ3, Sequencing2,
 Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu,Sequencing2, .id = "vers")
 Germline <- Germline %>% distinct(avatar_id,
                              SLID_germline , .keep_all = TRUE) 
-# write.csv(Germline, paste0(path, "/Combined germline_seq data.csv"))
+write.csv(Germline, paste0(path, "/Combined germline_seq data.csv"))
 
 #------------------------------------
 # Cleaning
@@ -555,7 +532,7 @@ f <- merge.data.frame(e, Radiation,by.x = "avatar_id", by.y = "avatar_id",
                       all.x = TRUE, all.y = TRUE, suffixes = c(".x",".y"))
 
 Global_data <- merge.data.frame(Demo_RedCap_V4ish, f, by.x = "avatar_id", by.y = "avatar_id", all.x = FALSE, all.y = TRUE)
-# write.csv(Global_data, paste0(path, "/Global_data.csv"))
+write.csv(Global_data, paste0(path, "/Global_data.csv"))
 
 #------------------------------------
 # Cleaning
@@ -564,7 +541,7 @@ rm(b,c,d,e,f)
 ##################################################################################################  IV  ## Germline
 # Create dataframe for only the patients who had germline sequenced
 germline_patient_data <- Global_data[!is.na(Global_data$moffitt_sample_id_germline),]
-# write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
+write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
 
 
 # Create dataframe for all start dates 

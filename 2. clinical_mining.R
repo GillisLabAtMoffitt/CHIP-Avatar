@@ -521,63 +521,62 @@ write.csv(treatment_number, paste0(path, "/Treatment of MM patients per disease 
 #                                    values_fn = NULL
 #                                    )
 
-TREATM <- separate(treatment, drug_name_, paste("drug_name_", 1:7, sep="_"), sep = "; ", extra = "warn")
-TREATME <- TREATM %>% 
-  pivot_longer(cols = drug_name__1:ncol(TREATM),
-               names_to = "line", values_to = "drug_name_", values_drop_na = TRUE)
-drug_table_2 <- as.data.table(table(TREATME$drug_name_)) %>% 
-  arrange(desc(N))
-write.csv(drug_table_2, paste0(path, "/table alldrugs used at all time.csv"))
+# TREATM <- separate(treatment, drug_name_, paste("drug_name_", 1:7, sep="_"), sep = "; ", extra = "warn")
+# TREATME <- TREATM %>% 
+#   pivot_longer(cols = drug_name__1:ncol(TREATM),
+#                names_to = "line", values_to = "drug_name_", values_drop_na = TRUE)
+# drug_table_2 <- as.data.table(table(TREATME$drug_name_)) %>% 
+#   arrange(desc(N))
+# write.csv(drug_table_2, paste0(path, "/table alldrugs used at all time.csv"))
 
-TREATMEN <- TREATME %>% 
-  distinct(avatar_id, drug_name_, .keep_all = TRUE)
-drug_table_3 <- as.data.table(table(TREATMEN$drug_name_)) %>% 
-  arrange(desc(N))
-write.csv(drug_table_3, paste0(path, "/table alldrugs single used per patient.csv"))
+# TREATMEN <- TREATME %>% 
+#   distinct(avatar_id, drug_name_, .keep_all = TRUE)
+# drug_table_3 <- as.data.table(table(TREATMEN$drug_name_)) %>% 
+#   arrange(desc(N))
+# write.csv(drug_table_3, paste0(path, "/table alldrugs single used per patient.csv"))
 
 
 regimen1 <- Treatment[, c("avatar_id", "drug_name__1")] %>% 
   separate(drug_name__1, paste("drug_name_", 1:7, sep="_"), sep = "; ", extra = "warn")
 
 # Separate drugs by Pre-Post-Early-Late...
-Pre_Treat <- germline_patient_data %>% 
+Pre_Treat_ <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") %>% 
   select("avatar_id")
-
-Pre_Treat <- merge.data.frame(Pre_Treat, regimen1, all.x = TRUE, all.y = FALSE) %>% 
+Pre_Treat_ <- merge.data.frame(Pre_Treat_, regimen1, all.x = TRUE, all.y = FALSE) %>% 
   pivot_longer(cols = drug_name__1:ncol(.),
                names_to = "line", values_to = "drug_name_", values_drop_na = TRUE) %>% 
   distinct(avatar_id, drug_name_, .keep_all = TRUE)
-drug_table_1 <- as.data.table(table(Pre_Treat$drug_name_)) %>% 
+drug_table_1 <- as.data.table(table(Pre_Treat_$drug_name_)) %>% 
   arrange(desc(N))
 write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as pre-treat in first regimen.csv"))
 
-Post_Treat <- germline_patient_data %>% 
+Post_Treat_ <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma") %>% 
   select("avatar_id")
-Post_Treat <- merge.data.frame(Post_Treat, regimen1, all.x = TRUE, all.y = FALSE) %>% 
+Post_Treat_ <- merge.data.frame(Post_Treat_, regimen1, all.x = TRUE, all.y = FALSE) %>% 
   pivot_longer(cols = drug_name__1:ncol(.),
                names_to = "line", values_to = "drug_name_", values_drop_na = TRUE) %>% 
   distinct(avatar_id, drug_name_, .keep_all = TRUE)
-drug_table_1 <- as.data.table(table(Post_Treat$drug_name_)) %>% 
+drug_table_1 <- as.data.table(table(Post_Treat_$drug_name_)) %>% 
   arrange(desc(N))
 write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as post-treat in first regimen.csv"))
 
-Early_Relapse <- germline_patient_data %>% 
+Early_Relapse_ <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Early Relapse Multiple Myeloma") %>% 
   select("avatar_id")
-Early_Relapse <- merge.data.frame(Early_Relapse, regimen1, all.x = TRUE, all.y = FALSE) %>% 
+Early_Relapse_ <- merge.data.frame(Early_Relapse_, regimen1, all.x = TRUE, all.y = FALSE) %>% 
   pivot_longer(cols = drug_name__1:ncol(.),
                names_to = "line", values_to = "drug_name_", values_drop_na = TRUE) %>% 
   distinct(avatar_id, drug_name_, .keep_all = TRUE)
-drug_table_1 <- as.data.table(table(Early_Relapse$drug_name_)) %>% 
+drug_table_1 <- as.data.table(table(Early_Relapse_$drug_name_)) %>% 
   arrange(desc(N))
 write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as early relapse in first regimen.csv"))
 
-Late_Relapse <- germline_patient_data %>% 
+Late_Relapse_ <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Late Relapse Multiple Myeloma") %>% 
   select("avatar_id")
-Late_Relapse <- merge.data.frame(Late_Relapse, regimen1, all.x = TRUE, all.y = FALSE) %>% 
+Late_Relapse_ <- merge.data.frame(Late_Relapse_, regimen1, all.x = TRUE, all.y = FALSE) %>% 
   pivot_longer(cols = drug_name__1:ncol(.),
                names_to = "line", values_to = "drug_name_", values_drop_na = TRUE) %>% 
   distinct(avatar_id, drug_name_, .keep_all = TRUE)
@@ -585,25 +584,25 @@ drug_table_1 <- as.data.table(table(Late_Relapse$drug_name_)) %>%
   arrange(desc(N))
 write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as late relapse in first regimen.csv"))
 
-Smoldering <- germline_patient_data %>% 
+Smoldering_ <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Smoldering Multiple Myeloma") %>% 
   select("avatar_id")
-Smoldering <- merge.data.frame(Smoldering, regimen1, all.x = TRUE, all.y = FALSE) %>% 
+Smoldering_ <- merge.data.frame(Smoldering_, regimen1, all.x = TRUE, all.y = FALSE) %>% 
   pivot_longer(cols = drug_name__1:ncol(.),
                names_to = "line", values_to = "drug_name_", values_drop_na = TRUE) %>% 
   distinct(avatar_id, drug_name_, .keep_all = TRUE)
-drug_table_1 <- as.data.table(table(Smoldering$drug_name_)) %>% 
+drug_table_1 <- as.data.table(table(Smoldering_$drug_name_)) %>% 
   arrange(desc(N))
 write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as smoldering in first regimen.csv"))
 
-Mgus <- germline_patient_data %>% 
+Mgus_ <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Mgus") %>% 
   select("avatar_id")
-Mgus <- merge.data.frame(Mgus, regimen1, all.x = TRUE, all.y = FALSE) %>% 
+Mgus_ <- merge.data.frame(Mgus_, regimen1, all.x = TRUE, all.y = FALSE) %>% 
   pivot_longer(cols = drug_name__1:ncol(.),
                names_to = "line", values_to = "drug_name_", values_drop_na = TRUE) %>% 
   distinct(avatar_id, drug_name_, .keep_all = TRUE)
-drug_table_1 <- as.data.table(table(Mgus$drug_name_)) %>% 
+drug_table_1 <- as.data.table(table(Mgus_$drug_name_)) %>% 
   arrange(desc(N))
 write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as mgus in first regimen.csv"))
 

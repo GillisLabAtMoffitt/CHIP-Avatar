@@ -4,6 +4,7 @@ library(data.table)
 library(VennDiagram)
 library(viridis)
 library(lubridate)
+library(gtsummary)
 
 #######################################################################################  I  ### Load data
 path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")

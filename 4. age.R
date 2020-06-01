@@ -363,9 +363,47 @@ demographics_of_MM <- matrix(c(
 )
 write.csv(demographics_of_MM, paste0(path, "/Demographics of MM patients with WES.csv"))
 
-round((summary(mul_myeloma$Age %>% filter(Race, "White"))["Median"]), digits = 2)
+table1 <- age_germline_patient_data %>%
+  mutate_at(("Race"), ~ case_when(
+    . == "African American" ~ "Black",
+    TRUE ~ .
+  )) %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black", "Others"))) %>%
+  select(Age_at_diagosis, Race) %>% 
+  tbl_summary(by = Race , statistic = all_continuous() ~ "{median} ({sd})", 
+              digits = list(c(Age_at_diagosis, Race) ~ 2)) %>% 
+  add_p()
+table2 <- age_germline_patient_data %>%
+  select(Age_at_diagosis, Ethnicity) %>% 
+  tbl_summary(by = Ethnicity , statistic = all_continuous() ~ "{median} ({sd})", 
+              digits = list(c(Age_at_diagosis, Ethnicity) ~ 2)) %>% 
+  add_p()
+tbl_merge(list(table1, table2),
+          tab_spanner = c("**Race**", "**Ethnicity**")) %>%
+  bold_labels() %>%
+  italicize_levels()
 
 
-sum(str_count(mul_myeloma$Ethnicity, "Hispanic"), na.rm = TRUE)
-str_count(mul_myeloma$Ethnicity, "^Hispanic")
+table1 <- age_germline_patient_data %>%
+  mutate_at(("Race"), ~ case_when(
+    . == "African American" ~ "Black",
+    TRUE ~ .
+  )) %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black"))) %>% 
+  filter(Race == "Black" | Race == "White") %>% 
+  select(Age_at_diagosis, Race) %>% 
+  tbl_summary(by = Race , statistic = all_continuous() ~ "{median} ({sd})", 
+              digits = list(c(Age_at_diagosis, Race) ~ 2)) %>% 
+  add_p()
+
+table2 <- age_germline_patient_data %>%
+  select(Age_at_diagosis, Ethnicity) %>% 
+  filter(Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic")  %>% 
+  tbl_summary(by = Ethnicity , statistic = all_continuous() ~ "{median} ({sd})", 
+              digits = list(c(Age_at_diagosis, Ethnicity) ~ 2)) %>% 
+  add_p()
+tbl_merge(list(table1, table2),
+          tab_spanner = c("**Race**", "**Ethnicity**")) %>%
+  bold_labels() %>%
+  italicize_levels()
 

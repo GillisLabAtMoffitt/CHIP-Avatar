@@ -247,7 +247,7 @@ RadiationV4 <-
                                  sheet = "Radiation") %>%
     select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
-jpeg(paste0(path, "barplot1.jpg"), width = 350, height = 350)
+jpeg(paste0(path, "/barplot1.jpg"), width = 350, height = 350)
 par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
 par(cex.sub = .7)
 barplot(
@@ -382,8 +382,14 @@ Treatment <- separate(Treatment, drug_name_, paste("drug_name_", 1:7, sep="_"), 
 # ready to bind
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
   distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_, .keep_all = TRUE) %>% 
+  select(avatar_id, drug_start_date, drug_stop_date, drug_name_) %>% 
   arrange(drug_start_date)
-Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
+Treatment <- treatment %>% 
+  dcast(avatar_id+drug_start_date+drug_stop_date ~ rowid(avatar_id),
+        value.var = c("drug_name_")) %>% 
+  unite(drug_name_, -avatar_id:-drug_stop_date, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  arrange(drug_start_date)
+Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), 
                    value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
 write.csv(Treatment,paste0(path, "/simplified files/Treatment simplify.csv"))
 
@@ -411,7 +417,7 @@ rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4,
 
 
 #######################################################################################  II  ## Plot
-jpeg(paste0(path, "barplot2.jpg"), width = 350, height = 350)
+jpeg(paste0(path, "/barplot2.jpg"), width = 350, height = 350)
 par(mar=c(3.5, 7.1, 4.1, 2.1)) # bottom left top right
 par(cex.sub = .7)
 barplot(
@@ -564,18 +570,18 @@ all_dates <- germline_patient_data %>%
          "drug_start_date_6", "drug_start_date_7", "drug_start_date_8", "drug_start_date_9", "drug_start_date_10", 
          "drug_start_date_11", "drug_start_date_12", "drug_start_date_13", "drug_start_date_14", "drug_start_date_15",
          "drug_start_date_16",
-         "drug_start_date_47",
+         "drug_start_date_17",
          "drug_stop_date_1", "drug_stop_date_2", "drug_stop_date_3", "drug_stop_date_4", "drug_stop_date_5", 
          "drug_stop_date_6", "drug_stop_date_7", "drug_stop_date_8", "drug_stop_date_9", "drug_stop_date_10",
          "drug_stop_date_11", "drug_stop_date_12", "drug_stop_date_13", "drug_stop_date_14", "drug_stop_date_15",
          "drug_stop_date_16",
-         "drug_stop_date_47",
+         "drug_stop_date_17",
          "rad_start_date_1", "rad_start_date_2", "rad_start_date_3", "rad_start_date_4", "rad_stop_date_1",
          "rad_stop_date_2", "rad_stop_date_3", "rad_stop_date_4")
 all_date <- all_dates %>% 
   gather(key = "event", value = "date", -1) %>% 
   arrange(avatar_id)
-
+write.csv(all_date, paste0(path, "/all_dates.csv"))
 
 
 

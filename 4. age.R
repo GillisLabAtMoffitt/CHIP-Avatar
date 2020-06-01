@@ -205,7 +205,7 @@ p + geom_jitter(shape=16, position=position_jitter(0.2))
 
 #p <-  ggplot(data=subset(Age_data, !is.na(Age_at_diagosis)), aes(x=Age_at_diagosis, y=Disease_Status.germline)) + geom_point()
 p
-# dev.off()
+dev.off()
 
 ########################################################################## Stats
 wilcox.test(Age_at_diagosis ~ Gender, Age_data)
@@ -345,15 +345,25 @@ demographics_of_MM <- matrix(c(
   "Female", sum(str_count(mul_myeloma$Gender, "Female"), na.rm = TRUE), sum(str_count(Mgus$Gender, "Female"), na.rm = TRUE), sum(str_count(Smoldering$Gender, "Female"), na.rm = TRUE),
   "Race", "", "", "", 
   "White", sum(str_count(mul_myeloma$Race, "White"), na.rm = TRUE), sum(str_count(Mgus$Race, "White"), na.rm = TRUE), sum(str_count(Smoldering$Race, "White"), na.rm = TRUE),
+  "Age", 
+  paste0(round((summary(mul_myeloma$Age)["Median"]), digits = 2), ", (range:", (round(summary(mul_myeloma$Age)["Min."], digits = 2)) , "-", (round(summary(mul_myeloma$Age)["Max."], digits = 2)), ")")
+  , 
+  paste0(round((summary(Mgus$Age)["Median"]), digits = 2), ", (range:", (round(summary(Mgus$Age)["Min."], digits = 2)) , "-", (round(summary(Mgus$Age)["Max."], digits = 2)), ")")
+  , 
+  paste0(round((summary(Smoldering$Age)["Median"]), digits = 2), ", (range:", (round(summary(Smoldering$Age)["Min."], digits = 2)) , "-", (round(summary(Smoldering$Age)["Max."], digits = 2)), ")")
+  ,
   "Black", sum(str_count(mul_myeloma$Race, "African"), na.rm = TRUE), sum(str_count(Mgus$Race, "African"), na.rm = TRUE), sum(str_count(Smoldering$Race, "African"), na.rm = TRUE),
   "Other", sum(str_count(mul_myeloma$Race, "Other"), na.rm = TRUE), sum(str_count(Mgus$Race, "Other"), na.rm = TRUE), sum(str_count(Smoldering$Race, "Other"), na.rm = TRUE),
   "Ethnicity", "", "", "",
   "Hispanic", sum(str_count(mul_myeloma$Ethnicity, "^Hispanic"), na.rm = TRUE), sum(str_count(Mgus$Ethnicity, "^Hispanic"), na.rm = TRUE), sum(str_count(Smoldering$Ethnicity, "^Hispanic"), na.rm = TRUE),
   "Non-Hispanic", sum(str_count(mul_myeloma$Ethnicity, "Non- Hispanic"), na.rm = TRUE), sum(str_count(Mgus$Ethnicity, "Non- Hispanic"), na.rm = TRUE), sum(str_count(Smoldering$Ethnicity, "Non- Hispanic"), na.rm = TRUE)
-  "Unknown"), 
+  #"Unknown"
+  ), 
   ncol = 4, byrow = TRUE
 )
 write.csv(demographics_of_MM, paste0(path, "/Demographics of MM patients with WES.csv"))
+
+round((summary(mul_myeloma$Age %>% filter(Race, "White"))["Median"]), digits = 2)
 
 
 sum(str_count(mul_myeloma$Ethnicity, "Hispanic"), na.rm = TRUE)

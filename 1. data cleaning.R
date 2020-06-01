@@ -246,7 +246,7 @@ RadiationV4 <-
                                  sheet = "Radiation") %>%
     select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 #-----------------------------------------------------------------------------------------------------------------
-# jpeg("barplot1.jpg", width = 350, height = 350)
+jpeg(paste0(path, "barplot1.jpg"), width = 350, height = 350)
 par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
 par(cex.sub = .7)
 barplot(
@@ -275,7 +275,7 @@ barplot(
 legend("bottomright", legend = c("version1", "version2", "version4"),
        col = c("purple", "orange", "yellow"),
        bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(0.05, 0.05)) # horiz, vert
-# dev.off()
+dev.off()
 
 #######################################################################################  II  ## Bind Version
 #######################################################################################  II  ## Align duplicated ID
@@ -348,7 +348,7 @@ sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>%
   distinct(avatar_id, date_of_first_bmt, .keep_all = TRUE)
 SCT <- sct
 
-duplicated(sct$avatar_id) # No duplicated ID so good, if there is need to pivot longer, remove dupl,
+# duplicated(sct$avatar_id) # No duplicated ID so good, if there is need to pivot longer, remove dupl,
 # orrange by dates, pivot wider and rename 1st 2nd 3rd bmt
 
 # SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), 
@@ -410,7 +410,7 @@ rm(ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4,
 
 
 #######################################################################################  II  ## Plot
-jpeg("barplot2.jpg", width = 350, height = 350)
+jpeg(paste0(path, "barplot2.jpg"), width = 350, height = 350)
 par(mar=c(3.5, 7.1, 4.1, 2.1)) # bottom left top right
 par(cex.sub = .7)
 barplot(
@@ -537,6 +537,13 @@ write.csv(Global_data, paste0(path, "/Global_data.csv"))
 #------------------------------------
 # Cleaning
 rm(b,c,d,e,f)
+
+
+#------------------------------------
+avatar_no_germline <- Global_data %>% filter(is.na(Global_data$Disease_Status_germline)) %>% 
+  select("avatar_id")
+write.csv(avatar_no_germline, paste0(path, "/patient id with no germline.csv"))
+
 
 ##################################################################################################  IV  ## Germline
 # Create dataframe for only the patients who had germline sequenced

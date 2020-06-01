@@ -542,9 +542,9 @@ rm(b,c,d,e,f)
 
 
 #------------------------------------
-avatar_no_germline <- Global_data %>% filter(is.na(Global_data$Disease_Status_germline)) %>% 
-  select("avatar_id")
-write.csv(avatar_no_germline, paste0(path, "/patient id with no germline.csv"))
+# avatar_no_germline <- Global_data %>% filter(is.na(Global_data$Disease_Status_germline)) %>% 
+#   select("avatar_id")
+# write.csv(avatar_no_germline, paste0(path, "/patient id with no germline.csv"))
 
 
 ##################################################################################################  IV  ## Germline
@@ -554,4 +554,36 @@ write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
 
 
 # Create dataframe for all start dates 
+
+all_dates <- germline_patient_data %>% 
+  select("avatar_id", "Date_of_Birth", "collectiondt_germline", "collectiondt_tumor_1", 
+         "date_of_diagnosis_1", "date_of_diagnosis_2", "date_of_diagnosis_3", "date_of_diagnosis_4",
+         "date_death", "date_last_follow_up", 
+         "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt",
+         "drug_start_date_1", "drug_start_date_2", "drug_start_date_3", "drug_start_date_4", "drug_start_date_5", 
+         "drug_start_date_6", "drug_start_date_7", "drug_start_date_8", "drug_start_date_9", "drug_start_date_10", 
+         "drug_start_date_11", "drug_start_date_12", "drug_start_date_13", "drug_start_date_14", "drug_start_date_15",
+         "drug_start_date_16",
+         "drug_start_date_47",
+         "drug_stop_date_1", "drug_stop_date_2", "drug_stop_date_3", "drug_stop_date_4", "drug_stop_date_5", 
+         "drug_stop_date_6", "drug_stop_date_7", "drug_stop_date_8", "drug_stop_date_9", "drug_stop_date_10",
+         "drug_stop_date_11", "drug_stop_date_12", "drug_stop_date_13", "drug_stop_date_14", "drug_stop_date_15",
+         "drug_stop_date_16",
+         "drug_stop_date_47",
+         "rad_start_date_1", "rad_start_date_2", "rad_start_date_3", "rad_start_date_4", "rad_stop_date_1",
+         "rad_stop_date_2", "rad_stop_date_3", "rad_stop_date_4")
+all_date <- all_dates %>% 
+  gather(key = "event", value = "date", -1) %>% 
+  arrange(avatar_id)
+
+
+
+
+
+
+
+
+
+
+
 

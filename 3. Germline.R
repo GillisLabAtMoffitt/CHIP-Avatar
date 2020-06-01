@@ -741,3 +741,10 @@ germ_BF_drug_bmt_rad <- germ_BF_drug_bmt_rad %>%
   arrange(Disease_Status_germline)
 write.csv(germ_BF_drug_bmt_rad, paste0(path, "/list patients germline before drugs, bmt and radaition.csv"))
 
+
+#----------------- Smoldering patient list
+
+# a <- germline_patient_data %>% filter(Disease_Status_germline == "Smoldering Multiple Myeloma") %>% 
+#   select(avatar_id, collectiondt_germline, drug_start_date_1, germlineBFdrugs) %>% 
+#   arrange(drug_start_date_1)
+# write.csv(a, paste0(path, "/list smoldering patients who had drugs.csv"))

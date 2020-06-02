@@ -4,7 +4,7 @@
 head(germline_patient_data)
 germline_patient_data$Disease_Status_germline
 Disease_status_table <- table(germline_patient_data$Disease_Status_germline)
-# write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
+write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
 
 ################################################################################# TABLE Year of germline sample collection ####
 Amyloidosis_Diagnostic <- germline_patient_data %>% 
@@ -100,9 +100,7 @@ disease_status_by_year <- matrix(
     sum(str_count(Walderstrom$collectiondt_germline, "2017")),sum(str_count(Walderstrom$collectiondt_germline, "2018")),
     sum(str_count(Walderstrom$collectiondt_germline, "2019"))), ncol = 13, byrow=TRUE)
 
-# write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
-# disease_status_by_year <- as.table(disease_status_by_year)
-# write.csv(disease_status_by_year,paste0(path, "/Year of germline sample collection.csv"))
+write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
 
 rm(
   Amyloidosis_Diagnostic,
@@ -110,92 +108,12 @@ rm(
   Normal_marrow,
   Refractory_anemia,
   Solitary_Plasmacytoma,
-  Walderstrom
+  Walderstrom,
+  disease_status_by_year
 )
 
 
 ##################################################################################################  I  ### Germline date VS other
-germline_patient_data <- germline_patient_data %>% 
-  mutate(germlineBFdrugs = case_when(
-    collectiondt_germline > drug_start_date_1 ~ "No",
-    collectiondt_germline <= drug_start_date_1 ~ "OK",
-    is.na(drug_start_date_1) ~ "OK"
-  )) %>% 
-  mutate(germlineBFbmt1 = case_when(
-    collectiondt_germline > date_of_first_bmt  ~ "No",
-    collectiondt_germline <= date_of_first_bmt  ~ "OK",
-    is.na(date_of_first_bmt) ~ "OK"
-  )) %>% 
-  mutate(germlineBFbmt2 = case_when(
-    collectiondt_germline > date_of_second_bmt  ~ "No",
-    collectiondt_germline <= date_of_second_bmt  ~ "OK"
-  )) %>% 
-  # mutate(germlineBFbmt3 = case_when(
-  #   collectiondt_germline > date_of_third_bmt ~ ":(",
-  #   collectiondt_germline <= date_of_third_bmt ~ "OK"
-  # )) %>% 
-  mutate(germlineBFrad1 = case_when(
-    collectiondt_germline <= rad_start_date_1 ~ "OK",
-    collectiondt_germline > rad_start_date_1 ~ "No",
-    is.na(rad_start_date_1) ~ "OK"
-  )) %>% 
-  mutate(germlineBFrad2 = case_when(
-    collectiondt_germline <= rad_start_date_2 ~ "OK",
-    collectiondt_germline > rad_start_date_2 ~ "No"
-  )) %>% 
-  mutate(germlineBFrad3 = case_when(
-    collectiondt_germline <= rad_start_date_3 ~ "OK",
-    collectiondt_germline > rad_start_date_3 ~ "No"
-  )) %>% 
-  mutate(germlineBFrad4 = case_when(
-    collectiondt_germline <= rad_start_date_4 ~ "OK",
-    collectiondt_germline > rad_start_date_4 ~ "No"
-  )) %>% 
-  mutate(germBFdrugsbmt = case_when(
-    germlineBFdrugs == "OK" &
-      germlineBFbmt1 == "OK"                  ~ "OK"
-  )) %>% 
-  mutate(germBFdbr = case_when(
-    germlineBFdrugs == "OK" &
-      germlineBFbmt1 == "OK" &
-      germlineBFrad1 == "OK"                  ~ "OK"
-  )) %>% 
-  # mutate(bmt1_BF_drug = case_when(
-  #   date_of_first_bmt_1 < drug_start_date_1 ~ "OK",
-  #   date_of_first_bmt_1 > drug_start_date_1 ~ "No"
-  # )) %>% 
-  # mutate(rad_BF_drugbmt1 = case_when(
-  #   rad_start_date_1 < date_of_first_bmt_1 &
-  #   rad_start_date_1 < drug_start_date_1 ~ "OK"
-  # )) %>% 
-  # mutate(GandBmt1BEFOREdrug = case_when(
-  #   date_of_first_bmt_1 < drug_start_date_1 &
-  #     collectiondt_germline < drug_start_date_1 ~ "OK"
-  # )) %>% 
-  mutate(GermBFtumorWES = case_when(
-    collectiondt_germline < collectiondt_tumor_1 ~ "Germ first",
-    collectiondt_germline > collectiondt_tumor_1 ~ "tumorWES first",
-    collectiondt_germline == collectiondt_tumor_1 ~ "same date"
-  )) %>% 
-  mutate(birth_BF_lastdate = case_when(
-    last_date_available > Date_of_Birth ~ "OK",
-    last_date_available <= Date_of_Birth ~ "not good"
-  )) %>% 
-  mutate(birth_BF_diag = case_when(
-    date_of_diagnosis_1 > Date_of_Birth ~ "OK",
-    date_of_diagnosis_1 <= Date_of_Birth ~ "not good"
-  )) %>% 
-  mutate(diag_BF_lastdate = case_when(
-    last_date_available > date_of_diagnosis_1 ~ "OK",
-    last_date_available <= date_of_diagnosis_1 ~ "not good"
-  ))
-
-# write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))
-tab <- table(germline_patient_data$GermBFtumorWES)
-# jpeg("barplot3.jpg", width = 350, height = 350)
-barplot(tab, main = "Frequency of collection date first observed", ylim = c(0,500))
-# dev.off()
-tab
 
 #------------------------------------------------------------- Table
 germline_patient_data[which(germline_patient_data$diag_BF_lastdate == "not good"), c("avatar_id", "date_of_diagnosis_1", "last_date_available")]
@@ -221,11 +139,11 @@ germline_compared_dates <-matrix(
     "nbr of patients germline before drugs, bmt1 and radiation", sum(str_count(germline_patient_data$germBFdbr, "OK"), na.rm = TRUE), ""
     ),
   ncol = 3, byrow=TRUE)
-# germline_compared_dates <- as.table(germline_compared_dates)
-# germline_compared_dates
-# write.csv(germline_compared_dates, paste0(path, "/table compared germline dates and Demographics.csv"))
+germline_compared_dates <- as.table(germline_compared_dates)
+germline_compared_dates
+write.csv(germline_compared_dates, paste0(path, "/table compared germline dates and Demographics.csv"))
 
-rm(tab, germline_compared_dates)
+rm(germline_compared_dates)
 
 
 #------------------------------------------------------------- Venn
@@ -364,15 +282,17 @@ venn.diagram( # Limiting to patients who strickly had bmt or drugs
   # cat.fontfamily = "sans"
 )
 
+
+
 Mul_Myeloma <- germline_patient_data %>% 
       filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
                Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
                Disease_Status_germline == "Early Relapse Multiple Myeloma" |
                Disease_Status_germline == "Late Relapse Multiple Myeloma")
-Smoldering <- germline_patient_data %>% 
-  filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
-Mgus <- germline_patient_data %>% 
-  filter(Disease_Status_germline == "Mgus")
+# Smoldering <- germline_patient_data %>% 
+#   filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
+# Mgus <- germline_patient_data %>% 
+#   filter(Disease_Status_germline == "Mgus")
 ####### Var for germline before or no drugs-and-bmt
 germ_BF_drugs_MM <- germ_BF_drugs %>% 
   filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
@@ -417,6 +337,7 @@ germ_stricBF_bmt1_smoldering <- bmt_patients %>%
   filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
 
 
+rm(drug_patients, bmt_patients, rad_patients)
 
 ########################################################################### Venn treatment before germline
 # MM
@@ -686,7 +607,7 @@ disease_stat_germVStreatment <- matrix(
   
   ncol = 4, byrow = FALSE)
 disease_stat_germVStreatment <- as.table(disease_stat_germVStreatment)
-# write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germline dates.csv"))
+write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germline dates.csv"))
 
 
 ###########################################################################################################################################
@@ -702,15 +623,15 @@ temp <- germ_BF_drugs[(germ_BF_drugs$Disease_Status_germline == "Early Relapse M
 rm(temp)
 
 # Here is a list of patients classified as “Pre-treatment” but who HAD received drugs before germline.
-# Pre_Treat <- germline_patient_data %>% 
-#   filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") %>% 
-#   select(c("avatar_id", "collectiondt_germline",
-#            "drug_start_date_1", "germlineBFdrugs",
-#            "date_of_first_bmt", "germlineBFbmt1",
-#            "rad_start_date_1", "germlineBFrad1")) %>% 
-#   arrange(germlineBFdrugs)
+Pre_Treat_ <- germline_patient_data %>%
+  filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") %>%
+  select(c("avatar_id", "collectiondt_germline",
+           "drug_start_date_1", "germlineBFdrugs",
+           "date_of_first_bmt", "germlineBFbmt1",
+           "rad_start_date_1", "germlineBFrad1")) %>%
+  arrange(germlineBFdrugs)
 
-# write.csv(Pre_Treat, paste0(path, "/Pretreatment patient already treated.csv"))
+write.csv(Pre_Treat_, paste0(path, "/Pretreatment patient already treated.csv"))
 
 
 
@@ -741,6 +662,10 @@ germ_BF_drug_bmt_rad <- germ_BF_drug_bmt_rad %>%
   arrange(Disease_Status_germline)
 write.csv(germ_BF_drug_bmt_rad, paste0(path, "/List patients for sequencing/list patients germline before drugs, bmt and radiation.csv"))
 
+rm(germ_stricBF_bmt1_mgus, germ_stricBF_bmt1_MM, germ_stricBF_bmt1_smoldering, germ_BF_drug_bmt_rad, 
+  germ_stricBF_drugs_mgus, germ_stricBF_drugs_MM, germ_stricBF_drugs_smoldering, germ_BF_drugs, 
+  germ_BF_bmt1_smoldering, germ_BF_bmt1_MM, germ_BF_bmt1_mgus,
+  germ_BF_drugs_mgus, germ_BF_drugs_MM, germ_BF_drugs_smoldering)
 
 #----------------- Smoldering patient list
 

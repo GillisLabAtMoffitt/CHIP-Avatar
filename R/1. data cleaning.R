@@ -383,13 +383,15 @@ Treatment <- separate(Treatment, drug_name_, paste("drug_name_", 1:7, sep="_"), 
 treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat") %>% 
   distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_, .keep_all = TRUE) %>% 
   select(avatar_id, drug_start_date, drug_stop_date, drug_name_) %>% 
-  arrange(drug_start_date)
-Treatment <- treatment %>% 
-  dcast(avatar_id+drug_start_date+drug_stop_date ~ rowid(avatar_id),
-        value.var = c("drug_name_")) %>% 
-  unite(drug_name_, -avatar_id:-drug_stop_date, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
-  arrange(drug_start_date)
-Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), 
+  arrange(drug_start_date, drug_stop_date)
+# Treatment <- treatment %>% 
+#   dcast(avatar_id+drug_start_date+drug_stop_date ~ rowid(avatar_id),
+#         value.var = c("drug_name_")) %>% 
+#   unite(drug_name_, -avatar_id:-drug_stop_date, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+#   arrange(drug_start_date)
+# Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), 
+#                    value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
+Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
                    value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
 write.csv(Treatment,paste0(path, "/simplified files/Treatment simplify.csv"))
 

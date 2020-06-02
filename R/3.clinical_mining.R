@@ -1,17 +1,6 @@
 # We have 512 unique patient IDs in Sequencing, does they match the treatment
 # Treatment$avatar_id == Germline$avatar_id # No
 
-# color_vir <- list(p2 <- c(viridis::plasma(n = 2)),
-#                   p3 <- c(viridis::plasma(n = 3)),
-#                   p4 <- c(viridis::plasma(n = 4)),
-#                   m2 <- c(viridis::magma(n = 2)),
-#                   m3 <- c(viridis::magma(n = 3)),
-#                   m4 <- c(viridis::magma(n = 4)),
-#                   i3 <- c(viridis::inferno(n = 3)),
-#                   i4 <- c(viridis::inferno(n = 4)),
-#                   c3 <- c(viridis::cividis(n = 3)),
-#                   c4 <- c(viridis::cividis(n = 4)),
-#                   c5 <- c(viridis::cividis(n = 5)))
 
 venn.diagram(
   x = list(MM_history$avatar_id, Germline$avatar_id, Demo_RedCap_V4ish$avatar_id),
@@ -264,7 +253,7 @@ venn.diagram(
   cat.fontfamily = "sans"
 )
 
-library(RColorBrewer)
+
 ###################################################################################################  I  ## Venn 1
 # Restart from the Global_data
 # Who had BMT or/and drugs in the Germline available patient samples
@@ -292,9 +281,6 @@ NROW(which(!is.na(drugINgerm$date_of_first_bmt))) # same
 NROW(which(!is.na(bmtINgerm$drug_start_date_1)))
 
 
-myCol1 <- brewer.pal(3, "Pastel1")
-myCol2 <- brewer.pal(3, "Pastel2")
-
 draw.triple.venn(nrow(germline_patient_data), 
                  nrow(bmtINgerm),
                  nrow(drugINgerm),
@@ -302,14 +288,14 @@ draw.triple.venn(nrow(germline_patient_data),
                  n13 = nrow(drugINgerm), n123 = nrow(had_GERM_BMT_DRUGS),
                  category = c("all germline", "had BMT1", "had drugs"), 
                  # col = "transparent" make cercle line transparent
-                 fill = myCol1, # circle filling color
+                 # fill = myCol1, # circle filling color
                  # alpha = c(.2, .3, .3), # circle filling transparency 1 = solide
                  cex = 1, fontface = "bold", fontfamily = "sans",
                  cat.col = c("darkgreen", "red", "blue"), # label color
                  cat.pos = c(-25,5,25), cat.dist = c(0,0,0),
                  cat.cex = 1, cat.fontface = "bold")
-rm(myCol1, myCol2)
 
+rm(bmtINgerm, drugINgerm, had_GERM_BMT_DRUGS)
 
 ###################################################################################################  I  ## Treatment
 
@@ -322,31 +308,20 @@ rad_patients <- germline_patient_data %>%
 drug_patients <- germline_patient_data %>% 
   filter(!is.na(germline_patient_data$drug_start_date_1))
 a <- as.table(table(bmt_patients$Disease_Status_germline))
-b <- as.table(table(rad_patients$Disease_Status_germline))
-c <- as.table(table(drug_patients$Disease_Status_germline))
 write.csv(a, paste0(path, "/BMT patient number per disease status.csv"))
-write.csv(b, paste0(path, "/Radiation patient number per disease status.csv"))
-write.csv(c, paste0(path, "/Drug patient number per disease status.csv"))
+a <- as.table(table(rad_patients$Disease_Status_germline))
+write.csv(a, paste0(path, "/Radiation patient number per disease status.csv"))
+a <- as.table(table(drug_patients$Disease_Status_germline))
+write.csv(a, paste0(path, "/Drug patient number per disease status.csv"))
 
-bmt_patients <- bmt_patients %>% 
-  mutate(germlineBFbmt1 = case_when(
-    collectiondt_germline > date_of_first_bmt  ~ "No",
-    collectiondt_germline <= date_of_first_bmt  ~ "OK"
-  )) %>% 
+
+bmt_patients <- bmt_patients %>%
   filter(germlineBFbmt1 == "OK")
 
-rad_patients <- rad_patients %>% 
-  mutate(germlineBFrad1 = case_when(
-    collectiondt_germline <= rad_start_date_1 ~ "OK",
-    collectiondt_germline > rad_start_date_1 ~ "No"
-  )) %>% 
+rad_patients <- rad_patients %>%
   filter(germlineBFrad1 == "OK")
 
-drug_patients <- drug_patients %>% 
-  mutate(germlineBFdrugs = case_when(
-    collectiondt_germline > drug_start_date_1 ~ "No",
-    collectiondt_germline <= drug_start_date_1 ~ "OK"
-  )) %>% 
+drug_patients <- drug_patients %>%
   filter(germlineBFdrugs == "OK")
 
 germ_before_treatment <- matrix(
@@ -408,7 +383,6 @@ germ_before_treatment <- as.table(germ_before_treatment)
 write.csv(germ_before_treatment, paste0(path, "/germ_before_treatment when treatment happened.csv"))
 
 
-
 # How many time paitents had KRd, VRd, Rd, DRd, Len, Len+dex by disease status?
 germline_patient_data <- germline_patient_data %>% 
   mutate(drugs_first_regimen = case_when(
@@ -445,7 +419,7 @@ germline_patient_data <- germline_patient_data %>%
        str_detect(drug_name__1, "Lena"))                 ~ "Len"
   ))
 table(germline_patient_data$drugs_first_regimen)
-
+# Do another for kdr
 
 Pre_Treat <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma")
@@ -619,5 +593,7 @@ write.csv(drug_table_4, paste0(path, "/table drugs single used per patient in fi
 
 
 # Cleaning
-rm(drug_table, Pre_Treat, Post_Treat, Early_Relapse, Late_Relapse, Smoldering, Mgus)
+rm(drug_table, Pre_Treat_, Post_Treat_, Early_Relapse_, Late_Relapse_, Smoldering_, Mgus_,
+   regimen1, drug_table_)
 rm(TREATM, TREATME, TREATMEN)
+rm(Germline, a, treatment_number, germ_before_treatment)

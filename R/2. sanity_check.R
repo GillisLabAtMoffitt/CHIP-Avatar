@@ -15,7 +15,7 @@ table(treatment$treatment_check)
 wrong_date <- as.data.table(treatment[which(treatment$treatment_check == "not good"),])
 write.csv(wrong_date, paste0(path, "/sanity check output/wrong date treatment.csv"))
 
-sanity_check <- Global_data %>% 
+sanity_check <- germline_patient_data %>% 
   mutate(diag_check = case_when(
     date_of_diagnosis_1 < date_of_diagnosis_2 &
       date_of_diagnosis_2 < date_of_diagnosis_3 &

@@ -25,7 +25,7 @@ p + scale_fill_viridis_c(
 
 # Gender
 # pdf(paste0(path, "/Age repartition per gender.pdf"), height = 6, width = 9)
-p <- ggplot(age_germline_patient_data %>% filter(!is.na(Age_at_diagosis), !is.na(Gender)),
+p <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagosis), !is.na(Gender)),
             aes(x=Gender, y=Age_at_diagosis), fill=Gender) + 
   geom_boxplot(color= c("purple3", "royalblue2")) +
   theme_minimal() +
@@ -33,7 +33,7 @@ p <- ggplot(age_germline_patient_data %>% filter(!is.na(Age_at_diagosis), !is.na
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 # dev.off()
 # pdf(paste0(path, "/Age repartition by gender facet Disease status.pdf"), height = 6, width = 9)
-p <- ggplot(age_germline_patient_data %>%
+p <- ggplot(germline_patient_data %>%
               mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MGUS", "Smoldering", "MM"))) %>%
               filter(!is.na(Age_at_diagosis), !is.na(Gender), !is.na(Disease_Status_facet)),
             aes(x=Gender, y=Age_at_diagosis), fill=Gender) + 
@@ -59,7 +59,7 @@ p + geom_jitter(shape=16, position=position_jitter(0.2)) +
 
 # Ethnicity
 # pdf(paste0(path, "/Age repartition per ethnicity.pdf"), height = 6, width = 9)
-p <- ggplot(age_germline_patient_data %>% filter(!is.na(Age_at_diagosis), (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic")), 
+p <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagosis), (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic")), 
             aes(x=Ethnicity, y=Age_at_diagosis), fill=Ethnicity) + 
   geom_boxplot(color = c("darkred", "darkgrey")) + 
   theme_minimal() +
@@ -67,7 +67,7 @@ p <- ggplot(age_germline_patient_data %>% filter(!is.na(Age_at_diagosis), (Ethni
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 # dev.off()
 # pdf(paste0(path, "/Age repartition by ethnicity facet Disease status.pdf"), height = 6, width = 9)
-p <- ggplot(age_germline_patient_data %>% 
+p <- ggplot(germline_patient_data %>% 
               mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MGUS", "Smoldering", "MM"))) %>%
               filter(!is.na(Age_at_diagosis), (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic"),
                      !is.na(Disease_Status_facet)),
@@ -81,7 +81,7 @@ p + geom_jitter(shape=16, position=position_jitter(0.2)) +
 
 # Race
 pdf(paste0(path, "/Age repartition per race.pdf"), height = 6, width = 9)
-p <- age_germline_patient_data %>% filter(!is.na(Race)) %>% 
+p <- germline_patient_data %>% filter(!is.na(Race)) %>% 
   mutate_at(("Race"), ~ case_when(
     . == "African American" ~ "Black",
     TRUE ~ .
@@ -94,7 +94,7 @@ p <- age_germline_patient_data %>% filter(!is.na(Race)) %>%
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 dev.off()
 # pdf(paste0(path, "/Age repartition by race facet Disease status.pdf"), height = 6, width = 9)
-p <- age_germline_patient_data %>% filter(!is.na(Race),!is.na(Disease_Status_facet)) %>% 
+p <- germline_patient_data %>% filter(!is.na(Race),!is.na(Disease_Status_facet)) %>% 
   mutate_at(("Race"), ~ case_when(
     . == "African American" ~ "Black",
     TRUE ~ .
@@ -156,7 +156,7 @@ kruskal.test(Age_at_diagosis ~ Race, Age_data)
 
 # pdf(paste0(path, "/Germline patients Age at diagnosis repartition.pdf"), height = 6, width = 9)
 p <- qplot(x =Age_at_diagosis, 
-           data=subset(age_germline_patient_data,!is.na(Age_at_diagosis)), fill=..count.., geom="histogram") 
+           data=subset(germline_patient_data,!is.na(Age_at_diagosis)), fill=..count.., geom="histogram") 
 p + scale_fill_viridis_c(
   alpha = 1,
   begin = 0,
@@ -174,7 +174,7 @@ p + scale_fill_viridis_c(
 
 # Gender
 # pdf(paste0(path, "/Germline patients Age repartition per gender.pdf"), height = 6, width = 9)
-p <- ggplot(age_germline_patient_data %>% filter(!is.na(Age_at_diagosis), !is.na(Gender)),
+p <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagosis), !is.na(Gender)),
             aes(x=Gender, y=Age_at_diagosis), fill=Gender) + 
   geom_boxplot(color= c("purple3", "royalblue2")) +
   theme_minimal() +
@@ -190,7 +190,7 @@ p + geom_jitter(shape=16, position=position_jitter(0.2))
 
 # Ethnicity
 # pdf(paste0(path, "/Germline patients Age repartition per ethnicity.pdf"), height = 6, width = 9)
-p <- ggplot(age_germline_patient_data %>% filter(!is.na(Age_at_diagosis), (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic")), 
+p <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagosis), (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic")), 
             aes(x=Ethnicity, y=Age_at_diagosis), fill=Ethnicity) + 
   geom_boxplot(color = c("darkred", "darkgrey")) + 
   theme_minimal() +
@@ -200,7 +200,7 @@ p + geom_jitter(shape=16, position=position_jitter(0.2))
 
 # Race
 # pdf(paste0(path, "/Germline patients Age repartition per race.pdf"), height = 6, width = 9)
-p <- age_germline_patient_data %>% filter(!is.na(Race)) %>% 
+p <- germline_patient_data %>% filter(!is.na(Race)) %>% 
   mutate_at(("Race"), ~ case_when(
     . == "African American" ~ "Black",
     TRUE ~ .
@@ -215,91 +215,91 @@ p + geom_jitter(shape=16, position=position_jitter(0.2))
 
 ########################################################################## Stats
 # For germline patients
-wilcox.test(Age_at_diagosis ~ Gender, age_germline_patient_data)
+wilcox.test(Age_at_diagosis ~ Gender, germline_patient_data)
 
-wilcox.test(Age_at_diagosis ~ Ethnicity, age_germline_patient_data,
+wilcox.test(Age_at_diagosis ~ Ethnicity, germline_patient_data,
             subset = Ethnicity %in% c("Hispanic", "Non- Hispanic"))
 
-kruskal.test(Age_at_diagosis ~ Race, age_germline_patient_data)
+kruskal.test(Age_at_diagosis ~ Race, germline_patient_data)
 
 # For MM patients
-wilcox.test(Age_at_diagosis ~ Gender, age_germline_patient_data %>% 
+wilcox.test(Age_at_diagosis ~ Gender, germline_patient_data %>% 
               filter(Disease_Status_facet == "MM"))
 
-wilcox.test(Age_at_diagosis ~ Ethnicity, age_germline_patient_data %>% 
+wilcox.test(Age_at_diagosis ~ Ethnicity, germline_patient_data %>% 
               filter(Disease_Status_facet == "MM"),
             subset = Ethnicity %in% c("Hispanic", "Non- Hispanic"))
 
-kruskal.test(Age_at_diagosis ~ Race, age_germline_patient_data %>% 
+kruskal.test(Age_at_diagosis ~ Race, germline_patient_data %>% 
                filter(Disease_Status_facet == "MM"))
 
 # For MGUS patients
-wilcox.test(Age_at_diagosis ~ Gender, age_germline_patient_data %>% 
+wilcox.test(Age_at_diagosis ~ Gender, germline_patient_data %>% 
               filter(Disease_Status_facet == "MGUS"))
 
-wilcox.test(Age_at_diagosis ~ Ethnicity, age_germline_patient_data %>% 
+wilcox.test(Age_at_diagosis ~ Ethnicity, germline_patient_data %>% 
               filter(Disease_Status_facet == "MGUS"),
             subset = Ethnicity %in% c("Hispanic", "Non- Hispanic"))
 
-kruskal.test(Age_at_diagosis ~ Race, age_germline_patient_data %>% 
+kruskal.test(Age_at_diagosis ~ Race, germline_patient_data %>% 
                filter(Disease_Status_facet == "MGUS"))
 
 # For Smoldering patients
-wilcox.test(Age_at_diagosis ~ Gender, age_germline_patient_data %>% 
+wilcox.test(Age_at_diagosis ~ Gender, germline_patient_data %>% 
               filter(Disease_Status_facet == "Smoldering"))
 
-wilcox.test(Age_at_diagosis ~ Ethnicity, age_germline_patient_data %>% 
+wilcox.test(Age_at_diagosis ~ Ethnicity, germline_patient_data %>% 
               filter(Disease_Status_facet == "Smoldering"),
             subset = Ethnicity %in% c("Hispanic", "Non- Hispanic"))
 
-kruskal.test(Age_at_diagosis ~ Race, age_germline_patient_data %>% 
+kruskal.test(Age_at_diagosis ~ Race, germline_patient_data %>% 
                filter(Disease_Status_facet == "Smoldering"))
 ####################################################################### Demographics
-mul_myeloma <- Age_data %>% 
-  filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
-           Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
-           Disease_Status_germline == "Early Relapse Multiple Myeloma" |
-           Disease_Status_germline == "Late Relapse Multiple Myeloma")
-
-Smoldering <- Age_data %>% 
-  filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
-Mgus <- Age_data %>% 
-  filter(Disease_Status_germline == "Mgus")
+# Mul_Myeloma <- Age_data %>% 
+#   filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
+#            Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
+#            Disease_Status_germline == "Early Relapse Multiple Myeloma" |
+#            Disease_Status_germline == "Late Relapse Multiple Myeloma")
+# 
+# Smoldering <- Age_data %>% 
+#   filter(Disease_Status_germline == "Smoldering Multiple Myeloma")
+# Mgus <- Age_data %>% 
+#   filter(Disease_Status_germline == "Mgus")
 
 demographics_of_MM <- matrix(c(
   "", "MM", "MGUS", "Smoldering",
-  "total", NROW(mul_myeloma), NROW(Mgus), NROW(Smoldering),
+  "total", NROW(Mul_Myeloma), NROW(Mgus), NROW(Smoldering),
   "Age at Diagnosis", 
-  paste0(round((summary(mul_myeloma$Age)["Median"]), digits = 2), ", (range:", (round(summary(mul_myeloma$Age)["Min."], digits = 2)) , "-", (round(summary(mul_myeloma$Age)["Max."], digits = 2)), ")")
+  paste0(round((summary(Mul_Myeloma$Age)["Median"]), digits = 2), ", (range:", (round(summary(Mul_Myeloma$Age)["Min."], digits = 2)) , "-", (round(summary(Mul_Myeloma$Age)["Max."], digits = 2)), ")")
   , 
   paste0(round((summary(Mgus$Age)["Median"]), digits = 2), ", (range:", (round(summary(Mgus$Age)["Min."], digits = 2)) , "-", (round(summary(Mgus$Age)["Max."], digits = 2)), ")")
   , 
   paste0(round((summary(Smoldering$Age)["Median"]), digits = 2), ", (range:", (round(summary(Smoldering$Age)["Min."], digits = 2)) , "-", (round(summary(Smoldering$Age)["Max."], digits = 2)), ")")
   ,
   "Sex", "", "", "",
-  "Male", sum(str_count(mul_myeloma$Gender, "Male"), na.rm = TRUE), sum(str_count(Mgus$Gender, "Male"), na.rm = TRUE), sum(str_count(Smoldering$Gender, "Male"), na.rm = TRUE),
-  "Female", sum(str_count(mul_myeloma$Gender, "Female"), na.rm = TRUE), sum(str_count(Mgus$Gender, "Female"), na.rm = TRUE), sum(str_count(Smoldering$Gender, "Female"), na.rm = TRUE),
+  "Male", sum(str_count(Mul_Myeloma$Gender, "Male"), na.rm = TRUE), sum(str_count(Mgus$Gender, "Male"), na.rm = TRUE), sum(str_count(Smoldering$Gender, "Male"), na.rm = TRUE),
+  "Female", sum(str_count(Mul_Myeloma$Gender, "Female"), na.rm = TRUE), sum(str_count(Mgus$Gender, "Female"), na.rm = TRUE), sum(str_count(Smoldering$Gender, "Female"), na.rm = TRUE),
   "Race", "", "", "", 
-  "White", sum(str_count(mul_myeloma$Race, "White"), na.rm = TRUE), sum(str_count(Mgus$Race, "White"), na.rm = TRUE), sum(str_count(Smoldering$Race, "White"), na.rm = TRUE),
+  "White", sum(str_count(Mul_Myeloma$Race, "White"), na.rm = TRUE), sum(str_count(Mgus$Race, "White"), na.rm = TRUE), sum(str_count(Smoldering$Race, "White"), na.rm = TRUE),
   "Age", 
-  paste0(round((summary(mul_myeloma$Age)["Median"]), digits = 2), ", (range:", (round(summary(mul_myeloma$Age)["Min."], digits = 2)) , "-", (round(summary(mul_myeloma$Age)["Max."], digits = 2)), ")")
+  paste0(round((summary(Mul_Myeloma$Age)["Median"]), digits = 2), ", (range:", (round(summary(Mul_Myeloma$Age)["Min."], digits = 2)) , "-", (round(summary(Mul_Myeloma$Age)["Max."], digits = 2)), ")")
   , 
   paste0(round((summary(Mgus$Age)["Median"]), digits = 2), ", (range:", (round(summary(Mgus$Age)["Min."], digits = 2)) , "-", (round(summary(Mgus$Age)["Max."], digits = 2)), ")")
   , 
   paste0(round((summary(Smoldering$Age)["Median"]), digits = 2), ", (range:", (round(summary(Smoldering$Age)["Min."], digits = 2)) , "-", (round(summary(Smoldering$Age)["Max."], digits = 2)), ")")
   ,
-  "Black", sum(str_count(mul_myeloma$Race, "African"), na.rm = TRUE), sum(str_count(Mgus$Race, "African"), na.rm = TRUE), sum(str_count(Smoldering$Race, "African"), na.rm = TRUE),
-  "Other", sum(str_count(mul_myeloma$Race, "Other"), na.rm = TRUE), sum(str_count(Mgus$Race, "Other"), na.rm = TRUE), sum(str_count(Smoldering$Race, "Other"), na.rm = TRUE),
+  "Black", sum(str_count(Mul_Myeloma$Race, "African"), na.rm = TRUE), sum(str_count(Mgus$Race, "African"), na.rm = TRUE), sum(str_count(Smoldering$Race, "African"), na.rm = TRUE),
+  "Other", sum(str_count(Mul_Myeloma$Race, "Other"), na.rm = TRUE), sum(str_count(Mgus$Race, "Other"), na.rm = TRUE), sum(str_count(Smoldering$Race, "Other"), na.rm = TRUE),
   "Ethnicity", "", "", "",
-  "Hispanic", sum(str_count(mul_myeloma$Ethnicity, "^Hispanic"), na.rm = TRUE), sum(str_count(Mgus$Ethnicity, "^Hispanic"), na.rm = TRUE), sum(str_count(Smoldering$Ethnicity, "^Hispanic"), na.rm = TRUE),
-  "Non-Hispanic", sum(str_count(mul_myeloma$Ethnicity, "Non- Hispanic"), na.rm = TRUE), sum(str_count(Mgus$Ethnicity, "Non- Hispanic"), na.rm = TRUE), sum(str_count(Smoldering$Ethnicity, "Non- Hispanic"), na.rm = TRUE)
+  "Hispanic", sum(str_count(Mul_Myeloma$Ethnicity, "^Hispanic"), na.rm = TRUE), sum(str_count(Mgus$Ethnicity, "^Hispanic"), na.rm = TRUE), sum(str_count(Smoldering$Ethnicity, "^Hispanic"), na.rm = TRUE),
+  "Non-Hispanic", sum(str_count(Mul_Myeloma$Ethnicity, "Non- Hispanic"), na.rm = TRUE), sum(str_count(Mgus$Ethnicity, "Non- Hispanic"), na.rm = TRUE), sum(str_count(Smoldering$Ethnicity, "Non- Hispanic"), na.rm = TRUE)
   #"Unknown"
   ), 
   ncol = 4, byrow = TRUE
 )
 write.csv(demographics_of_MM, paste0(path, "/Demographics of MM patients with WES.csv"))
 
-table1 <- age_germline_patient_data %>%
+table1 <- germline_patient_data %>%
   mutate_at(("Race"), ~ case_when(
     . == "African American" ~ "Black",
     TRUE ~ .
@@ -309,7 +309,7 @@ table1 <- age_germline_patient_data %>%
   tbl_summary(by = Race , statistic = all_continuous() ~ "{median} ({sd})", 
               digits = list(c(Age_at_diagosis, Race) ~ 2)) %>% 
   add_p()
-table2 <- age_germline_patient_data %>%
+table2 <- germline_patient_data %>%
   select(Age_at_diagosis, Ethnicity) %>% 
   tbl_summary(by = Ethnicity , statistic = all_continuous() ~ "{median} ({sd})", 
               digits = list(c(Age_at_diagosis, Ethnicity) ~ 2)) %>% 
@@ -320,7 +320,7 @@ tbl_merge(list(table1, table2),
   italicize_levels()
 
 
-table1 <- age_germline_patient_data %>%
+table1 <- germline_patient_data %>%
   mutate_at(("Race"), ~ case_when(
     . == "African American" ~ "Black",
     TRUE ~ .
@@ -332,7 +332,7 @@ table1 <- age_germline_patient_data %>%
               digits = list(c(Age_at_diagosis, Race) ~ 2)) %>% 
   add_p()
 
-table2 <- age_germline_patient_data %>%
+table2 <- germline_patient_data %>%
   select(Age_at_diagosis, Ethnicity) %>% 
   filter(Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic")  %>% 
   tbl_summary(by = Ethnicity , statistic = all_continuous() ~ "{median} ({sd})", 
@@ -343,3 +343,4 @@ tbl_merge(list(table1, table2),
   bold_labels() %>%
   italicize_levels()
 
+rm(demographics_of_MM)

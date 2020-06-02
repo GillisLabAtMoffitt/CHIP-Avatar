@@ -70,12 +70,95 @@ germline_patient_data <- germline_patient_data %>%
 write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
 
 
+# Cleaning
+rm(Global_data, enddate)
+
+######################
+
+germline_patient_data <- germline_patient_data %>% 
+  mutate(germlineBFdrugs = case_when(
+    collectiondt_germline > drug_start_date_1 ~ "No",
+    collectiondt_germline <= drug_start_date_1 ~ "OK",
+    is.na(drug_start_date_1) ~ "OK"
+  )) %>% 
+  mutate(germlineBFbmt1 = case_when(
+    collectiondt_germline > date_of_first_bmt  ~ "No",
+    collectiondt_germline <= date_of_first_bmt  ~ "OK",
+    is.na(date_of_first_bmt) ~ "OK"
+  )) %>% 
+  mutate(germlineBFbmt2 = case_when(
+    collectiondt_germline > date_of_second_bmt  ~ "No",
+    collectiondt_germline <= date_of_second_bmt  ~ "OK"
+  )) %>% 
+  mutate(germlineBFbmt3 = case_when(
+    collectiondt_germline > date_of_third_bmt ~ "No",
+    collectiondt_germline <= date_of_third_bmt ~ "OK"
+  )) %>%
+  mutate(germlineBFrad1 = case_when(
+    collectiondt_germline <= rad_start_date_1 ~ "OK",
+    collectiondt_germline > rad_start_date_1 ~ "No",
+    is.na(rad_start_date_1) ~ "OK"
+  )) %>% 
+  mutate(germlineBFrad2 = case_when(
+    collectiondt_germline <= rad_start_date_2 ~ "OK",
+    collectiondt_germline > rad_start_date_2 ~ "No"
+  )) %>% 
+  mutate(germlineBFrad3 = case_when(
+    collectiondt_germline <= rad_start_date_3 ~ "OK",
+    collectiondt_germline > rad_start_date_3 ~ "No"
+  )) %>% 
+  mutate(germlineBFrad4 = case_when(
+    collectiondt_germline <= rad_start_date_4 ~ "OK",
+    collectiondt_germline > rad_start_date_4 ~ "No"
+  )) %>% 
+  mutate(germBFdrugsbmt = case_when(
+    germlineBFdrugs == "OK" &
+      germlineBFbmt1 == "OK"                  ~ "OK"
+  )) %>% 
+  mutate(germBFdbr = case_when(
+    germlineBFdrugs == "OK" &
+      germlineBFbmt1 == "OK" &
+      germlineBFrad1 == "OK"                  ~ "OK"
+  )) %>% 
+  # mutate(bmt1_BF_drug = case_when(
+  #   date_of_first_bmt_1 < drug_start_date_1 ~ "OK",
+  #   date_of_first_bmt_1 > drug_start_date_1 ~ "No"
+  # )) %>% 
+  # mutate(rad_BF_drugbmt1 = case_when(
+  #   rad_start_date_1 < date_of_first_bmt_1 &
+  #   rad_start_date_1 < drug_start_date_1 ~ "OK"
+  # )) %>% 
+  # mutate(GandBmt1BEFOREdrug = case_when(
+  #   date_of_first_bmt_1 < drug_start_date_1 &
+  #     collectiondt_germline < drug_start_date_1 ~ "OK"
+# )) %>% 
+mutate(GermBFtumorWES = case_when(
+  collectiondt_germline < collectiondt_tumor_1 ~ "Germ first",
+  collectiondt_germline > collectiondt_tumor_1 ~ "tumorWES first",
+  collectiondt_germline == collectiondt_tumor_1 ~ "same date"
+# )) %>% 
+#   mutate(birth_BF_lastdate = case_when(
+#     last_date_available > Date_of_Birth ~ "OK",
+#     last_date_available <= Date_of_Birth ~ "not good"
+  # )) %>% 
+  # mutate(birth_BF_diag = case_when(
+  #   date_of_diagnosis_1 > Date_of_Birth ~ "OK",
+  #   date_of_diagnosis_1 <= Date_of_Birth ~ "not good"
+  # )) %>% 
+  # mutate(diag_BF_lastdate = case_when(
+  #   last_date_available > date_of_diagnosis_1 ~ "OK",
+  #   last_date_available <= date_of_diagnosis_1 ~ "not good"
+  ))
+
+# write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))
+tab <- table(germline_patient_data$GermBFtumorWES)
+# jpeg("barplot3.jpg", width = 350, height = 350)
+barplot(tab, main = "Frequency of collection date first observed", ylim = c(0,500))
+# dev.off()
+tab
 
 
-
-
-
-
+rm(tab)
 
 
 
@@ -110,8 +193,8 @@ all_dates <- germline_patient_data %>%
 all_date <- all_dates %>% 
   gather(key = "event", value = "date", -1) %>% 
   arrange(avatar_id)
-write.csv(all_date, paste0(path, "/all_dates.csv"))
-
+# write.csv(all_date, paste0(path, "/all_dates.csv"))
+rm(all_dates, all_date)
 
 
 

@@ -169,7 +169,7 @@ rm(tab)
 
 
 
-
+colnames(germline_patient_data)
 
 # Create dataframe for all start dates 
 
@@ -183,16 +183,36 @@ all_dates <- germline_patient_data %>%
          "drug_start_date_11", "drug_start_date_12", "drug_start_date_13", "drug_start_date_14", "drug_start_date_15",
          "drug_start_date_16",
          "drug_start_date_17",
-         "drug_stop_date_1", "drug_stop_date_2", "drug_stop_date_3", "drug_stop_date_4", "drug_stop_date_5", 
-         "drug_stop_date_6", "drug_stop_date_7", "drug_stop_date_8", "drug_stop_date_9", "drug_stop_date_10",
-         "drug_stop_date_11", "drug_stop_date_12", "drug_stop_date_13", "drug_stop_date_14", "drug_stop_date_15",
-         "drug_stop_date_16",
-         "drug_stop_date_17",
+         "drug_stop_date_1_1", "drug_stop_date_1_2", "drug_stop_date_1_3", "drug_stop_date_1_4",
+         "drug_stop_date_1_5", "drug_stop_date_1_6", "drug_stop_date_1_7", "drug_stop_date_1_8",
+         "drug_stop_date_1_9", "drug_stop_date_1_10", "drug_stop_date_1_11", "drug_stop_date_1_12",
+         "drug_stop_date_1_13", "drug_stop_date_1_14", "drug_stop_date_1_15", "drug_stop_date_1_16",
          "rad_start_date_1", "rad_start_date_2", "rad_start_date_3", "rad_start_date_4", "rad_stop_date_1",
          "rad_stop_date_2", "rad_stop_date_3", "rad_stop_date_4")
+
 all_date <- all_dates %>% 
-  gather(key = "event", value = "date", -1) %>% 
-  arrange(avatar_id)
+  pivot_longer(cols = Date_of_Birth:rad_stop_date_4, names_to = "event", values_to = "date") %>% 
+  arrange(date, desc(event))
+# attribute number for each events chronographically to each patient
+all_date$chronology <- ave(all_date$avatar_id, all_date$avatar_id, FUN=seq_along)
+
+all_dat <- all_date %>% 
+  pivot_wider(id_cols = NULL,
+              names_from = "chronology", values_from = value)
+
+all_dat <- dcast(setDT(all_date), avatar_id ~ rowid(avatar_id), 
+                   value.var = c("event", "date"))
+
+
+all_date <- all_date %>% 
+  mutate(last_date_available = coalesce(date_event_17, date_event_16, date_event_15, etc))
+
+
+str(germline_patient_dat)
+
+
+
+
 # write.csv(all_date, paste0(path, "/all_dates.csv"))
 rm(all_dates, all_date)
 

@@ -406,6 +406,9 @@ Treatment <- dcast(setDT(Treatment), avatar_id+drug_start_date ~ rowid(avatar_id
   unite(drug_name_, drug_name__1:drug_name__17, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
   unite(drug_stop_date, drug_stop_date_1:drug_stop_date_17, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
   separate(drug_stop_date, paste("drug_stop_date", 1:3, sep="_"), sep = "; ", extra = "warn")
+# Treatment$drug_stop_date_1 <- as.POSIXct(Treatment$drug_stop_date_1, format = "%Y-%m-%d")
+# Treatment$drug_stop_date_2 <- as.POSIXct(Treatment$drug_stop_date_2, format = "%Y-%m-%d")
+# Treatment$drug_stop_date_3 <- as.POSIXct(Treatment$drug_stop_date_3, format = "%Y-%m-%d")
 # 3rd dcast per avatar_id
 Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), 
                    value.var = c("drug_start_date", "drug_name_", "drug_stop_date_1", 

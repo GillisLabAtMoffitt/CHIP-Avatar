@@ -391,8 +391,27 @@ treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, .id = "versionTreat"
 #   arrange(drug_start_date)
 # Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), 
 #                    value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
-Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
-                   value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
+# Treatment <- dcast(setDT(treatment), avatar_id ~ rowid(avatar_id), 
+#                    value.var = c("drug_start_date", "drug_name_", "drug_stop_date"))
+# Now can dcast again to have line of drug_name_ for each line/regimen
+# 1st for regimen with same start and end date
+Treatment <- treatment %>% 
+  reshape2::dcast(avatar_id+drug_start_date+drug_stop_date ~ rowid(avatar_id),
+                  value.var = c("drug_name_")) %>% 
+  unite(drug_name_, -avatar_id:-drug_stop_date, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  arrange(drug_start_date, drug_stop_date)
+# 2nd for regimen with same start, I separated it to have the different end date in case
+Treatment <- dcast(setDT(Treatment), avatar_id+drug_start_date ~ rowid(avatar_id), 
+                   value.var = c("drug_name_", "drug_stop_date")) %>% 
+  unite(drug_name_, drug_name__1:drug_name__17, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  unite(drug_stop_date, drug_stop_date_1:drug_stop_date_17, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  separate(drug_stop_date, paste("drug_stop_date", 1:3, sep="_"), sep = "; ", extra = "warn")
+# 3rd dcast per avatar_id
+Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), 
+                   value.var = c("drug_start_date", "drug_name_", "drug_stop_date_1", 
+                                 "drug_stop_date_2", "drug_stop_date_3"))
+Treatment <- Treatment %>% 
+  purrr::keep(~!all(is.na(.)))
 write.csv(Treatment,paste0(path, "/simplified files/Treatment simplify.csv"))
 
 

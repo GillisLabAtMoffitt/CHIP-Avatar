@@ -375,7 +375,7 @@ TreatmentV2 <- bind_rows(Qcd_TreatmentV2, TreatmentV2, .id = "Treatment") %>%
   distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_, .keep_all = TRUE) # remove duplicated rows
 # Need to pivot longer Treatment from V1 because not same formating
 # Having one drug per row will help to remove duplicate in drugs after binding the 3 version together
-Treatment <- separate(Treatment, drug_name_, paste("drug_name_", 1:7, sep="_"), sep = "; ", extra = "warn") %>% 
+Treatment <- separate(Treatment, drug_name_, paste("drug_name_", 1:7, sep="_"), sep = "; |;", extra = "warn") %>%
   pivot_longer(cols = drug_name__1:ncol(.),
                names_to = "line", values_to = "drug_name_", values_drop_na = TRUE)
 

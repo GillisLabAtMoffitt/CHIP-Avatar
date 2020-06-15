@@ -301,7 +301,7 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
   # use coalesce to fill up with date_last_follow_up_1 when date_last_follow_up_2 is NA
   mutate(date_last_follow_up = coalesce(date_last_follow_up_2, date_last_follow_up_1)) %>%
   # Create a last_date_available var for ourself (help to arrange by last_date_available)
-  mutate(last_date_available = coalesce(date_death_1, date_last_follow_up_1)) %>% 
+  # mutate(last_date_available = coalesce(date_death_1, date_last_follow_up_1)) %>% --- not corect because not updated in the file
   # Create my own vital_satus var because found record with 
   # 1st "abstraction" give date_death so vital = dead
   # 2nd "abstraction" doesn't give date (probably because already recorded) so vital = alive
@@ -332,7 +332,7 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
     smoking_status == 1 ~ "current",
     TRUE ~ NA_character_
   )) %>% 
-  select(c("avatar_id","vital_status", "date_death", "date_last_follow_up", "last_date_available",
+  select(c("avatar_id","vital_status", "date_death", "date_last_follow_up",
            "bmi_at_dx_v2", "alcohol_use", "smoking_status"))
 # Note for smoking
 # 1 patient said 3 in V2 and 11 in V1

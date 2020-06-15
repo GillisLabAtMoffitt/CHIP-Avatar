@@ -1,3 +1,90 @@
+# ### I ### Create dataframe for all start dates, will use that for timeline --------------------------------------
+# Need to separate in 2 df then bind because of date_of_diag = date of treatment
+all_dates <- Global_data %>% 
+  select("avatar_id", "date_of_diagnosis_2", "date_of_diagnosis_3", "date_of_diagnosis_4",
+         "collectiondt_germline", "collectiondt_tumor_1", 
+         "date_death", "date_last_follow_up", 
+         "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt",
+         "drug_start_date_1", "drug_start_date_2", "drug_start_date_3", "drug_start_date_4", "drug_start_date_5", 
+         "drug_start_date_6", "drug_start_date_7", "drug_start_date_8", "drug_start_date_9", "drug_start_date_10", 
+         "drug_start_date_11", "drug_start_date_12", "drug_start_date_13", "drug_start_date_14", "drug_start_date_15",
+         "drug_start_date_16",
+         "drug_start_date_17",
+         "drug_stop_date_1_1", "drug_stop_date_1_2", "drug_stop_date_1_3", "drug_stop_date_1_4",
+         "drug_stop_date_1_5", "drug_stop_date_1_6", "drug_stop_date_1_7", "drug_stop_date_1_8",
+         "drug_stop_date_1_9", "drug_stop_date_1_10", "drug_stop_date_1_11", "drug_stop_date_1_12",
+         "drug_stop_date_1_13", "drug_stop_date_1_14", "drug_stop_date_1_15", "drug_stop_date_1_16",
+         "rad_start_date_1", "rad_start_date_2", "rad_start_date_3", "rad_start_date_4", "rad_stop_date_1",
+         "rad_stop_date_2", "rad_stop_date_3", "rad_stop_date_4")
+all_dates1 <- Global_data %>% 
+  select("avatar_id", "Date_of_Birth", 
+         "date_of_diagnosis_1")
+# pivot both
+all_dates <- all_dates %>% 
+  pivot_longer(cols = date_of_diagnosis_2:rad_stop_date_4, names_to = "event", values_to = "date") %>% 
+  drop_na("date") %>% 
+  arrange(date, desc(event))
+all_dates1 <- all_dates1 %>% 
+  pivot_longer(cols = Date_of_Birth:date_of_diagnosis_1, names_to = "event", values_to = "date") %>% 
+  drop_na("date") %>% 
+  arrange(date, desc(event))
+# and bind
+all_dates <- bind_rows(all_dates1, all_dates)
+
+
+# attribute number for each events chronographically to each patient # May not need that -----------------------
+# all_dates <- all_dates %>% group_by(avatar_id) %>% # May not need that -----------------------
+#   mutate(chronology = row_number()) # May not need that -----------------------
+
+
+# We are missing a better last_date_available
+
+
+
+
+
+
+
+# Get the last event and corresponding date
+last_event <- dcast(setDT(all_dates), avatar_id ~ rowid(avatar_id), 
+                    value.var = c("event", "date"))
+# paste0("date_", seq(from=40,to=1))
+# a <- paste(paste0("event_", seq(from=40,to=1)), collapse = ", ")
+# 
+# c(paste0("date_", seq(from=40,to=1)))
+# colnames(all_date)
+# 
+# colnames(all_date[1:10])
+# colnames(all_date[2:41])
+# a <- rev(colnames(all_date[2:41]))
+# a
+# as.vector(paste(paste0("event_", seq(from=40,to=1)), collapse = ", "))
+# 
+# all_date <- all_dates %>% select(c(avatar_id, 81:2))
+# colnames(all_date)
+
+last_event <- last_event %>% 
+  mutate(last_date_available = coalesce(date_40, date_39, date_38, date_37, date_36, date_35, date_34,
+                                        date_33, date_32, date_31, date_30, date_29, date_28, date_27, 
+                                        date_26, date_25, date_24, date_23, date_22, date_21, date_20, 
+                                        date_19, date_18, date_17, date_16, date_15, date_14, date_13, 
+                                        date_12, date_11, date_10, date_9, date_8, date_7, date_6, 
+                                        date_5, date_4, date_3, date_2, date_1)) %>% 
+  mutate(last_event_available = coalesce(event_40, event_39, event_38, event_37, event_36, event_35, 
+                                         event_34, event_33, event_32, event_31, event_30, event_29, 
+                                         event_28, event_27, event_26, event_25, event_24, event_23, 
+                                         event_22, event_21, event_20, event_19, event_18, event_17, 
+                                         event_16, event_15, event_14, event_13, event_12, event_11, 
+                                         event_10, event_9, event_8, event_7, event_6, event_5, 
+                                         event_4, event_3, event_2, event_1))
+write.csv(last_event, paste0(path, "/last_event.csv"))
+
+Global_data <- left_join(Global_data, 
+               last_event %>% select(c("avatar_id", "last_date_available", "last_event_available")),
+               by = "avatar_id")
+write.csv(Global_data, paste0(path, "/Global_data updated.csv"))
+
+# ### II ### Create all the age from dates ------------------------------------------------------------------------
 Age_data <- Global_data
 
 enddate <- today()
@@ -161,60 +248,14 @@ tab
 rm(tab)
 
 
-
-
-
-
-
-
-
-
 colnames(germline_patient_data)
 
-# Create dataframe for all start dates 
-
-all_dates <- germline_patient_data %>% 
-  select("avatar_id", "Date_of_Birth", "collectiondt_germline", "collectiondt_tumor_1", 
-         "date_of_diagnosis_1", "date_of_diagnosis_2", "date_of_diagnosis_3", "date_of_diagnosis_4",
-         "date_death", "date_last_follow_up", 
-         "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt",
-         "drug_start_date_1", "drug_start_date_2", "drug_start_date_3", "drug_start_date_4", "drug_start_date_5", 
-         "drug_start_date_6", "drug_start_date_7", "drug_start_date_8", "drug_start_date_9", "drug_start_date_10", 
-         "drug_start_date_11", "drug_start_date_12", "drug_start_date_13", "drug_start_date_14", "drug_start_date_15",
-         "drug_start_date_16",
-         "drug_start_date_17",
-         "drug_stop_date_1_1", "drug_stop_date_1_2", "drug_stop_date_1_3", "drug_stop_date_1_4",
-         "drug_stop_date_1_5", "drug_stop_date_1_6", "drug_stop_date_1_7", "drug_stop_date_1_8",
-         "drug_stop_date_1_9", "drug_stop_date_1_10", "drug_stop_date_1_11", "drug_stop_date_1_12",
-         "drug_stop_date_1_13", "drug_stop_date_1_14", "drug_stop_date_1_15", "drug_stop_date_1_16",
-         "rad_start_date_1", "rad_start_date_2", "rad_start_date_3", "rad_start_date_4", "rad_stop_date_1",
-         "rad_stop_date_2", "rad_stop_date_3", "rad_stop_date_4")
-
-all_date <- all_dates %>% 
-  pivot_longer(cols = Date_of_Birth:rad_stop_date_4, names_to = "event", values_to = "date") %>% 
-  arrange(date, desc(event))
-# attribute number for each events chronographically to each patient
-all_date$chronology <- ave(all_date$avatar_id, all_date$avatar_id, FUN=seq_along)
-
-all_dat <- all_date %>% 
-  pivot_wider(id_cols = NULL,
-              names_from = "chronology", values_from = value)
-
-all_dat <- dcast(setDT(all_date), avatar_id ~ rowid(avatar_id), 
-                   value.var = c("event", "date"))
-
-
-all_date <- all_date %>% 
-  mutate(last_date_available = coalesce(date_event_17, date_event_16, date_event_15, etc))
-
-
-str(germline_patient_dat)
 
 
 
 
-# write.csv(all_date, paste0(path, "/all_dates.csv"))
-rm(all_dates, all_date)
+
+# rm(all_dates)
 
 
 

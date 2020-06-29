@@ -351,7 +351,7 @@ sct <- bind_rows(SCT, SCTV2, SCTV4, .id = "versionSCT") %>%
   distinct(avatar_id, date_of_first_bmt, .keep_all = TRUE)
 SCT <- sct
 
-duplicated(sct$avatar_id) # No duplicated ID so good, if there is need to pivot longer, remove dupl,
+# duplicated(sct$avatar_id) # No duplicated ID so good, if there is need to pivot longer, remove dupl,
 # orrange by dates, pivot wider and rename 1st 2nd 3rd bmt
 
 # SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), 

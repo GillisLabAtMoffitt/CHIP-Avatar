@@ -1,4 +1,4 @@
-# ### I ### Create dataframe for all start dates, will use that for timeline --------------------------------------
+########################################### I ### Create dataframe for all start dates, will use that for timeline ----
 # Need to separate in 2 df then bind because of date_of_diag = date of treatment
 all_dates <- Global_data %>% 
   select("avatar_id", "date_of_diagnosis_2", "date_of_diagnosis_3", "date_of_diagnosis_4",
@@ -32,20 +32,12 @@ all_dates1 <- all_dates1 %>%
 all_dates <- bind_rows(all_dates1, all_dates)
 
 
-# attribute number for each events chronographically to each patient # May not need that -----------------------
-# all_dates <- all_dates %>% group_by(avatar_id) %>% # May not need that -----------------------
-#   mutate(chronology = row_number()) # May not need that -----------------------
+# attribute number for each events chronographically to each patient # May not need that
+# all_dates <- all_dates %>% group_by(avatar_id) %>% # May not need that
+#   mutate(chronology = row_number()) # May not need that
 
 
-# We are missing a better last_date_available
-
-
-
-
-
-
-
-# Get the last event and corresponding date
+# Get the last event and corresponding date----
 last_event <- dcast(setDT(all_dates), avatar_id ~ rowid(avatar_id), 
                     value.var = c("event", "date"))
 # paste0("date_", seq(from=40,to=1))
@@ -84,7 +76,7 @@ Global_data <- left_join(Global_data,
                by = "avatar_id")
 write.csv(Global_data, paste0(path, "/Global_data updated.csv"))
 
-# ### II ### Create all the age from dates ------------------------------------------------------------------------
+########################################### II ### Create all the age from dates ----
 Age_data <- Global_data
 
 enddate <- today()
@@ -139,11 +131,9 @@ Age_data$Age_at_tumorcollect <- round(Age_data$Age_at_tumorcollect, 3)
 # summary(Age_data$Age_at_tumorcollect, na.rm = TRUE)
 
 
-##################################################################################################  IV  ## Germline
+################################################################################################## III ## Germline ----
 # Create dataframe for only the patients who had germline sequenced
 germline_patient_data <- Age_data[!is.na(Age_data$moffitt_sample_id_germline),]
-
-
 germline_patient_data <- germline_patient_data %>% 
   mutate(Disease_Status_facet = case_when(
     Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
@@ -160,8 +150,7 @@ write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
 # Cleaning
 rm(Global_data, enddate)
 
-######################
-
+# Do a check on dates
 germline_patient_data <- germline_patient_data %>% 
   mutate(germlineBFdrugs = case_when(
     collectiondt_germline > drug_start_date_1 ~ "No",
@@ -244,18 +233,9 @@ barplot(tab, main = "Frequency of collection date first observed", ylim = c(0,50
 # dev.off()
 tab
 
+# Cleaning
+rm(tab, all_dates, all_dates1, last_event)
 
-rm(tab)
-
-
-colnames(germline_patient_data)
-
-
-
-
-
-
-# rm(all_dates)
 
 
 

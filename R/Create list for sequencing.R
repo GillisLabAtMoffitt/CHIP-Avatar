@@ -108,3 +108,14 @@ gt::gtsave(table_smoldering, expand = 1, zoom = 2,
              path, 
                   "/List patients for sequencing/Age range for Smoldering.pdf"))
 
+
+# Adding the 3 SMM who became PreT
+
+table <- germline_patient_data[,c("avatar_id", "WES_HUDSON_ALPHA_germline", "moffitt_sample_id_germline",
+                                  "collectiondt_germline",
+                                 "drug_stop_date_1_1", "germlineBFdrugs", "germlineBFbmt1", "germBFdrugsbmt",
+                                 "germBFdbr", "Disease_Status_germline")] %>% 
+  filter(avatar_id == "" | avatar_id == "" | avatar_id == "")
+  
+write_csv(table, paste0(path, "/info on the 3 SMM changed to PreT.csv"))
+

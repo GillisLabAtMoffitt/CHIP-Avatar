@@ -288,7 +288,7 @@ mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM
 MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
   select(c("avatar_id", "date_of_diagnosis_1", "disease_stage_1", "date_of_diagnosis_2", "disease_stage_2", "date_of_diagnosis_3", "disease_stage_3",
            "date_of_diagnosis_4", "disease_stage_4", "versionMM_1", "versionMM_2", "versionMM_3", "versionMM_4"))
-MM_history <- MM_history %>% 
+MM_history <- MM_history %>% # Create var = first date of diag for MM diagnostic
   mutate(date_of_diagnosis = case_when(
     disease_stage_1 == "active" ~ date_of_diagnosis_1,
     disease_stage_2 == "active" ~ date_of_diagnosis_2,

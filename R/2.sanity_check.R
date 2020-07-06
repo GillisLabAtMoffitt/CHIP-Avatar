@@ -94,21 +94,21 @@ sanity_check <- germline_patient_data %>%
     date_of_diagnosis_1 <= Date_of_Birth ~ "not good"
   )) %>% 
   mutate(diag_BF_lastdate = case_when(
-    last_date_available > date_of_diagnosis_1 ~ "OK",
-    last_date_available <= date_of_diagnosis_1 ~ "not good"
+    last_date_available > date_of_diagnosis ~ "OK",
+    last_date_available <= date_of_diagnosis ~ "not good"
   )) %>% 
   mutate(birth_diag_lastdate = case_when(
-    Date_of_Birth < date_of_diagnosis_1 &
-      date_of_diagnosis_1 < last_date_available ~ "OK"
+    Date_of_Birth < date_of_diagnosis &
+      date_of_diagnosis < last_date_available ~ "OK"
   )) %>% 
   mutate(rad_after_diag = case_when(
-    rad_start_date_1 > date_of_diagnosis_1 ~ "OK"
+    rad_start_date_1 > date_of_diagnosis ~ "OK"
   )) %>% 
   mutate(bmt_after_diag = case_when(
-    date_of_first_bmt > date_of_diagnosis_1 ~ "OK"
+    date_of_first_bmt > date_of_diagnosis ~ "OK"
   )) %>% 
   mutate(drug_after_diag = case_when(
-    drug_start_date_1 > date_of_diagnosis_1 ~ "OK"
+    drug_start_date_1 > date_of_diagnosis ~ "OK"
   ))
 
 table_sanity_check <- as.data.table(matrix(c("check", "radiation_check", "treatment_check", "diag_check", "rad_check", "sct_check", "treat_check", "birth_BF_lastdate",
@@ -149,11 +149,11 @@ write.csv(wrong_date_drug, paste0(path, "/sanity check output/wrong_date_drug.cs
 
 wrong_date_rad <- sanity_check[which(sanity_check$rad_check == "not good"),] # no big deal, they are the same (1=2)
 
-wrong_diag_or_lastdate <- as.data.table(sanity_check[which(sanity_check$diag_BF_lastdate == "not good"), c("avatar_id", "date_of_diagnosis_1", "last_date_available",
+wrong_diag_or_lastdate <- as.data.table(sanity_check[which(sanity_check$diag_BF_lastdate == "not good"), c("avatar_id", "date_of_diagnosis", "last_date_available",
                                                                         "date_death", "date_last_follow_up")])
 write.csv(wrong_diag_or_lastdate, paste0(path, "/sanity check output/wrong_diag_or_lastdate.csv"))
 
-missing_diag <- as.data.table(sanity_check[which(is.na(sanity_check$date_of_diagnosis_1)), c("avatar_id", "date_of_diagnosis_1")])
+missing_diag <- as.data.table(sanity_check[which(is.na(sanity_check$date_of_diagnosis)), c("avatar_id", "date_of_diagnosis")])
 write.csv(missing_diag, paste0(path, "/sanity check output/missing_diag date.csv"))
 
 rm(sanity_check, table_sanity_check, wrong_date, wrong_date_bmt, 

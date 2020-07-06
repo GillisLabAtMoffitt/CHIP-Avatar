@@ -116,7 +116,7 @@ rm(
 ##################################################################################################  I  ### Germline date VS other
 
 #------------------------------------------------------------- Table
-germline_patient_data[which(germline_patient_data$diag_BF_lastdate == "not good"), c("avatar_id", "date_of_diagnosis_1", "last_date_available")]
+germline_patient_data[which(germline_patient_data$diag_BF_lastdate == "not good"), c("avatar_id", "date_of_diagnosis", "last_date_available")]
 
 germline_compared_dates <-matrix(
   c("Category", "nbr in germline population", "comments",

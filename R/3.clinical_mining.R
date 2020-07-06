@@ -267,7 +267,7 @@ NROW(which(!is.na(germline_patient_data$Date_of_Birth))) # 533
 # nbr death
 NROW(which(!is.na(germline_patient_data$date_death))) # 89
 # nbr diag
-NROW(which(!is.na(germline_patient_data$date_of_diagnosis_1))) # 532
+NROW(which(!is.na(germline_patient_data$date_of_diagnosis))) # 532
 
 # nbr had bmt1 
 NROW(which(!is.na(germline_patient_data$date_of_first_bmt))) # 251

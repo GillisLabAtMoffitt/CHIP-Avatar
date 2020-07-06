@@ -121,7 +121,7 @@ germline_patient_data[which(germline_patient_data$diag_BF_lastdate == "not good"
 germline_compared_dates <-matrix(
   c("Category", "nbr in germline population", "comments",
     "birth date available", sum(!is.na(germline_patient_data$Date_of_Birth)), "",
-    "diagnosis date available", sum(!is.na(germline_patient_data$date_of_diagnosis_1)),  "",
+    "diagnosis date available", sum(!is.na(germline_patient_data$date_of_diagnosis)),  "",
     "last date available", sum(!is.na(germline_patient_data$last_date_available)),  "", 
     "death date available", sum(!is.na(germline_patient_data$date_death)), "",
     "nbr of patients born before last date", sum(str_count(germline_patient_data$birth_BF_lastdate, "OK"), na.rm = TRUE), "",
@@ -612,8 +612,9 @@ write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germlin
 
 ###########################################################################################################################################
 
-temp <- germ_BF_drugs[(germ_BF_drugs$Disease_Status_germline == "Early Relapse Multiple Myeloma"), c("avatar_id", "Date_of_Birth", "date_of_diagnosis_1",
-                                                                                             "date_of_first_bmt", "GermBFtumorWES",
+temp <- germ_BF_drugs[(germ_BF_drugs$Disease_Status_germline == "Early Relapse Multiple Myeloma"), 
+                      c("avatar_id", "Date_of_Birth", "date_of_diagnosis","date_of_diagnosis_1",
+                        "date_of_first_bmt", "GermBFtumorWES",
                                                                                              "collectiondt_germline","Disease_Status_germline", 
                                                                                              "collectiondt_tumor_1", "Disease_Status_tumor_1",
                                                                                              "date_death", "date_last_follow_up",

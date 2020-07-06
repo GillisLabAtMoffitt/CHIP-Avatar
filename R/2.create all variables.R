@@ -85,7 +85,7 @@ Age_data$Age <- interval(start= Global_data$Date_of_Birth, end= enddate)/
 Age_data$Age <- round(Age_data$Age, 3)
 # summary(Age_data$Age)
 
-Age_data$Age_at_diagosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_diagnosis_1)/                      
+Age_data$Age_at_diagosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_diagnosis)/                      
   duration(n=1, unit="years")
 Age_data$Age_at_diagosis <- round(Age_data$Age_at_diagosis, 3)
 # summary(Age_data$Age_at_diagosis, na.rm = TRUE)

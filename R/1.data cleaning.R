@@ -288,6 +288,14 @@ mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM
 MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
   select(c("avatar_id", "date_of_diagnosis_1", "disease_stage_1", "date_of_diagnosis_2", "disease_stage_2", "date_of_diagnosis_3", "disease_stage_3",
            "date_of_diagnosis_4", "disease_stage_4", "versionMM_1", "versionMM_2", "versionMM_3", "versionMM_4"))
+MM_history <- MM_history %>% 
+  mutate(date_of_diagnosis = case_when(
+    disease_stage_1 == "active" ~ date_of_diagnosis_1,
+    disease_stage_2 == "active" ~ date_of_diagnosis_2,
+    disease_stage_3 == "active" ~ date_of_diagnosis_3,
+    disease_stage_4 == "active" ~ date_of_diagnosis_4,
+  )) %>% 
+  mutate(date_of_diagnosis = coalesce(date_of_diagnosis, date_of_diagnosis_1))
 write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
 # Vitals ----
 Vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, Alc_SmoV4, .id = "versionVit")
@@ -546,7 +554,7 @@ write.csv(Germline, paste0(path, "/Combined germline_seq data.csv"))
 # Cleaning
 rm(Sequencing, Sequencing2, WES, WES_seq, Seq_WES_Raghu, Germ, Germ2, Germ3, Combined_data_MM)
 ##################################################################################################  IV  ## Merge----
-b <- merge.data.frame(Germline[, c("avatar_id", "moffitt_sample_id_germline",
+b <- merge.data.frame(Germline[, c("avatar_id", "WES_HUDSON_ALPHA_germline", "moffitt_sample_id_germline",
                                    "collectiondt_germline", "Disease_Status_germline", 
                                            "collectiondt_tumor_1", "Disease_Status_tumor_1")],
                       MM_history, by.x = "avatar_id", by.y = "avatar_id", 

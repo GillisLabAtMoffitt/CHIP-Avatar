@@ -49,7 +49,7 @@ p + geom_jitter(shape=16, position=position_jitter(0.2)) +
   #                                   face="bold.italic"),
   #       strip.text.y = element_text(size=12, color="red",
   #                                   face="bold.italic"))
-# dev.off()
+dev.off()
 
 # t <- as.data.table(layer_data(p, 1)) %>% 
 #   select(c("ymin", "middle", "ymax")) %>% 
@@ -86,9 +86,9 @@ p <- germline_patient_data %>% filter(!is.na(Race)) %>%
     . == "African American" ~ "Black",
     TRUE ~ .
     )) %>% 
-  mutate(Race = factor(Race, levels=c("White", "Black", "Others"))) %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black", "AM INDIAN", "Asian", "More than one race", "Others"))) %>% 
   ggplot(aes(x=Race, y=Age_at_diagosis), fill=Race) + 
-  geom_boxplot(color= c("#60136EFF", "#A92E5EFF", "#E65D2FFF")) +
+  geom_boxplot() + # color= c("#60136EFF", "#A92E5EFF", "#E65D2FFF")
   theme_minimal() +
   labs(x="Race", y="Age at Diagosis", title="Age repartition per race in Avatar")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
@@ -99,10 +99,10 @@ p <- germline_patient_data %>% filter(!is.na(Race),!is.na(Disease_Status_facet))
     . == "African American" ~ "Black",
     TRUE ~ .
   )) %>% 
-  mutate(Race = factor(Race, levels=c("White", "Black", "Others"))) %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black", "AM INDIAN", "Asian", "More than one race", "Others"))) %>% 
   mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MGUS", "Smoldering", "MM"))) %>% 
   ggplot(aes(x=Race, y=Age_at_diagosis), fill=Race) + 
-  geom_boxplot(color= c("#60136EFF", "#A92E5EFF", "#E65D2FFF", "#60136EFF", "#A92E5EFF", "#60136EFF", "#A92E5EFF", "#E65D2FFF")) +
+  geom_boxplot() +
   theme_minimal() +
   labs(x="Race", y="Age at Diagosis", title="Age repartition per race in Avatar")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
@@ -205,9 +205,9 @@ p <- germline_patient_data %>% filter(!is.na(Race)) %>%
     . == "African American" ~ "Black",
     TRUE ~ .
   )) %>% 
-  mutate(Race = factor(Race, levels=c("White", "Black", "Others"))) %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black", "AM INDIAN", "Asian", "More than one race", "Others"))) %>% 
   ggplot(aes(x=Race, y=Age_at_diagosis), fill=Race) + 
-  geom_boxplot(color= c("#60136EFF", "#A92E5EFF", "#E65D2FFF")) +
+  geom_boxplot() +
   theme_minimal() +
   labs(x="Race", y="Age at Diagosis", title="Age repartition per race")
 p + geom_jitter(shape=16, position=position_jitter(0.2))

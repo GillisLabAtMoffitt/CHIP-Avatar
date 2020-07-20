@@ -85,6 +85,15 @@ Sequencing2 <- dcast(setDT(Sequencing2), avatar_id+SLID_germline+moffitt_sample_
                        "SLID_tumor",
                        "moffitt_sample_id_tumor",
                        "BaitSet", "clinicalSpecimenLinkageDiseaseTy")) 
+#---
+Seq_WES_Raghu2 <- 
+  readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Metadata_WES_V045.xlsx")) %>% 
+  select(c(avatar_id = "subject", 
+           "SLID_germline", moffitt_sample_id_germline = "moffittSampleId_germline", "collectiondt_germline", 
+           "SLID_tumor" , moffitt_sample_id_tumor = "moffittSampleId_tumor", "collectiondt_tumor", 
+           "BaitSet"))
+
+
 # 1.4.Load Clinical data------------------------------------------------------------------------------------------
 # V1 ----
 ClinicalCap_V1 <-
@@ -542,37 +551,52 @@ Sequencing2 <- merge.data.frame(Germ3, Sequencing2,
                                by.x = "avatar_id", by.y = "avatar_id",
                                all.x = TRUE, all.y = TRUE) %>% 
   arrange(collectiondt_germline)
+#######################################################################################  III  # For 4th sequencing file
+# Really important to order by dates otherwise cannot find the duplicated lines
+Seq_WES_Raghu2 <- Seq_WES_Raghu2[order(Seq_WES_Raghu2$collectiondt_tumor), ]
+Seq_WES_Raghu2 <-
+  dcast(setDT(Seq_WES_Raghu2), avatar_id+SLID_germline+moffitt_sample_id_germline+collectiondt_germline ~ rowid(avatar_id),
+        value.var = c(
+          "SLID_tumor",
+          "moffitt_sample_id_tumor",
+          "collectiondt_tumor",
+          "BaitSet"
+        )
+  ) 
+
 
 ########### Binds
 
-Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu,Sequencing2, .id = "vers")
+# Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu,Sequencing2, .id = "vers")
+# Germline <- Germline %>% distinct(avatar_id,
+#                              SLID_germline , .keep_all = TRUE) 
+Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu, Sequencing2, Seq_WES_Raghu2, .id = "vers")
 Germline <- Germline %>% distinct(avatar_id,
-                             SLID_germline , .keep_all = TRUE) 
+                                  SLID_germline , .keep_all = TRUE) 
 write.csv(Germline, paste0(path, "/Combined germline_seq data.csv"))
+
+
+
+
 
 
 # Cleaning
 rm(Sequencing, Sequencing2, WES, WES_seq, Seq_WES_Raghu, Germ, Germ2, Germ3, Combined_data_MM)
 ##################################################################################################  IV  ## Merge----
-b <- merge.data.frame(Germline[, c("avatar_id", "WES_HUDSON_ALPHA_germline", "moffitt_sample_id_germline",
+b <- full_join(Germline[, c("avatar_id", "WES_HUDSON_ALPHA_germline", "moffitt_sample_id_germline",
                                    "collectiondt_germline", "Disease_Status_germline", 
                                            "collectiondt_tumor_1", "Disease_Status_tumor_1")],
-                      MM_history, by.x = "avatar_id", by.y = "avatar_id", 
-                      all.x = TRUE, all.y = TRUE, suffixes = c(".x",".y"))
+                      MM_history, by = "avatar_id")
 
-c <- merge.data.frame(b, Vitals, by.x = "avatar_id", by.y = "avatar_id", 
-                      all.x = TRUE, all.y = TRUE, suffixes = c(".x",".y"))
+c <- full_join(b, Vitals, by = "avatar_id")
 
-d <- merge.data.frame(c, SCT, by.x = "avatar_id", by.y = "avatar_id", 
-                      all.x = TRUE, all.y = TRUE, suffixes = c(".x",".y"))
+d <- full_join(c, SCT, by = "avatar_id")
 
-e <- merge.data.frame(d, Treatment, by.x = "avatar_id", by.y = "avatar_id", 
-                      all.x = TRUE, all.y = TRUE, suffixes = c(".x",".y"))
+e <- full_join(d, Treatment, by = "avatar_id")
 
-f <- merge.data.frame(e, Radiation,by.x = "avatar_id", by.y = "avatar_id", 
-                      all.x = TRUE, all.y = TRUE, suffixes = c(".x",".y"))
+f <- full_join(e, Radiation, by = "avatar_id")
 
-Global_data <- merge.data.frame(Demo_RedCap_V4ish, f, by.x = "avatar_id", by.y = "avatar_id", all.x = FALSE, all.y = TRUE)
+Global_data <- right_join(Demo_RedCap_V4ish, f, by = "avatar_id")
 write.csv(Global_data, paste0(path, "/Global_data.csv"))
 
 

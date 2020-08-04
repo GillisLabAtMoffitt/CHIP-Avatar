@@ -12,6 +12,12 @@ path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "
 Demo_RedCap_V4ish <-
   readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Avatar_Demographics_All_MM_modif_06292020.xlsx")) %>%
   select(c("avatar_id","TCC_ID","Date_of_Birth", "Gender", "Ethnicity", "Race"))
+Demo_HRI <- 
+  readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Demographics_HRI_Export.xlsx")) %>%
+  select(c("MRN",Date_of_Birth = "Date of Birth", Gender = "Gender Cerner", Ethnicity = "Ethnicity Cerner", Race = "Race Cerner"))
+Demo_linkage <- 
+  readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Demographics_HRI_Export.xlsx"),
+                    sheet = "Sheet1")
 # 1.2.Load Germline with disease status --------------------------------------------------------------------------
 Germ <- 
   readxl::read_xlsx(paste0(path, 
@@ -291,6 +297,23 @@ dev.off()
 
 #######################################################################################  II  ## Bind Version----
 #######################################################################################  II  ## Align duplicated ID
+# Demographic ----
+Demo_HRI <- full_join(Demo_linkage, Demo_HRI, by= "MRN") %>% 
+  select(-MRN) %>% 
+  distinct(.)
+Demo_HRI$Date_of_Birth <- as.POSIXct(Demo_HRI$Date_of_Birth)
+
+
+Demo_RedCap_V4ish
+class(Demo_RedCap_V4ish$Date_of_Birth)
+class(Demo_HRI$Date_of_Birth)
+
+uid <- paste(unique(Qcd_Treatment$avatar_id), collapse = '|')
+Treatment <- Treatment[(!grepl(uid, Treatment$avatar_id)),]
+
+Demo_RedCap_V4ish1 <- bind_rows(Demo_RedCap_V4ish, Demo_HRI, .id = "versionDemo")
+
+
 # Patient history ----
 mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
   arrange(date_of_diagnosis)

@@ -239,10 +239,10 @@ rm(tab, all_dates, all_dates1, last_event)
 
 
 # Request info from Raghu
-get_info <- germline_patient_data$avatar_id[is.na(germline_patient_data$WES_HUDSON_ALPHA_germline)]
-write.csv(get_info, paste0(path, "/get_info.csv"))
-get_info2 <- germline_patient_data$avatar_id[is.na(germline_patient_data$TCC_ID)]
-write.csv(get_info2, paste0(path, "/get_info2.csv"))
+# get_info <- germline_patient_data$avatar_id[is.na(germline_patient_data$WES_HUDSON_ALPHA_germline)]
+# write.csv(get_info, paste0(path, "/get_info.csv"))
+# get_info2 <- germline_patient_data$avatar_id[is.na(germline_patient_data$TCC_ID)]
+# write.csv(get_info2, paste0(path, "/get_info2.csv"))
 
 
 

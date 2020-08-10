@@ -263,8 +263,46 @@ RadiationV4 <-
                                  sheet = "Radiation") %>%
     select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 
+# V4.august2020 ----
+#---
+VitalsV4.1 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
+                    sheet = "Vitals") %>%
+  select(c("avatar_id","vital_status","date_death", date_last_follow_up = "date_of_last_contact"))
+#---
+MM_historyV4.1 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
+                    sheet = "Myeloma_Disease_History") %>%
+  select(c("avatar_id", "date_of_diagnosis"))
+#---
+Alc_SmoV4.1 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
+                    sheet = "Comorbidities") %>%
+  select(c("avatar_id","smoking_status", "alcohol_use"))
+#---
+TreatmentV4.1 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
+                    sheet = "Treatment") %>%
+  select(c("avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
+           "drug_name_other")) %>%  # didn't take "treatment_line_"
+  unite(drug_name_, c(drug_name_,drug_name_other), sep = "; ", na.rm = TRUE, remove = FALSE)
+#---
+SCTV4.1 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
+                    sheet = "SCT") %>%
+  select(c("avatar_id", "date_of_bmt")) %>%  # can be different than first if duplicated from v1 or v2
+  drop_na("date_of_bmt")
+# SCTV4.1 <- dcast(setDT(SCTV4), avatar_id ~ rowid(avatar_id), value.var = c("date_of_bmt")) %>% 
+#   rename("date_of_first_bmt" = "1", "date_of_second_bmt" = "2")
+#---
+RadiationV4.1 <- 
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
+                    sheet = "Radiation") %>%
+  select(c("avatar_id", "rad_start_date", "rad_stop_date"))
+
+
 # Plot data recorded ---------------------------------------------------------------------------------------------
-jpeg(paste0(path, "/barplot1.jpg"), width = 350, height = 350)
+# jpeg(paste0(path, "/barplot1.jpg"), width = 350, height = 350)
 par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
 par(cex.sub = .7)
 barplot(
@@ -293,7 +331,7 @@ barplot(
 legend("bottomright", legend = c("version1", "version2", "version4"),
        col = c("purple", "orange", "yellow"),
        bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(0.05, 0.05)) # horiz, vert
-dev.off()
+# dev.off()
 
 #######################################################################################  II  ## Bind Version----
 #######################################################################################  II  ## Align duplicated ID
@@ -301,19 +339,11 @@ dev.off()
 Demo_HRI <- full_join(Demo_linkage, Demo_HRI, by= "MRN") %>% 
   select(-MRN) %>% 
   distinct(.)
-Demo_HRI$Date_of_Birth <- as.POSIXct(Demo_HRI$Date_of_Birth)
-
-
-Demo_RedCap_V4ish
-class(Demo_RedCap_V4ish$Date_of_Birth)
-class(Demo_HRI$Date_of_Birth)
-
-uid <- paste(unique(Qcd_Treatment$avatar_id), collapse = '|')
-Treatment <- Treatment[(!grepl(uid, Treatment$avatar_id)),]
-
+Demo_HRI$Date_of_Birth <- as.POSIXct(strptime(Demo_HRI$Date_of_Birth, 
+                                                  format = "%m/%d/%Y", tz = "UTC"))
+uid <- paste(unique(Demo_RedCap_V4ish$avatar_id), collapse = '|')
+Demo_HRI <- Demo_HRI[(!grepl(uid, Demo_HRI$avatar_id)),]
 Demo_RedCap_V4ish1 <- bind_rows(Demo_RedCap_V4ish, Demo_HRI, .id = "versionDemo")
-
-
 # Patient history ----
 mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
   arrange(date_of_diagnosis)

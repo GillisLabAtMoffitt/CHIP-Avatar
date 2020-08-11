@@ -98,7 +98,11 @@ Seq_WES_Raghu2 <-
            "SLID_germline", moffitt_sample_id_germline = "moffittSampleId_germline", "collectiondt_germline", 
            "SLID_tumor" , moffitt_sample_id_tumor = "moffittSampleId_tumor", "collectiondt_tumor", 
            "BaitSet"))
-
+Germ4 <-
+  readxl::read_xlsx(paste0(path,
+                           "/Raghu MM/Moffitt_Germl_v0.4.5_Disease_Classification_OUT_07272020.xlsx")) %>% 
+  select(c("avatar_id", "SLID_germline", "Disease_Status")) %>% 
+  `colnames<-`(c(c("avatar_id", "SLID_germline", "Disease_Status_germline")))
 
 # 1.4.Load Clinical data------------------------------------------------------------------------------------------
 # V1 ----
@@ -502,7 +506,7 @@ write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
 
 
 # Cleaning
-rm(Demo_HRI, Demo_linkage, Demo_RedCap_V4ish1,
+rm(Demo_HRI, Demo_linkage,
    ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, MM_historyV4.1,
    VitalsV2, VitalsV4, VitalsV4.1, SCTV2, SCTV4, SCTV4.1,
    TreatmentV2, TreatmentV4, Qcd_Treatment, Qcd_TreatmentV2, TreatmentV4.1, uid,
@@ -611,9 +615,9 @@ Seq_WES_Raghu2 <-
           "collectiondt_tumor",
           "BaitSet"
         )
-  ) 
-
-
+  )
+Seq_WES_Raghu2 <- full_join(Germ4, Seq_WES_Raghu2, by = "SLID_germline") %>% 
+  select(avatar_id = "avatar_id.x", everything(), -avatar_id.y)
 ########### Binds
 
 # Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu,Sequencing2, .id = "vers")

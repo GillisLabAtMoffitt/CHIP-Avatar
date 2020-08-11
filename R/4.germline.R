@@ -641,38 +641,38 @@ write.csv(Pre_Treat_, paste0(path, "/Pretreatment patient already treated.csv"))
 germ_BF_drugs <- germ_BF_drugs %>% # 228
   select(c("avatar_id", "Disease_Status_germline", "moffitt_sample_id_germline", "collectiondt_germline")) %>% 
   arrange(Disease_Status_germline)
-write.csv(germ_BF_drugs, paste0(path, "/List patients for sequencing/New list patients germline before drugs.csv"))
+write.csv(germ_BF_drugs, paste0(path, "/List patients for sequencing/New2 list patients germline before drugs.csv"))
 
 germ_BF_bmt1 <- germ_BF_bmt1 %>% 
   select(c("avatar_id", "Disease_Status_germline", "moffitt_sample_id_germline", "collectiondt_germline")) %>% 
   arrange(Disease_Status_germline)
-write.csv(germ_BF_bmt1, paste0(path, "/List patients for sequencing/New list patients germline before bmt.csv"))
+write.csv(germ_BF_bmt1, paste0(path, "/List patients for sequencing/New2 list patients germline before bmt.csv"))
 
 germ_BF_rad <- germ_BF_rad %>% 
   select(c("avatar_id", "Disease_Status_germline", "moffitt_sample_id_germline", "collectiondt_germline")) %>% 
   arrange(Disease_Status_germline)
-write.csv(germ_BF_rad, paste0(path, "/List patients for sequencing/New list patients germline before radiation.csv"))
+write.csv(germ_BF_rad, paste0(path, "/List patients for sequencing/New2 list patients germline before radiation.csv"))
 
 germ_BF_drugsBMT <- germ_BF_drugsBMT %>% 
   select(c("avatar_id", "Disease_Status_germline", "moffitt_sample_id_germline", "collectiondt_germline")) %>% 
   arrange(Disease_Status_germline)
-write.csv(germ_BF_drugsBMT, paste0(path, "/List patients for sequencing/New list patients germline before drugs and bmt.csv"))
+write.csv(germ_BF_drugsBMT, paste0(path, "/List patients for sequencing/New2 list patients germline before drugs and bmt.csv"))
 
 germ_BF_drug_bmt_rad <- germ_BF_drug_bmt_rad %>% 
   select(c("avatar_id", "Disease_Status_germline", "moffitt_sample_id_germline", "collectiondt_germline")) %>% 
   arrange(Disease_Status_germline)
-write.csv(germ_BF_drug_bmt_rad, paste0(path, "/List patients for sequencing/New list patients germline before drugs, bmt and radiation.csv"))
+write.csv(germ_BF_drug_bmt_rad, paste0(path, "/List patients for sequencing/New2 list patients germline before drugs, bmt and radiation.csv"))
 
 # List when treatment was delivered
 germ_stricBF_drugs_MM <- germ_stricBF_drugs_MM %>% # 115 patients
   select(c("avatar_id", "Disease_Status_germline", "moffitt_sample_id_germline", "collectiondt_germline")) %>% 
   arrange(Disease_Status_germline)
-write.csv(germ_stricBF_drugs_MM, paste0(path, "/List patients for sequencing/New list patients germline before drugs when drugs delivered.csv"))
+write.csv(germ_stricBF_drugs_MM, paste0(path, "/List patients for sequencing/New2 list patients germline before drugs when drugs delivered.csv"))
 
 germ_stricBF_bmt1_MM <- germ_stricBF_bmt1_MM %>% # 90 patients
   select(c("avatar_id", "Disease_Status_germline", "moffitt_sample_id_germline", "collectiondt_germline")) %>% 
   arrange(Disease_Status_germline)
-write.csv(germ_stricBF_bmt1_MM, paste0(path, "/List patients for sequencing/New list patients germline before bmt when bmt delivered.csv"))
+write.csv(germ_stricBF_bmt1_MM, paste0(path, "/List patients for sequencing/New2 list patients germline before bmt when bmt delivered.csv"))
 
 
 rm(germ_stricBF_bmt1_mgus, germ_stricBF_bmt1_MM, germ_stricBF_bmt1_smoldering, germ_BF_drug_bmt_rad, 

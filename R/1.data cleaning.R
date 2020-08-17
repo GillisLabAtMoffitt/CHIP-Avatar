@@ -516,78 +516,36 @@ barplot(
 
 #######################################################################################  III  # Merge WES and Sequencing----
 #######################################################################################  III  # For 1st sequencing file
+### Bind Germline
+Germline <- bind_rows(Germ, Germ2, Germ3, Germ4) %>% 
+  `colnames<-`(c("avatar_id", "collectiondt_germline", 
+                 "WES_HUDSON_ALPHA_germline", "Disease_Status_germline", "SLID_germline")) %>% 
+  arrange(SLID_germline) %>% 
+  distinct(avatar_id, Disease_Status_germline, .keep_all = TRUE)
+
+# One of the seq is in 2 part so merge that first
 # Are moffitt_sample_id are equal in WES and Sequencing ?
 # Sequencing <- Sequencing[order(Sequencing$moffitt_sample_id),]
 # WES <- WES[order(WES$moffitt_sample_id),]
 # Sequencing$moffitt_sample_id == WES$moffitt_sample_id # =>>>>>>> YES
-WES_seq <-
-  merge.data.frame(
-    WES,
+Sequencing <-
+  full_join(
     Sequencing,
-    by.x = "moffitt_sample_id_tumor",
-    by.y = "moffitt_sample_id_tumor",
-    all.x = TRUE,
-    all.y = TRUE
-  )
+    WES_tumor,
+    by = "moffitt_sample_id_tumor")
+# Bind Sequencing
+Seq_WES <- bind_rows(Seq_WES_Raghu, Sequencing2, Seq_WES_Raghu2, Sequencing, .id = "vers") %>% 
+  arrange(collectiondt_germline) %>% 
+  distinct(SLID_tumor, moffitt_sample_id_tumor, SLID_germline, .keep_all = TRUE)
 
 # duplicated(WES_seq$moffitt_sample_id_tumor) # No duplicate
 # duplicated(WES_seq$avatar_id) # has duplicate so
 # Reshape to have duplicate ID on same row (per date) but
 # Really important to order by dates otherwise cannot find the duplicated lines
-WES_seq <- WES_seq[order(WES_seq$collectiondt_tumor), ]
+Seq_WES <- Seq_WES[order(Seq_WES$collectiondt_tumor), ]
+# pivot wider
 WES_seq <-
-  dcast(setDT(WES_seq), avatar_id+SLID_germline+moffitt_sample_id_germline ~ rowid(avatar_id),
-    value.var = c(
-      "BaitSet",
-      "ClinicalSpecimenLinkage_WES.Batch",
-      "SLID_tumor",
-      "moffitt_sample_id_tumor",
-      "Disease_Status_tumor",
-      "collectiondt_tumor"
-    )
-  )
-
-WES_seq  <- WES_seq[order(WES_seq$collectiondt_tumor_1), ] %>%
-  arrange(collectiondt_tumor_2) %>%
-  arrange(collectiondt_tumor_3) %>%
-  arrange(collectiondt_tumor_4) %>%
-  arrange(collectiondt_tumor_5) %>%
-  arrange(collectiondt_tumor_6)
-
-
-# Merge with Germ (date) with WES_seq (sequencing)
-Combined_data_MM <- merge.data.frame(Germ, WES_seq,
-                                     by.x = "avatar_id", by.y = "avatar_id", 
-                                     all.x = TRUE, all.y = TRUE)
-
-# I checked the ID they are all the same no missing nor added
-
-#######################################################################################  III  # For 2nd sequencing file
-# Really important to order by dates otherwise cannot find the duplicated lines
-Seq_WES_Raghu <- Seq_WES_Raghu[order(Seq_WES_Raghu$collectiondt_tumor), ]
-Seq_WES_Raghu <-
-  dcast(setDT(Seq_WES_Raghu), avatar_id+SLID_germline+moffitt_sample_id_germline ~ rowid(avatar_id),
-        value.var = c(
-          "SLID_tumor",
-          "moffitt_sample_id_tumor",
-          "collectiondt_tumor",
-          "BaitSet"
-        )
-  ) 
-
-Seq_WES_Raghu <- merge.data.frame(Germ2, Seq_WES_Raghu, 
-                          by.x = "avatar_id", by.y = "avatar_id",
-                          all.x = TRUE, all.y = TRUE) 
-#######################################################################################  III  # For 3rd sequencing file
-Sequencing2 <- merge.data.frame(Germ3, Sequencing2, 
-                               by.x = "avatar_id", by.y = "avatar_id",
-                               all.x = TRUE, all.y = TRUE) %>% 
-  arrange(collectiondt_germline)
-#######################################################################################  III  # For 4th sequencing file
-# Really important to order by dates otherwise cannot find the duplicated lines
-Seq_WES_Raghu2 <- Seq_WES_Raghu2[order(Seq_WES_Raghu2$collectiondt_tumor), ]
-Seq_WES_Raghu2 <-
-  dcast(setDT(Seq_WES_Raghu2), avatar_id+SLID_germline+moffitt_sample_id_germline+collectiondt_germline ~ rowid(avatar_id),
+  dcast(setDT(Seq_WES), avatar_id+SLID_germline+moffitt_sample_id_germline+collectiondt_germline ~ rowid(avatar_id),
         value.var = c(
           "SLID_tumor",
           "moffitt_sample_id_tumor",
@@ -595,45 +553,110 @@ Seq_WES_Raghu2 <-
           "BaitSet"
         )
   )
-Seq_WES_Raghu2 <- full_join(Germ4, Seq_WES_Raghu2, by = "SLID_germline") %>% 
-  select(avatar_id = "avatar_id.x", everything(), -avatar_id.y)
-########### Binds
 
-# Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu,Sequencing2, .id = "vers")
+# WES_seq  <- WES_seq[order(WES_seq$collectiondt_tumor_1), ] %>%
+#   arrange(collectiondt_tumor_2) %>%
+#   arrange(collectiondt_tumor_3) %>%
+#   arrange(collectiondt_tumor_4) %>%
+#   arrange(collectiondt_tumor_5) %>%
+#   arrange(collectiondt_tumor_6)
+
+
+# # Merge with Germ (date) with WES_seq (sequencing)
+# Combined_data_MM <- merge.data.frame(Germ, WES_seq,
+#                                      by.x = "avatar_id", by.y = "avatar_id", 
+#                                      all.x = TRUE, all.y = TRUE)
+# 
+# # I checked the ID they are all the same no missing nor added
+# 
+# #######################################################################################  III  # For 2nd sequencing file
+# # Really important to order by dates otherwise cannot find the duplicated lines
+# Seq_WES_Raghu <- Seq_WES_Raghu[order(Seq_WES_Raghu$collectiondt_tumor), ]
+# Seq_WES_Raghu <-
+#   dcast(setDT(Seq_WES_Raghu), avatar_id+SLID_germline+moffitt_sample_id_germline ~ rowid(avatar_id),
+#         value.var = c(
+#           "SLID_tumor",
+#           "moffitt_sample_id_tumor",
+#           "collectiondt_tumor",
+#           "BaitSet"
+#         )
+#   ) 
+# 
+# Seq_WES_Raghu <- merge.data.frame(Germ2, Seq_WES_Raghu, 
+#                           by.x = "avatar_id", by.y = "avatar_id",
+#                           all.x = TRUE, all.y = TRUE) 
+# #######################################################################################  III  # For 3rd sequencing file
+# Sequencing2 <- merge.data.frame(Germ3, Sequencing2, 
+#                                by.x = "avatar_id", by.y = "avatar_id",
+#                                all.x = TRUE, all.y = TRUE) %>% 
+#   arrange(collectiondt_germline)
+# #######################################################################################  III  # For 4th sequencing file
+# # Really important to order by dates otherwise cannot find the duplicated lines
+# Seq_WES_Raghu2 <- Seq_WES_Raghu2[order(Seq_WES_Raghu2$collectiondt_tumor), ]
+# Seq_WES_Raghu2 <-
+#   dcast(setDT(Seq_WES_Raghu2), avatar_id+SLID_germline+moffitt_sample_id_germline+collectiondt_germline ~ rowid(avatar_id),
+#         value.var = c(
+#           "SLID_tumor",
+#           "moffitt_sample_id_tumor",
+#           "collectiondt_tumor",
+#           "BaitSet"
+#         )
+#   )
+# Seq_WES_Raghu2 <- full_join(Germ4, Seq_WES_Raghu2, by = "SLID_germline") %>% 
+#   select(avatar_id = "avatar_id.x", everything(), -avatar_id.y)
+# ########### Binds
+# 
+# # Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu,Sequencing2, .id = "vers")
+# # Germline <- Germline %>% distinct(avatar_id,
+# #                              SLID_germline , .keep_all = TRUE) 
+# Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu, Sequencing2, Seq_WES_Raghu2, .id = "vers")
 # Germline <- Germline %>% distinct(avatar_id,
-#                              SLID_germline , .keep_all = TRUE) 
-Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu, Sequencing2, Seq_WES_Raghu2, .id = "vers")
-Germline <- Germline %>% distinct(avatar_id,
-                                  SLID_germline , .keep_all = TRUE) 
-write.csv(Germline, paste0(path, "/Combined germline_seq data.csv"))
+#                                   SLID_germline , .keep_all = TRUE) 
+# write.csv(Germline, paste0(path, "/Combined germline_seq data.csv"))
 
 
+# Merge all
 
+Germline1 <- left_join(WES_seq, Germline, by = "avatar_id") %>% 
+  filter(SLID_germline.x == SLID_germline.y | is.na(SLID_germline.x == SLID_germline.y)) %>% 
+  rename(SLID_germline = "SLID_germline.x", collectiondt_germline = "collectiondt_germline.x") %>% 
+  # distinct(avatar_id, SLID_germline, .keep_all = TRUE) %>% 
+  mutate(collectiondt_germline = coalesce(collectiondt_germline, collectiondt_germline.y)) %>% 
+  select(-SLID_germline.y, -collectiondt_germline.y)
 
 
 
 # Cleaning
 rm(Sequencing, Sequencing2, WES, WES_seq, Seq_WES_Raghu, Germ, Germ2, Germ3, Combined_data_MM)
 ##################################################################################################  IV  ## Merge----
-b <- full_join(Germline[, c("avatar_id", "WES_HUDSON_ALPHA_germline", "moffitt_sample_id_germline",
-                                   "collectiondt_germline", "Disease_Status_germline", 
-                                           "collectiondt_tumor_1", "Disease_Status_tumor_1")],
-                      MM_history, by = "avatar_id")
+# b <- full_join(Germline[, c("avatar_id", "WES_HUDSON_ALPHA_germline", "moffitt_sample_id_germline",
+#                                    "collectiondt_germline", "Disease_Status_germline", 
+#                                            "collectiondt_tumor_1", "Disease_Status_tumor_1")],
+#                       MM_history, by = "avatar_id")
+# 
+# c <- full_join(b, Vitals, by = "avatar_id")
+# 
+# d <- full_join(c, SCT, by = "avatar_id")
+# 
+# e <- full_join(d, Treatment, by = "avatar_id")
+# 
+# f <- full_join(e, Radiation, by = "avatar_id")
 
-c <- full_join(b, Vitals, by = "avatar_id")
+b <- full_join(Germline1[, c("avatar_id", "moffitt_sample_id_germline", "SLID_germline",
+                             "collectiondt_germline", "Disease_Status_germline", 
+                             "collectiondt_tumor_1", "WES_HUDSON_ALPHA_germline")],
+               MM_history, by = "avatar_id") %>% 
+  full_join(., Vitals, by = "avatar_id") %>% 
+  full_join(., SCT, by = "avatar_id") %>% 
+  full_join(., Treatment, by = "avatar_id") %>% 
+  full_join(., Radiation, by = "avatar_id")
 
-d <- full_join(c, SCT, by = "avatar_id")
-
-e <- full_join(d, Treatment, by = "avatar_id")
-
-f <- full_join(e, Radiation, by = "avatar_id")
-
-Global_data <- right_join(Demo_RedCap_V4ish, f, by = "avatar_id")
+Global_data <- right_join(Demo_RedCap_V4ish, b, by = "avatar_id")
 write.csv(Global_data, paste0(path, "/Global_data.csv"))
 
 
 # Cleaning
-rm(b,c,d,e,f)
+rm(b)
 
 
 #------------------------------------

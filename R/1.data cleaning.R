@@ -22,35 +22,28 @@ Demo_linkage <-
 Germ <- 
   readxl::read_xlsx(paste0(path, 
                            "/Raghu MM/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
-  select(c("avatar_id", "collectiondt", "WES_HUDSON_ALPHA",
-           "Disease_Status")) %>% 
-  `colnames<-`(c("avatar_id", "collectiondt_germline", "WES_HUDSON_ALPHA_germline",
-                 "Disease_Status_germline"))
+  select(c("avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status"))
+
 Germ2 <-
   readxl::read_xlsx(paste0(path,
                            "/Raghu MM/Moffitt_Germl_Disease_Classification_2patient_from_2nd_sequencingfile.xlsx")) %>%
-  select(-moffitt_sample_id) %>% 
-  `colnames<-`(c("avatar_id", "collectiondt_germline", "WES_HUDSON_ALPHA_germline", "Disease_Status_germline"))
-# We have 510 + 2 avatar-id which are unique
-print(paste("We have", length(Germ$avatar_id) ,"subject-id with", 
-            length(unique(Germ$avatar_id)) ,"unique id in Germ"))
-print(paste("We have", length(Germ2$avatar_id) ,"subject-id with", 
-            length(unique(Germ2$avatar_id)) ,"unique id in Germ2"))
+  select(-moffitt_sample_id)
+
 Germ3 <-
   readxl::read_xlsx(paste0(path,
                            "/Raghu MM/Germline_MM_Disease_Status_05052020_OUT .xlsx")) %>% 
-  select(c("Avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status")) %>% 
-  `colnames<-`(c(c("avatar_id", "collectiondt_germline", "WES_HUDSON_ALPHA_germline", "Disease_Status_germline")))
+  select(c(avatar_id = "Avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status"))
+
+Germ4 <-
+  readxl::read_xlsx(paste0(path,
+                           "/Raghu MM/Moffitt_Germl_v0.4.5_Disease_Classification_OUT_07272020.xlsx")) %>% 
+  select(c("avatar_id", "SLID_germline", "Disease_Status"))
 # 1.3.Load Sequencing data ---------------------------------------------------------------------------------------
-WES <-
+WES_tumor <-
   readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_WES_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
-  select(c("avatar_id", "moffitt_sample_id", 
-           "Disease_Status", "collectiondt", "WES_HUDSON_ALPHA")) %>% 
-  `colnames<-`(c("avatar_id", "moffitt_sample_id_tumor", 
-                 "Disease_Status_tumor", "collectiondt_tumor", "WES_HUDSON_ALPHA_tumor"))
-# We have 510 avatar-id which are unique
-print(paste("We have", length(WES$avatar_id) ,"subject-id in WES with", 
-            length(unique(WES$avatar_id)) ,"unique id in WES"))
+  select(c("avatar_id", "moffitt_sample_id", "collectiondt")) %>% 
+  `colnames<-`(c("avatar_id", "moffitt_sample_id_tumor", "collectiondt_tumor"))
+
 #---
 Sequencing <-
   read.delim(paste0(path, "/Jamie/v0.4.3.MM.samples.WESdata01.31.20.txt")) %>% 
@@ -58,9 +51,7 @@ Sequencing <-
     "SLID_germline", 
     "SLID_tumor" , "moffitt_sample_id_tumor", 
     "moffitt_sample_id_germline",
-    "BaitSet", "ClinicalSpecimenLinkage_WES.Batch")) # , "ClinicalSpecimenLinkage_HistologyBehavior"
-print(paste("We have", length(Sequencing$SLID_tumor) ,"samples in Sequencing with", 
-            length(unique(Sequencing$SLID_germline)) ,"unique id"))
+    "BaitSet"))
 # Sequencing$moffitt_sample_id_tumor == Sequencing$moffitt_sample_id # yes so remove one var
 # Sequencing$subject == Sequencing$avatar_id # yes so remove one var
 #---
@@ -70,8 +61,6 @@ Seq_WES_Raghu <-
            "SLID_germline", "moffitt_sample_id_germline", "collectiondt_germline", 
            "SLID_tumor" , "moffitt_sample_id_tumor", "collectiondt_tumor", 
            "BaitSet"))
-print(paste("We have", length(Seq_WES_Raghu$SLID_tumor) ,"samples in Seq_WES_Raghu with", 
-            length(unique(Seq_WES_Raghu$SLID_germline)) ,"unique id"))
 # Keep
 # Seq_WES_Raghu$moffitt_sample_id_tumor == Seq_WES_Raghu$moffitt_sample_id # yes so rename and remove one var
 # Seq_WES_Raghu$SLID_tumor == Seq_WES_Raghu$ClinicalSpecimenLinkage_WES # yes
@@ -81,16 +70,11 @@ print(paste("We have", length(Seq_WES_Raghu$SLID_tumor) ,"samples in Seq_WES_Rag
 #---
 Sequencing2 <- # warning message due to a TRUE added in a num var by Raghu (he copy paste an extra patient)
   readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Metadata_WES_V0441.xlsx")) %>% 
-  select(c(avatar_id = "subject", 
-           "SLID_germline", moffitt_sample_id_germline = "moffittSampleId_germline", 
-           "collectiondt_germline", 
-           "SLID_tumor" , moffitt_sample_id_tumor = "moffittSampleId_tumor", "collectiondt_tumor", 
-           BaitSet = "baitSet", "clinicalSpecimenLinkageDiseaseTy"))
-Sequencing2 <- dcast(setDT(Sequencing2), avatar_id+SLID_germline+moffitt_sample_id_germline ~ rowid(avatar_id),
-                     value.var = c(
-                       "SLID_tumor",
-                       "moffitt_sample_id_tumor",
-                       "BaitSet", "clinicalSpecimenLinkageDiseaseTy")) 
+  select(c(avatar_id = "subject",
+           "SLID_germline", moffitt_sample_id_germline = "moffittSampleId_germline",
+           "collectiondt_germline",
+           "SLID_tumor" , moffitt_sample_id_tumor = "moffittSampleId_tumor", "collectiondt_tumor",
+           BaitSet = "baitSet"))
 #---
 Seq_WES_Raghu2 <- 
   readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Metadata_WES_V045.xlsx")) %>% 
@@ -98,11 +82,6 @@ Seq_WES_Raghu2 <-
            "SLID_germline", moffitt_sample_id_germline = "moffittSampleId_germline", "collectiondt_germline", 
            "SLID_tumor" , moffitt_sample_id_tumor = "moffittSampleId_tumor", "collectiondt_tumor", 
            "BaitSet"))
-Germ4 <-
-  readxl::read_xlsx(paste0(path,
-                           "/Raghu MM/Moffitt_Germl_v0.4.5_Disease_Classification_OUT_07272020.xlsx")) %>% 
-  select(c("avatar_id", "SLID_germline", "Disease_Status")) %>% 
-  `colnames<-`(c(c("avatar_id", "SLID_germline", "Disease_Status_germline")))
 
 # 1.4.Load Clinical data------------------------------------------------------------------------------------------
 # V1 ----

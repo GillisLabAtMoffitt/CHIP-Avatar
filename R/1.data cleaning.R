@@ -84,6 +84,61 @@ Seq_WES_Raghu2 <-
            "BaitSet"))
 
 # 1.4.Load Clinical data------------------------------------------------------------------------------------------
+# V1 and V2 verified in V4 format ----
+ClinicalCap_V12 <-
+  fs::path(
+    "",
+    "Volumes",
+    "Gillis_Research",
+    "Christelle Colin-Leitzinger",
+    "CHIP in Avatar",
+    "Raghu MM",
+    "extracted Avatar V124 data and dict",
+    "V1V2 verified by CIOX in V4 format"
+  )
+#---
+Vitals_V12 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+                    sheet = "Vitals") %>%
+  select(c("avatar_id","vital_status","date_death", date_last_follow_up = "date_of_last_contact"))
+# Remove IDs from new CIOX V1V2 in the initial V! and V2 version ----
+uid_V <- paste(unique(Vitals_V12$avatar_id), collapse = '|')
+
+Alc_Smo_V12 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+                    sheet = "Comorbidities") %>%
+  select(c("avatar_id","smoking_status", "alcohol_use"))
+uid_A <- paste(unique(Alc_Smo_V12$avatar_id), collapse = '|')
+#---
+MM_history_V12 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+                    sheet = "Myeloma_Disease_History") %>%
+  select(c("avatar_id", "date_of_diagnosis"))
+uid_MM <- paste(unique(MM_history_V12$avatar_id), collapse = '|')
+#---
+Treatment_V12 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+                    sheet = "Treatment") %>%
+  select(c("avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
+           "drug_name_other_")) %>%  # didn't take "treatment_line_"
+  unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = FALSE)
+uid_T <- paste(unique(Treatment_V12$avatar_id), collapse = '|')
+#---
+SCT_V12 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+                    sheet = "SCT") %>%
+  select(c("avatar_id","date_of_bmt")) %>%
+  drop_na("date_of_bmt")
+SCT_V12 <- dcast(setDT(SCT_V12), avatar_id ~ rowid(avatar_id), value.var = c("date_of_bmt")) %>% 
+  rename("date_of_first_bmt" = "1", "date_of_second_bmt" = "2", "date_of_third_bmt" = "3")
+uid_S <- paste(unique(SCT_V12$avatar_id), collapse = '|')
+#---
+Radiation_V12 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx"),
+                    sheet = "Radiation") %>%
+  select(c("avatar_id", "rad_start_date", "rad_stop_date"))
+uid_R <- paste(unique(Radiation_V12$avatar_id), collapse = '|')
+
 # V1 ----
 ClinicalCap_V1 <-
   fs::path(
@@ -100,12 +155,20 @@ ClinicalCap_V1 <-
 Vitals <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
                     sheet = "Vitals") %>%
-  select(c("avatar_id","vital_status","date_death", "date_last_follow_up", "smoking_status","current_smoker","alcohol_use"))
+  select(c("avatar_id","vital_status","date_death", "date_last_follow_up"))
+Vitals <- Vitals[(!grepl(uid_V, Vitals$avatar_id)),]
+
+Alc_Smo <-
+  readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
+                    sheet = "Vitals") %>%
+  select(c("avatar_id", "smoking_status","current_smoker","alcohol_use"))
+Alc_Smo <- Alc_Smo[(!grepl(uid_A, Alc_Smo$avatar_id)),]
 #---
 MM_history <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
                     sheet = "Myeloma_Disease_History") %>%
   select(c("avatar_id", "date_of_diagnosis", "disease_stage"))
+MM_history <- MM_history[(!grepl(uid_MM, MM_history$avatar_id)),]
 #---
 # Comorbidities <-
 #   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
@@ -134,15 +197,19 @@ Qcd_Treatment <-
   select(c("avatar_id","regimen_start_date", "regimen_end_date",
            "treatment")) %>%
   `colnames<-`(c("avatar_id","drug_start_date", "drug_stop_date", "drug_name_"))
+Treatment <- Treatment[(!grepl(uid_T, Treatment$avatar_id)),]
+Qcd_Treatment <- Qcd_Treatment[(!grepl(uid_T, Qcd_Treatment$avatar_id)),]
 #---
 SCT <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
                     sheet = "SCT") %>%
   select(c("avatar_id","date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
+SCT <- SCT[(!grepl(uid_S, SCT$avatar_id)),]
 #---
 RadiationV1 <- readxl::read_xlsx(paste0(ClinicalCap_V1, "/Radiation_Version1_Patients.xlsx")) %>%
   select(c("Avatar_ID", "Radiation Start Date", "Radiation End Date")) %>% 
   `colnames<-`(c("avatar_id", "rad_start_date", "rad_stop_date"))
+RadiationV1 <- RadiationV1[(!grepl(uid_R, RadiationV1$avatar_id)),]
 # V2 ----
 ClinicalCap_V2 <-
     fs::path(
@@ -159,12 +226,20 @@ ClinicalCap_V2 <-
 VitalsV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "Vitals") %>%
-  select(c("avatar_id","vital_status","date_death","smoking_status","alcohol_use", "bmi_at_dx_v2"))
+  select(c("avatar_id","vital_status","date_death"))
+VitalsV2 <- VitalsV2[(!grepl(uid_V, VitalsV2$avatar_id)),]
+
+Alc_Smo_V2 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
+                    sheet = "Vitals") %>%
+  select(c("avatar_id", "smoking_status","alcohol_use")) # remove BMI
+Alc_Smo_V2 <- Alc_Smo_V2[(!grepl(uid_A, Alc_Smo_V2$avatar_id)),]
 #---
 MM_historyV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "Myeloma_Disease_History") %>%
   select(c("avatar_id",  "date_of_diagnosis"))
+MM_historyV2 <- MM_historyV2[(!grepl(uid_MM, MM_historyV2$avatar_id)),]
 #---
 TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
@@ -176,16 +251,20 @@ Qcd_TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "QC'd Treatment") %>%
   select(c("avatar_id", "drug_start_date" , "drug_name_", "drug_stop_date"))
+TreatmentV2 <- TreatmentV2[(!grepl(uid_T, TreatmentV2$avatar_id)),]
+Qcd_TreatmentV2 <- Qcd_TreatmentV2[(!grepl(uid_T, Qcd_TreatmentV2$avatar_id)),]
 #---
 SCTV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "SCT") %>%
   select(c("avatar_id", "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
+SCTV2 <- SCTV2[(!grepl(uid_S, SCTV2$avatar_id)),]
 #---
 RadiationV2 <- readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                                sheet = "Radiation") %>%
     select(c("avatar_id", "rad_start_date_v2", "rad_stop_date_v2")) %>% 
     `colnames<-`(c("avatar_id", "rad_start_date", "rad_stop_date"))
+RadiationV2 <- RadiationV2[(!grepl(uid_R, RadiationV2$avatar_id)),]
 # V4 ----
 ClinicalCap_V4 <-
     fs::path(
@@ -284,6 +363,12 @@ RadiationV4.1 <-
   select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 
 
+
+
+
+
+
+
 # Plot data recorded ---------------------------------------------------------------------------------------------
 # jpeg(paste0(path, "/barplot1.jpg"), width = 350, height = 350)
 par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
@@ -332,11 +417,13 @@ MM_historyV4 <- bind_rows(MM_historyV4, MM_historyV4.1) %>%
   drop_na("date_of_diagnosis") %>% 
   distinct(.)
 mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
-  arrange(date_of_diagnosis)
-MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
+  arrange(date_of_diagnosis) %>% 
+  distinct(.)
+MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), 
+                    value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
   select(c("avatar_id", "date_of_diagnosis_1", "disease_stage_1", "date_of_diagnosis_2", "disease_stage_2", "date_of_diagnosis_3", "disease_stage_3",
            "date_of_diagnosis_4", "disease_stage_4", "versionMM_1", "versionMM_2", "versionMM_3", "versionMM_4"))
-MM_history <- MM_history %>% # Create var = first date of diag for MM diagnostic
+MM_history <- MM_history %>% # Create var = first date of diag for MM diagnostic (not for mgus or smoldering)
   mutate(date_of_diagnosis = case_when(
     disease_stage_1 == "active" ~ date_of_diagnosis_1,
     disease_stage_2 == "active" ~ date_of_diagnosis_2,
@@ -348,7 +435,11 @@ write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
 # Vitals ----
 VitalsV4 <- full_join(VitalsV4, Alc_SmoV4, by = "avatar_id") # Need to merge alcohol and smoking with Vital for V4
 VitalsV4.1 <- full_join(VitalsV4.1, Alc_SmoV4.1, by = "avatar_id")
-Vitals <- bind_rows(Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
+Vitals_V12 <- full_join(Vitals_V12, Alc_Smo_V12, by = "avatar_id")
+Vitals <- full_join(Vitals, Alc_Smo, by = "avatar_id") # Need to merge alcohol and smoking with Vital for V1 and 2 because of V12 ids removed
+VitalsV2 <- full_join(VitalsV2, Alc_Smo_V2, by = "avatar_id")
+
+Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
   arrange(date_last_follow_up) # %>% 
   # distinct(avatar_id, date_death, .keep_all = TRUE) # Eliminate patient who has duplicated date of death
 

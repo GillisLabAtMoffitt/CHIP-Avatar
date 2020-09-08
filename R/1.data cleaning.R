@@ -129,8 +129,6 @@ SCT_V12 <-
                     sheet = "SCT") %>%
   select(c("avatar_id","date_of_bmt")) %>%
   drop_na("date_of_bmt")
-SCT_V12 <- dcast(setDT(SCT_V12), avatar_id ~ rowid(avatar_id), value.var = c("date_of_bmt")) %>% 
-  rename("date_of_first_bmt" = "1", "date_of_second_bmt" = "2", "date_of_third_bmt" = "3")
 uid_S <- paste(unique(SCT_V12$avatar_id), collapse = '|')
 #---
 Radiation_V12 <- 
@@ -317,8 +315,8 @@ SCTV4 <-
                     sheet = "SCT") %>%
   select(c("avatar_id", "date_of_bmt")) %>%  # can be different than first if duplicated from v1 or v2
   drop_na("date_of_bmt")
-SCTV4 <- dcast(setDT(SCTV4), avatar_id ~ rowid(avatar_id), value.var = c("date_of_bmt")) %>% 
-  rename("date_of_first_bmt" = "1", "date_of_second_bmt" = "2")
+# SCTV4 <- dcast(setDT(SCTV4), avatar_id ~ rowid(avatar_id), value.var = c("date_of_bmt")) %>% 
+#   rename("date_of_first_bmt" = "1", "date_of_second_bmt" = "2")
 #---
 RadiationV4 <- 
     readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
@@ -361,9 +359,6 @@ RadiationV4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
                     sheet = "Radiation") %>%
   select(c("avatar_id", "rad_start_date", "rad_stop_date"))
-
-
-
 
 
 
@@ -413,12 +408,14 @@ uid <- paste(unique(Demo_RedCap_V4ish$avatar_id), collapse = '|')
 Demo_HRI <- Demo_HRI[(!grepl(uid, Demo_HRI$avatar_id)),]
 Demo_RedCap_V4ish <- bind_rows(Demo_RedCap_V4ish, Demo_HRI, .id = "versionDemo")
 # Patient history ----
-MM_historyV4 <- bind_rows(MM_historyV4, MM_historyV4.1) %>% 
+# MM_historyV4 <- bind_rows(MM_historyV4, MM_historyV4.1) %>% 
+#   drop_na("date_of_diagnosis") %>% 
+#   distinct(.)
+mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, MM_historyV4.1, .id = "versionMM") %>%
   drop_na("date_of_diagnosis") %>% 
-  distinct(.)
-mm_history <- bind_rows(MM_history, MM_historyV2, MM_historyV4, .id = "versionMM") %>%
-  arrange(date_of_diagnosis) %>% 
-  distinct(.)
+  arrange(disease_stage) %>% 
+  distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
+  arrange(date_of_diagnosis)
 MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), 
                     value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
   select(c("avatar_id", "date_of_diagnosis_1", "disease_stage_1", "date_of_diagnosis_2", "disease_stage_2", "date_of_diagnosis_3", "disease_stage_3",
@@ -443,11 +440,11 @@ Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "v
   arrange(date_last_follow_up) # %>% 
   # distinct(avatar_id, date_death, .keep_all = TRUE) # Eliminate patient who has duplicated date of death
 
-Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), 
+Vitals1 <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), 
                 value.var = c("vital_status", "date_death", 
                               "date_last_follow_up", "smoking_status", 
-                              "current_smoker", "alcohol_use", 
-                              "bmi_at_dx_v2")) %>%
+                              "current_smoker", "alcohol_use")) %>% 
+  purrr::keep(~!all(is.na(.))) %>%
   # Have multiple record ("abstraction") per patient so date_death can be recorded multiple times in col 1 and 2
   # Sometimes 1st "abstraction" record date_last_follow-up then second "abstraction" will record death (present in col 2)
   # Use coalesce so when is NA in date_death_1 will take the value in date_death_2 if present
@@ -464,7 +461,7 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
   )) %>% 
   # For BMI, we may need to keep both if want to see evolution but for now keep the earliest (closest to diagnisis)
   # then fill-up with second column when the first is NA using coalesce
-  mutate(bmi_at_dx_v2 = coalesce(bmi_at_dx_v2_1, bmi_at_dx_v2_2)) %>% 
+  # mutate(bmi_at_dx_v2 = coalesce(bmi_at_dx_v2_1, bmi_at_dx_v2_2)) %>% 
   # Have patients who had "abstraction" 3 times and for who the alcohol_use and smoking_status was recorded only on the third
   # Take third record, fill it up by the second when NA then the first when NA
   # That is to get the latest info. We may switch it if we want the closest to diag.
@@ -486,7 +483,7 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
     TRUE ~ NA_character_
   )) %>% 
   select(c("avatar_id","my_vital_status", "date_death", "date_last_follow_up",
-           "bmi_at_dx_v2", "alcohol_use", "smoking_status"))
+           "alcohol_use", "smoking_status"))
 # Note for smoking
 # 1 patient said 3 in V2 and 11 in V1
 # 1 patient said 3 in V2 and 12 in V1
@@ -497,11 +494,11 @@ SCT <- SCT %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt, date
                              values_to = "date_of_bmt", values_drop_na = TRUE)
 SCTV2 <- SCTV2 %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt, date_of_third_bmt),
                              values_to = "date_of_bmt", values_drop_na = TRUE)
-SCTV4 <- SCTV4 %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt),
-                               values_to = "date_of_bmt", values_drop_na = TRUE)
+# SCTV4 <- SCTV4 %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt),
+#                                values_to = "date_of_bmt", values_drop_na = TRUE)
 
-sct <- bind_rows(SCT, SCTV2, SCTV4, SCTV4.1, .id = "versionSCT") %>% 
-  distinct(avatar_id, date_of_bmt, .keep_all = TRUE) %>% 
+sct <- bind_rows(SCT_V12, SCT, SCTV2, SCTV4, SCTV4.1, .id = "versionSCT") %>% 
+  distinct(avatar_id, date_of_bmt) %>% 
   arrange(date_of_bmt)
 SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), 
              value.var = "date_of_bmt") %>% 
@@ -524,14 +521,16 @@ TreatmentV2 <- bind_rows(Qcd_TreatmentV2, TreatmentV2, .id = "Treatment")
 
 # Need to pivot longer Treatment from V1 because not same formatting
 # Having one drug per row will help to remove duplicate in drugs after binding the 3 version together
-Treatment <- separate(Treatment, drug_name_, paste("drug_name_", 1:7, sep=""), sep = "; |;", extra = "warn") %>%
+Treatment <- separate(Treatment, drug_name_, paste("drug_name_", 1:7, sep=""), sep = "; |;", extra = "warn",
+                       fill = "right") %>% 
+  purrr::keep(~!all(is.na(.))) %>%
   pivot_longer(cols = drug_name_1:ncol(.),
                names_to = "line", values_to = "drug_name_", values_drop_na = TRUE)
 
 # ready to bind
-treatment <- bind_rows(Treatment, TreatmentV2, TreatmentV4, TreatmentV4.1, .id = "versionTreat") %>% 
+treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, TreatmentV4.1, .id = "versionTreat") %>% 
   select(avatar_id, drug_start_date, drug_stop_date, drug_name_) %>% 
-  distinct(avatar_id, drug_start_date, drug_stop_date, drug_name_, .keep_all = TRUE) %>% 
+  distinct(.) %>% 
   arrange(drug_start_date, drug_stop_date)
 
 # Now can dcast to have line of drug_name_ for each line/regimen
@@ -546,7 +545,8 @@ Treatment <- dcast(setDT(Treatment), avatar_id+drug_start_date ~ rowid(avatar_id
                    value.var = c("drug_name_", "drug_stop_date")) %>% 
   unite(drug_name_, drug_name__1:drug_name__17, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
   unite(drug_stop_date, drug_stop_date_1:drug_stop_date_17, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
-  separate(drug_stop_date, paste("drug_stop_date", 1:3, sep="_"), sep = "; ", extra = "warn")
+  separate(drug_stop_date, paste("drug_stop_date", 1:3, sep="_"), sep = "; ",
+           extra = "warn", fill = "right")
 Treatment$drug_stop_date_1 <- as.POSIXct(Treatment$drug_stop_date_1, format = "%Y-%m-%d")
 Treatment$drug_stop_date_2 <- as.POSIXct(Treatment$drug_stop_date_2, format = "%Y-%m-%d")
 Treatment$drug_stop_date_3 <- as.POSIXct(Treatment$drug_stop_date_3, format = "%Y-%m-%d")
@@ -566,7 +566,7 @@ RadiationV1$rad_start_date <- as.POSIXct(strptime(RadiationV1$rad_start_date,
 RadiationV1$rad_stop_date <- as.POSIXct(strptime(RadiationV1$rad_stop_date, 
                                               format = "%m/%d/%Y", tz = "UTC"))
 
-radiation <- bind_rows(RadiationV1, RadiationV2, RadiationV4, RadiationV4.1, .id = "versionRad") %>% 
+radiation <- bind_rows(Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1, .id = "versionRad") %>% 
   drop_na("rad_start_date") %>% 
   arrange(rad_start_date) %>% 
   distinct(avatar_id, rad_start_date, rad_stop_date, .keep_all = TRUE)
@@ -577,10 +577,13 @@ write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
 
 # Cleaning
 rm(Demo_HRI, Demo_linkage,
-   ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, MM_historyV2, MM_historyV4, MM_historyV4.1,
-   VitalsV2, VitalsV4, VitalsV4.1, SCTV2, SCTV4, SCTV4.1,
-   TreatmentV2, TreatmentV4, Qcd_Treatment, Qcd_TreatmentV2, TreatmentV4.1, uid,
-   Alc_SmoV4, Alc_SmoV4.1, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1)
+   ClinicalCap_V12, ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, 
+   MM_history_V12, MM_historyV2, MM_historyV4, MM_historyV4.1,
+   Vitals_V12, VitalsV2, VitalsV4, VitalsV4.1, SCT_V12, SCTV2, SCTV4, SCTV4.1,
+   Treatment_V12, TreatmentV2, TreatmentV4, Qcd_Treatment, Qcd_TreatmentV2, TreatmentV4.1, 
+   uid, uid_A, uid_MM, uid_R, uid_S, uid_T, uid_V, 
+   Alc_Smo, Alc_Smo_V12, Alc_Smo_V2, Alc_SmoV4, Alc_SmoV4.1, 
+   Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1)
 
 
 #######################################################################################  II  ## Plot----

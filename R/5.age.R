@@ -1,8 +1,3 @@
-
-
-
-
-
 ################################################################################# Demo in all patients ####
 
 pdf(paste0(path, "/Age at diagnosis repartition.pdf"), height = 6, width = 9)
@@ -25,7 +20,7 @@ dev.off()
 
 # Gender
 pdf(paste0(path, "/Age repartition per gender.pdf"), height = 6, width = 9)
-p <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagosis), !is.na(Gender)),
+p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis), !is.na(Gender)),
             aes(x=Gender, y=Age_at_diagosis), fill=Gender) + 
   geom_boxplot(color= c("purple3", "royalblue2")) +
   theme_minimal() +
@@ -59,7 +54,7 @@ dev.off()
 
 # Ethnicity
 pdf(paste0(path, "/Age repartition per ethnicity.pdf"), height = 6, width = 9)
-p <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagosis), (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic")), 
+p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagosis), (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic")), 
             aes(x=Ethnicity, y=Age_at_diagosis), fill=Ethnicity) + 
   geom_boxplot(color = c("darkred", "darkgrey")) + 
   theme_minimal() +
@@ -81,7 +76,7 @@ dev.off()
 
 # Race
 pdf(paste0(path, "/Age repartition per race.pdf"), height = 6, width = 9)
-p <- germline_patient_data %>% filter(!is.na(Race)) %>% 
+p <- Age_data %>% filter(!is.na(Race)) %>% 
   mutate_at(("Race"), ~ case_when(
     . == "African American" ~ "Black",
     TRUE ~ .
@@ -136,11 +131,10 @@ p <-  ggplot(Age_data %>% filter(!is.na(Age_at_diagosis)) %>% filter(!is.na(Dise
              aes(x=Age_at_diagosis, y=Disease_Status_germline)) + 
   geom_boxplot(color= inferno(n=12)) +
   theme_minimal() +
-  labs(x="Race", y="Age at Diagosis", title="Age repartition per disease status")
+  labs(x="Race", y="Age at Diagosis", title="Age repartition per disease status in Avatar")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 
 #p <-  ggplot(data=subset(Age_data, !is.na(Age_at_diagosis)), aes(x=Age_at_diagosis, y=Disease_Status.germline)) + geom_point()
-p
 dev.off()
 
 ########################################################################## Stats
@@ -178,7 +172,7 @@ p <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagosis), !is.na(Gen
             aes(x=Gender, y=Age_at_diagosis), fill=Gender) + 
   geom_boxplot(color= c("purple3", "royalblue2")) +
   theme_minimal() +
-  labs(x="Gender", y="Age at Diagosis", title="Age repartition per gender")
+  labs(x="Gender", y="Age at Diagosis", title="Age repartition per gender in germline")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 dev.off()
 
@@ -194,7 +188,7 @@ p <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagosis), (Ethnicity
             aes(x=Ethnicity, y=Age_at_diagosis), fill=Ethnicity) + 
   geom_boxplot(color = c("darkred", "darkgrey")) + 
   theme_minimal() +
-  labs(x="Ethnicity", y="Age at Diagosis", title="Age repartition per ethnicity")
+  labs(x="Ethnicity", y="Age at Diagosis", title="Age repartition per ethnicity in germline")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 dev.off()
 
@@ -209,7 +203,7 @@ p <- germline_patient_data %>% filter(!is.na(Race)) %>%
   ggplot(aes(x=Race, y=Age_at_diagosis), fill=Race) + 
   geom_boxplot() +
   theme_minimal() +
-  labs(x="Race", y="Age at Diagosis", title="Age repartition per race")
+  labs(x="Race", y="Age at Diagosis", title="Age repartition per race in germline")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 dev.off()
 

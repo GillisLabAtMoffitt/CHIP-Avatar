@@ -5,6 +5,8 @@ radiation <- radiation %>%
     rad_start_date > rad_stop_date ~ "not good"
   ))
 table(radiation$radiation_check)
+wrong_date <- as.data.table(radiation[which(radiation$radiation_check == "not good"),])
+write.csv(wrong_date, paste0(path, "/sanity check output/wrong date radiation"))
 # Treatment
 treatment <- treatment %>% 
   mutate(treatment_check = case_when(

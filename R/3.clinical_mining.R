@@ -276,7 +276,7 @@ bmtINgerm <- germline_patient_data[!is.na(germline_patient_data$date_of_first_bm
 NROW(which(!is.na(germline_patient_data$drug_start_date_1))) # 435
 drugINgerm <- germline_patient_data[!is.na(germline_patient_data$drug_start_date_1),]
 # nbr commun in bmt1 and drug
-had_GERM_BMT_DRUGS <- germline_patient_data[!is.na(bmtINgerm$drug_start_date_1),] # 251
+had_GERM_BMT_DRUGS <- bmtINgerm[!is.na(bmtINgerm$drug_start_date_1),] # 251
 NROW(which(!is.na(drugINgerm$date_of_first_bmt))) # same
 NROW(which(!is.na(bmtINgerm$drug_start_date_1)))
 
@@ -383,7 +383,7 @@ germ_before_treatment <- as.table(germ_before_treatment)
 write.csv(germ_before_treatment, paste0(path, "/germ_before_treatment when treatment happened.csv"))
 
 
-# How many time paitents had KRd, VRd, Rd, DRd, Len, Len+dex by disease status?
+# How many time patients had KRd, VRd, Rd, DRd, Len, Len+dex by disease status?
 germline_patient_data <- germline_patient_data %>% 
   mutate(drugs_first_regimen = case_when(
     (str_detect(drug_name__1, "Cafilzomib") |

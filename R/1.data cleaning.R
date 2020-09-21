@@ -417,47 +417,48 @@ mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, 
   distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
   arrange(date_of_diagnosis)
 MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), 
-                    value.var = c("date_of_diagnosis", "disease_stage", "versionMM")) %>% 
-  select(c("avatar_id", "date_of_diagnosis_1", "disease_stage_1", "date_of_diagnosis_2", "disease_stage_2", "date_of_diagnosis_3", "disease_stage_3",
-           "date_of_diagnosis_4", "disease_stage_4", "versionMM_1", "versionMM_2", "versionMM_3", "versionMM_4"))
-MM_history <- MM_history %>% # Create var = first date of diag for MM diagnostic (not for mgus or smoldering)
+                    value.var = c("date_of_diagnosis", "disease_stage", "versionMM"))
+MM_history <- MM_history %>% 
+  # Create var = first date of Dx for MM diagnostic aka "active" (not for mgus or smoldering)
+  # Then when not "active" take the first date of Dx available (mgus or smoldering or NA without regarding order- 
+  # usually mgus before smoldering)
   mutate(date_of_diagnosis = case_when(
     disease_stage_1 == "active" ~ date_of_diagnosis_1,
     disease_stage_2 == "active" ~ date_of_diagnosis_2,
     disease_stage_3 == "active" ~ date_of_diagnosis_3,
     disease_stage_4 == "active" ~ date_of_diagnosis_4,
   )) %>% 
-  mutate(date_of_diagnosis = coalesce(date_of_diagnosis, date_of_diagnosis_1))
+  mutate(date_of_diagnosis = coalesce(date_of_diagnosis, date_of_diagnosis_1)) %>% 
+  select(c("avatar_id", "date_of_diagnosis", everything()))
 write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
 # Vitals ----
-VitalsV4 <- full_join(VitalsV4, Alc_SmoV4, by = "avatar_id") # Need to merge alcohol and smoking with Vital for V4
-VitalsV4.1 <- full_join(VitalsV4.1, Alc_SmoV4.1, by = "avatar_id")
-Vitals_V12 <- full_join(Vitals_V12, Alc_Smo_V12, by = "avatar_id")
-Vitals <- full_join(Vitals, Alc_Smo, by = "avatar_id") # Need to merge alcohol and smoking with Vital for V1 and 2 because of V12 ids removed
-VitalsV2 <- full_join(VitalsV2, Alc_Smo_V2, by = "avatar_id")
 
 Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
-  arrange(date_last_follow_up) # %>% 
+  mutate(vital_status_rec = case_when(
+    vital_status == 2 ~ "Dead",
+    vital_status == 1 ~ "Alive",
+    vital_status == 3 ~ "Lost"
+  )) %>% 
+  arrange(vital_status_rec, date_last_follow_up) # %>% 
   # distinct(avatar_id, date_death, .keep_all = TRUE) # Eliminate patient who has duplicated date of death
 
 Vitals1 <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), 
                 value.var = c("vital_status", "date_death", 
-                              "date_last_follow_up", "smoking_status", 
-                              "current_smoker", "alcohol_use")) %>% 
+                              "date_last_follow_up")) %>% 
   purrr::keep(~!all(is.na(.))) %>%
+  # Need to take the last date_follow_up recorded 
+  # ex: use coalesce to fill up with date_last_follow_up_1 when date_last_follow_up_2 is NA
+  mutate(date_last_follow_up = coalesce(!!! select(., last_col():"date_last_follow_up_1"))) %>%
   # Have multiple record ("abstraction") per patient so date_death can be recorded multiple times in col 1 and 2
   # Sometimes 1st "abstraction" record date_last_follow-up then second "abstraction" will record death (present in col 2)
   # Use coalesce so when is NA in date_death_1 will take the value in date_death_2 if present
-  mutate(date_death = coalesce(date_death_1, date_death_2)) %>% 
-  # Need to take the last date_follow_up recorded so in 2 then 
-  # use coalesce to fill up with date_last_follow_up_1 when date_last_follow_up_2 is NA
-  mutate(date_last_follow_up = coalesce(date_last_follow_up_2, date_last_follow_up_1)) %>%
+  mutate(date_death = coalesce(!!! select(., starts_with("date_death_")))) %>% 
   # Create my own vital_status var because found record with 
   # 1st "abstraction" give date_death so vital = dead
   # 2nd "abstraction" doesn't give date (probably because already recorded) so vital = alive
-  mutate(my_vital_status = case_when(
-    !is.na(date_death_1) ~ "Dead",
-    !is.na(date_last_follow_up_1) ~ "Alive"
+  mutate(end_vital_status = case_when(
+    !is.na(date_death) ~ "Dead",
+    !is.na(date_last_follow_up) ~ "Alive"
   )) %>% 
   # For BMI, we may need to keep both if want to see evolution but for now keep the earliest (closest to diagnisis)
   # then fill-up with second column when the first is NA using coalesce
@@ -746,7 +747,7 @@ b <- full_join(Germline1[, c("avatar_id", "moffitt_sample_id_germline", "SLID_ge
   full_join(., Radiation, by = "avatar_id")
 
 Global_data <- right_join(Demo_RedCap_V4ish, b, by = "avatar_id")
-write.csv(Global_data, paste0(path, "/Global_data.csv"))
+# write.csv(Global_data, paste0(path, "/Global_data.csv"))
 
 
 # Cleaning

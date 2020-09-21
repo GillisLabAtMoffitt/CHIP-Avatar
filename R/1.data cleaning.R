@@ -541,8 +541,8 @@ Treatment <- treatment %>%
 # 2nd for regimen with same start, I separated it to have the different end date in case
 Treatment <- dcast(setDT(Treatment), avatar_id+drug_start_date ~ rowid(avatar_id), 
                    value.var = c("drug_name_", "drug_stop_date")) %>% 
-  unite(drug_name_, drug_name__1:drug_name__17, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
-  unite(drug_stop_date, drug_stop_date_1:drug_stop_date_17, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  unite(drug_name_, starts_with("drug_name_"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  unite(drug_stop_date, starts_with("drug_stop_date"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
   separate(drug_stop_date, paste("drug_stop_date", 1:3, sep="_"), sep = "; ",
            extra = "warn", fill = "right")
 Treatment$drug_stop_date_1 <- as.POSIXct(Treatment$drug_stop_date_1, format = "%Y-%m-%d")

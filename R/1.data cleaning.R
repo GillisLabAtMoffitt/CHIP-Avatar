@@ -494,15 +494,13 @@ SCT <- SCT %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt, date
                              values_to = "date_of_bmt", values_drop_na = TRUE)
 SCTV2 <- SCTV2 %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt, date_of_third_bmt),
                              values_to = "date_of_bmt", values_drop_na = TRUE)
-# SCTV4 <- SCTV4 %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt),
-#                                values_to = "date_of_bmt", values_drop_na = TRUE)
 
 sct <- bind_rows(SCT_V12, SCT, SCTV2, SCTV4, SCTV4.1, .id = "versionSCT") %>% 
   distinct(avatar_id, date_of_bmt) %>% 
   arrange(date_of_bmt)
 SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), 
              value.var = "date_of_bmt") %>% 
-  `colnames<-`(c("avatar_id", "date_of_first_bmt", "date_of_second_bmt", "date_of_third_bmt"))
+  `colnames<-`(c("avatar_id", "date_of_bmt_1", "date_of_bmt_2", "date_of_bmt_3"))
 write.csv(SCT,paste0(path, "/simplified files/SCT simplify.csv"))
 # Treatment ----
 # remove NA row in QC'd data

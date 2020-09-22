@@ -120,7 +120,7 @@ Age_data$Age_at_firstdrug <- interval(start= Global_data$Date_of_Birth, end= Glo
 Age_data$Age_at_firstdrug <- round(Age_data$Age_at_firstdrug, 3)
 # summary(Age_data$Age_at_firstdrug, na.rm = TRUE)
 
-Age_data$Age_at_firstbmt <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_first_bmt)/                      
+Age_data$Age_at_firstbmt <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_bmt_1)/                      
   duration(n=1, unit="years")
 Age_data$Age_at_firstbmt <- round(Age_data$Age_at_firstbmt, 3)
 # summary(Age_data$Age_at_firstbmt, na.rm = TRUE)
@@ -169,17 +169,17 @@ germline_patient_data <- germline_patient_data %>%
     is.na(drug_start_date_1) ~ "OK"
   )) %>% 
   mutate(germlineBFbmt1 = case_when(
-    collectiondt_germline > date_of_first_bmt  ~ "No",
-    collectiondt_germline <= date_of_first_bmt  ~ "OK",
-    is.na(date_of_first_bmt) ~ "OK"
+    collectiondt_germline > date_of_bmt_1  ~ "No",
+    collectiondt_germline <= date_of_bmt_1  ~ "OK",
+    is.na(date_of_bmt_1) ~ "OK"
   )) %>% 
   mutate(germlineBFbmt2 = case_when(
-    collectiondt_germline > date_of_second_bmt  ~ "No",
-    collectiondt_germline <= date_of_second_bmt  ~ "OK"
+    collectiondt_germline > date_of_bmt_2  ~ "No",
+    collectiondt_germline <= date_of_bmt_2  ~ "OK"
   )) %>% 
   mutate(germlineBFbmt3 = case_when(
-    collectiondt_germline > date_of_third_bmt ~ "No",
-    collectiondt_germline <= date_of_third_bmt ~ "OK"
+    collectiondt_germline > date_of_bmt_3 ~ "No",
+    collectiondt_germline <= date_of_bmt_3 ~ "OK"
   )) %>%
   mutate(germlineBFrad1 = case_when(
     collectiondt_germline <= rad_start_date_1 ~ "OK",

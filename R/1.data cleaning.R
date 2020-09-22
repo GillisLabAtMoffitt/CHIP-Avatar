@@ -442,7 +442,7 @@ Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "v
   arrange(vital_status_rec, date_last_follow_up) # %>% 
   # distinct(avatar_id, date_death, .keep_all = TRUE) # Eliminate patient who has duplicated date of death
 
-Vitals1 <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), 
+Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), 
                 value.var = c("vital_status", "date_death", 
                               "date_last_follow_up")) %>% 
   purrr::keep(~!all(is.na(.))) %>%
@@ -615,7 +615,7 @@ Germline <- bind_rows(Germ, Germ2, Germ3, Germ4) %>%
   arrange(SLID_germline) %>% 
   distinct(avatar_id, Disease_Status_germline, .keep_all = TRUE)
 
-# One of the seq is in 2 part so merge that first
+# One of the sequencing data is in 2 part so merge that first
 # Are moffitt_sample_id are equal in WES and Sequencing ?
 # Sequencing <- Sequencing[order(Sequencing$moffitt_sample_id),]
 # WES <- WES[order(WES$moffitt_sample_id),]

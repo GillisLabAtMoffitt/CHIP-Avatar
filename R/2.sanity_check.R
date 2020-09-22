@@ -47,11 +47,11 @@ sanity_check <- germline_patient_data %>%
     rad_start_date_1 >= rad_start_date_2 ~ "not good"
     )) %>% 
   mutate(sct_check = case_when(
-    date_of_first_bmt < date_of_second_bmt &
-      date_of_second_bmt < date_of_third_bmt ~ "OK",
-    date_of_first_bmt < date_of_second_bmt ~ "OK",
-      date_of_second_bmt >= date_of_third_bmt |
-    date_of_first_bmt >= date_of_second_bmt ~ "not good"
+    date_of_bmt_1 < date_of_bmt_2 &
+      date_of_bmt_2 < date_of_bmt_3 ~ "OK",
+    date_of_bmt_1 < date_of_bmt_2 ~ "OK",
+    date_of_bmt_2 >= date_of_bmt_3 |
+      date_of_bmt_1 >= date_of_bmt_2 ~ "not good"
   )) %>% 
   mutate(treat_check = case_when(
     drug_start_date_1 > drug_start_date_2 |
@@ -107,7 +107,7 @@ sanity_check <- germline_patient_data %>%
     rad_start_date_1 > date_of_diagnosis ~ "OK"
   )) %>% 
   mutate(bmt_after_diag = case_when(
-    date_of_first_bmt > date_of_diagnosis ~ "OK"
+    date_of_bmt_1 > date_of_diagnosis ~ "OK"
   )) %>% 
   mutate(drug_after_diag = case_when(
     drug_start_date_1 > date_of_diagnosis ~ "OK"
@@ -141,7 +141,7 @@ table_sanity_check <- as.data.table(matrix(c("check", "radiation_check", "treatm
 
 write.csv(table_sanity_check, paste0(path, "/sanity check output/sanity check.csv"))
 
-wrong_date_bmt <- as.data.table(sanity_check[which(sanity_check$sct_check == "not good"), c("avatar_id", "date_of_first_bmt", "date_of_second_bmt")])
+wrong_date_bmt <- as.data.table(sanity_check[which(sanity_check$sct_check == "not good"), c("avatar_id", "date_of_bmt_1", "date_of_bmt_2")])
 write.csv(wrong_date_bmt, paste0(path, "/sanity check output/wrong_date_bmt.csv"))
 
 wrong_date_drug <- sanity_check[which(sanity_check$treat_check == "not good"), ] %>% 
@@ -149,7 +149,8 @@ wrong_date_drug <- sanity_check[which(sanity_check$treat_check == "not good"), ]
 wrong_date_drug <- as.data.table(wrong_date_drug)
 write.csv(wrong_date_drug, paste0(path, "/sanity check output/wrong_date_drug.csv"))
 
-wrong_date_rad <- sanity_check[which(sanity_check$rad_check == "not good"),] # no big deal, they are the same (1=2)
+wrong_date_rad <- sanity_check[which(sanity_check$rad_check == "not good"), c("avatar_id", "rad_start_date_1", "rad_start_date_2", "rad_start_date_3")] # no big deal, they are the same (1=2)
+write.csv(wrong_date_rad, paste0(path, "/sanity check output/wrong_date_rad.csv"))
 
 wrong_diag_or_lastdate <- as.data.table(sanity_check[which(sanity_check$diag_BF_lastdate == "not good"), c("avatar_id", "date_of_diagnosis", "last_date_available",
                                                                         "date_death", "date_last_follow_up")])

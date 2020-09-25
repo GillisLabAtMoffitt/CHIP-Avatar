@@ -124,6 +124,16 @@ Treatment_V12 <-
   unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = FALSE)
 uid_T <- paste(unique(Treatment_V12$avatar_id), collapse = '|')
 #---
+Progression_V12 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+                    sheet = "Treatment_Outcomes") %>%
+  select(c("avatar_id", "initial_1_pd_date_1")) # For the non qc'd
+Progr_V12 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+                    sheet = "Treatment") %>%
+  select(c("avatar_id", "relapse_date", "QC")) # For the qc'd
+uid_P <- paste(c(unique(Progression_V12$avatar_id), unique(Progr_V12$avatar_id)), collapse = '|')
+#---
 SCT_V12 <-
   readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
                     sheet = "SCT") %>%
@@ -197,6 +207,12 @@ Qcd_Treatment <-
   `colnames<-`(c("avatar_id","drug_start_date", "drug_stop_date", "drug_name_"))
 Treatment <- Treatment[(!grepl(uid_T, Treatment$avatar_id)),]
 Qcd_Treatment <- Qcd_Treatment[(!grepl(uid_T, Qcd_Treatment$avatar_id)),]
+#----
+Progression <-
+  readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
+                    sheet = "Treatment") %>%
+  select(c("avatar_id", progression = "relapse_date"))
+Progression <- Progression[(!grepl(uid_P, Progression$avatar_id)),]
 #---
 SCT <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
@@ -251,6 +267,12 @@ Qcd_TreatmentV2 <-
   select(c("avatar_id", "drug_start_date" , "drug_name_", "drug_stop_date"))
 TreatmentV2 <- TreatmentV2[(!grepl(uid_T, TreatmentV2$avatar_id)),]
 Qcd_TreatmentV2 <- Qcd_TreatmentV2[(!grepl(uid_T, Qcd_TreatmentV2$avatar_id)),]
+#----
+ProgressionV2 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
+                    sheet = "Treatment") %>%
+  select(c("avatar_id", progression = "relapse_date"))
+ProgressionV2 <- ProgressionV2[(!grepl(uid_P, ProgressionV2$avatar_id)),]
 #---
 SCTV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
@@ -310,6 +332,11 @@ TreatmentV4 <-
            "drug_name_other")) %>%  # didn't take "treatment_line_"
   unite(drug_name_, c(drug_name_,drug_name_other), sep = ": ", na.rm = TRUE, remove = FALSE)
 #---
+Progression_V4 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
+                    sheet = "Treatment_Outcomes") %>%
+  select(c("avatar_id", progression_date = "initial_1_pd_date_1"))
+#---
 SCTV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                     sheet = "SCT") %>%
@@ -346,6 +373,11 @@ TreatmentV4.1 <-
   select(c("avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
            "drug_name_other_")) %>%  # didn't take "treatment_line_"
   unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = FALSE)
+#---
+Progression_V4.1 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
+                    sheet = "Treatment_Outcomes") %>%
+  select(c("avatar_id", progression_date = "initial_1_pd_date_1"))
 #---
 SCTV4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
@@ -572,6 +604,26 @@ Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var =
                      c("rad_start_date", "rad_stop_date"))
 write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
 
+# Progression
+Progression_V12 <- Progression_V12 %>% arrange(initial_1_pd_date_1) %>% distinct(avatar_id, .keep_all = TRUE)
+Progr_V12 <- Progr_V12 %>% arrange(relapse_date) %>% distinct(avatar_id, .keep_all = TRUE)
+
+Progression_V12 <- full_join(Progression_V12, Progr_V12, by= "avatar_id") %>% 
+  mutate(progression_date = case_when(
+    QC == "Yes" ~ relapse_date,
+    QC == "No" |
+      is.na(QC) ~ initial_1_pd_date_1
+  ))
+
+Progression <- 
+  bind_rows(Progression_V12, Progression, ProgressionV2, Progression_V4, Progression_V4.1, .id= "versionProg") %>% 
+  arrange(progression_date) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(progressed = case_when(
+    !is.na(progression_date) ~ 1,
+    is.na(progression_date) ~ 0
+  ))
+write.csv(Progression,paste0(path, "/simplified files/Progression simplify.csv"))
 
 # Cleaning
 rm(Demo_HRI, Demo_linkage,
@@ -581,7 +633,8 @@ rm(Demo_HRI, Demo_linkage,
    Treatment_V12, TreatmentV2, TreatmentV4, Qcd_Treatment, Qcd_TreatmentV2, TreatmentV4.1, 
    uid, uid_A, uid_MM, uid_R, uid_S, uid_T, uid_V, 
    Alc_Smo, Alc_Smo_V12, Alc_Smo_V2, Alc_SmoV4, Alc_SmoV4.1, 
-   Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1)
+   Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1,
+   Progr_V12, Progression_V12, ProgressionV2, Progression_V4, Progression_V4.1)
 
 
 #######################################################################################  II  ## Plot----
@@ -719,7 +772,7 @@ Germline1 <- left_join(WES_seq, Germline, by = "avatar_id") %>%
 
 
 # Cleaning
-rm(Sequencing, Sequencing2, WES, WES_seq, Seq_WES_Raghu, Germ, Germ2, Germ3, Combined_data_MM)
+rm(Sequencing, Sequencing2, WES_tumor, WES_seq, Seq_WES_Raghu, Seq_WES, Seq_WES_Raghu2, Germ, Germ2, Germ3)
 ##################################################################################################  IV  ## Merge----
 # b <- full_join(Germline[, c("avatar_id", "WES_HUDSON_ALPHA_germline", "moffitt_sample_id_germline",
 #                                    "collectiondt_germline", "Disease_Status_germline", 
@@ -734,21 +787,18 @@ rm(Sequencing, Sequencing2, WES, WES_seq, Seq_WES_Raghu, Germ, Germ2, Germ3, Com
 # 
 # f <- full_join(e, Radiation, by = "avatar_id")
 
-b <- full_join(Germline1[, c("avatar_id", "moffitt_sample_id_germline", "SLID_germline",
+Global_data <- full_join(Germline1[, c("avatar_id", "moffitt_sample_id_germline", "SLID_germline",
                              "collectiondt_germline", "Disease_Status_germline", 
                              "collectiondt_tumor_1", "WES_HUDSON_ALPHA_germline")],
                MM_history, by = "avatar_id") %>% 
   full_join(., Vitals, by = "avatar_id") %>% 
   full_join(., SCT, by = "avatar_id") %>% 
   full_join(., Treatment, by = "avatar_id") %>% 
-  full_join(., Radiation, by = "avatar_id")
+  full_join(., Radiation, by = "avatar_id") %>% 
+  full_join(., Progression, by= "avatar_id")
 
-Global_data <- right_join(Demo_RedCap_V4ish, b, by = "avatar_id")
+Global_data <- right_join(Demo_RedCap_V4ish, Global_data, by = "avatar_id")
 # write.csv(Global_data, paste0(path, "/Global_data.csv"))
-
-
-# Cleaning
-rm(b)
 
 
 #------------------------------------

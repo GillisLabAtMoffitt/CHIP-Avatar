@@ -98,26 +98,26 @@ ClinicalCap_V12 <-
   )
 #---
 Vitals_V12 <-
-  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Vitals") %>%
   select(c("avatar_id","vital_status","date_death", date_last_follow_up = "date_of_last_contact"))
 # Remove IDs from new CIOX V1V2 in the initial V! and V2 version ----
 uid_V <- paste(unique(Vitals_V12$avatar_id), collapse = '|')
 
 Alc_Smo_V12 <-
-  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Comorbidities") %>%
   select(c("avatar_id","smoking_status", "alcohol_use"))
 uid_A <- paste(unique(Alc_Smo_V12$avatar_id), collapse = '|')
 #---
 MM_history_V12 <-
-  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Myeloma_Disease_History") %>%
   select(c("avatar_id", "date_of_diagnosis"))
 uid_MM <- paste(unique(MM_history_V12$avatar_id), collapse = '|')
 #---
 Treatment_V12 <-
-  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Treatment") %>%
   select(c("avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
            "drug_name_other_")) %>%  # didn't take "treatment_line_"
@@ -125,24 +125,24 @@ Treatment_V12 <-
 uid_T <- paste(unique(Treatment_V12$avatar_id), collapse = '|')
 #---
 Progression_V12 <-
-  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Treatment_Outcomes") %>%
   select(c("avatar_id", "initial_1_pd_date_1")) # For the non qc'd
 Progr_V12 <-
-  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Treatment") %>%
   select(c("avatar_id", "relapse_date", "QC")) # For the qc'd
 uid_P <- paste(c(unique(Progression_V12$avatar_id), unique(Progr_V12$avatar_id)), collapse = '|')
 #---
 SCT_V12 <-
-  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx")),
+  readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "SCT") %>%
   select(c("avatar_id","date_of_bmt")) %>%
   drop_na("date_of_bmt")
 uid_S <- paste(unique(SCT_V12$avatar_id), collapse = '|')
 #---
 Radiation_V12 <- 
-  readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_09042020.xlsx"),
+  readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx"),
                     sheet = "Radiation") %>%
   select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 uid_R <- paste(unique(Radiation_V12$avatar_id), collapse = '|')
@@ -211,7 +211,7 @@ Qcd_Treatment <- Qcd_Treatment[(!grepl(uid_T, Qcd_Treatment$avatar_id)),]
 Progression <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", progression = "relapse_date"))
+  select(c("avatar_id", progression_date = "relapse_date"))
 Progression <- Progression[(!grepl(uid_P, Progression$avatar_id)),]
 #---
 SCT <-
@@ -271,7 +271,7 @@ Qcd_TreatmentV2 <- Qcd_TreatmentV2[(!grepl(uid_T, Qcd_TreatmentV2$avatar_id)),]
 ProgressionV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", progression = "relapse_date"))
+  select(c("avatar_id", progression_date = "relapse_date"))
 ProgressionV2 <- ProgressionV2[(!grepl(uid_P, ProgressionV2$avatar_id)),]
 #---
 SCTV2 <-
@@ -616,7 +616,18 @@ Progression_V12 <- full_join(Progression_V12, Progr_V12, by= "avatar_id") %>%
   ))
 
 Progression <- 
-  bind_rows(Progression_V12, Progression, ProgressionV2, Progression_V4, Progression_V4.1, .id= "versionProg") %>% 
+  bind_rows(Progression_V12, Progression, ProgressionV2, Progression_V4, Progression_V4.1, .id= "versionProg") %>%
+  distinct() %>% 
+  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
+  mutate(prog_before_diag = case_when(
+    progression_date < date_of_diagnosis ~ "removed",
+    progression_date == date_of_diagnosis ~ "equal?",
+    progression_date > date_of_diagnosis ~ "good"
+  )) %>% 
+  filter(prog_before_diag == "good"| prog_before_diag == "equal?") %>% 
+  select(-c("date_of_diagnosis", "prog_before_diag"))
+
+Progression <- Progression %>% 
   arrange(progression_date) %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(progressed = case_when(

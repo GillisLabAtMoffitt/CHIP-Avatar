@@ -140,6 +140,8 @@ Age_data$Age_at_tumorcollect <- interval(start= Global_data$Date_of_Birth, end= 
 Age_data$Age_at_tumorcollect <- round(Age_data$Age_at_tumorcollect, 3)
 # summary(Age_data$Age_at_tumorcollect, na.rm = TRUE)
 
+Age_data$days_at_progression <- interval(start= Global_data$date_of_diagnosis, end= Global_data$progression_date)/                      
+  duration(n=1, unit="days")
 
 ################################################################################################## III ## Germline ----
 # Create dataframe for only the patients who had germline sequenced

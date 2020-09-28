@@ -207,34 +207,10 @@ germline_patient_data <- germline_patient_data %>%
       germlineBFbmt1 == "OK" &
       germlineBFrad1 == "OK"                  ~ "OK"
   )) %>% 
-  # mutate(bmt1_BF_drug = case_when(
-  #   date_of_first_bmt_1 < drug_start_date_1 ~ "OK",
-  #   date_of_first_bmt_1 > drug_start_date_1 ~ "No"
-  # )) %>% 
-  # mutate(rad_BF_drugbmt1 = case_when(
-  #   rad_start_date_1 < date_of_first_bmt_1 &
-  #   rad_start_date_1 < drug_start_date_1 ~ "OK"
-  # )) %>% 
-  # mutate(GandBmt1BEFOREdrug = case_when(
-  #   date_of_first_bmt_1 < drug_start_date_1 &
-  #     collectiondt_germline < drug_start_date_1 ~ "OK"
-# )) %>% 
-mutate(GermBFtumorWES = case_when(
-  collectiondt_germline < collectiondt_tumor_1 ~ "Germ first",
-  collectiondt_germline > collectiondt_tumor_1 ~ "tumorWES first",
-  collectiondt_germline == collectiondt_tumor_1 ~ "same date"
-# )) %>% 
-#   mutate(birth_BF_lastdate = case_when(
-#     last_date_available > Date_of_Birth ~ "OK",
-#     last_date_available <= Date_of_Birth ~ "not good"
-  # )) %>% 
-  # mutate(birth_BF_diag = case_when(
-  #   date_of_diagnosis_1 > Date_of_Birth ~ "OK",
-  #   date_of_diagnosis_1 <= Date_of_Birth ~ "not good"
-  # )) %>% 
-  # mutate(diag_BF_lastdate = case_when(
-  #   last_date_available > date_of_diagnosis_1 ~ "OK",
-  #   last_date_available <= date_of_diagnosis_1 ~ "not good"
+  mutate(GermBFtumorWES = case_when(
+    collectiondt_germline < collectiondt_tumor_1 ~ "Germ first",
+    collectiondt_germline > collectiondt_tumor_1 ~ "tumorWES first",
+    collectiondt_germline == collectiondt_tumor_1 ~ "same date"
   ))
 
 # write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))

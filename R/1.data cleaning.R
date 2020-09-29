@@ -515,7 +515,7 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
   #   smoking_status == 1 ~ "current",
   #   TRUE ~ NA_character_
   # )) %>% 
-  select(c("avatar_id","end_vital_status", "date_death", "date_last_follow_up"))
+  select(c("avatar_id","end_vital_status", "vital_status", "date_death", "date_last_follow_up"))
 # Note for smoking
 # 1 patient said 3 in V2 and 11 in V1
 # 1 patient said 3 in V2 and 12 in V1

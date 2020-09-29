@@ -83,8 +83,10 @@ last_event <- last_event %>%  select(ncol(last_event):1) %>%
 
 Global_data <- left_join(Global_data, 
                last_event %>% select(c("avatar_id", "last_date_available", "last_event_available")),
-               by = "avatar_id")
+               by = "avatar_id") %>% 
+  mutate(progression_surv = coalesce(progression_date, last_date_available))
 write.csv(Global_data, paste0(path, "/Global_data updated.csv"))
+
 
 ########################################### II ### Create all the age from dates ----
 Age_data <- Global_data
@@ -140,8 +142,8 @@ Age_data$Age_at_tumorcollect <- interval(start= Global_data$Date_of_Birth, end= 
 Age_data$Age_at_tumorcollect <- round(Age_data$Age_at_tumorcollect, 3)
 # summary(Age_data$Age_at_tumorcollect, na.rm = TRUE)
 
-Age_data$days_at_progression <- interval(start= Global_data$date_of_diagnosis, end= Global_data$progression_date)/                      
-  duration(n=1, unit="days")
+Age_data$days_at_progression <- interval(start= Global_data$date_of_diagnosis, end= Global_data$progression_surv)/                      
+  duration(n=1, unit="months")
 
 ################################################################################################## III ## Germline ----
 # Create dataframe for only the patients who had germline sequenced
@@ -213,6 +215,18 @@ germline_patient_data <- germline_patient_data %>%
     collectiondt_germline < collectiondt_tumor_1 ~ "Germ first",
     collectiondt_germline > collectiondt_tumor_1 ~ "tumorWES first",
     collectiondt_germline == collectiondt_tumor_1 ~ "same date"
+  )) %>% 
+  mutate(progressed = case_when(
+    is.na(progressed) ~ 0,
+    TRUE ~ progressed
+  )) %>% 
+  mutate(progressed_surv = case_when(
+    progressed == 1 &
+      vital_status == 3 &
+      progression_date > date_last_follow_up ~ "censored",
+    progressed == 0 &
+      vital_status == 3 ~ "censored",
+    TRUE ~ NA_character_
   ))
 
 # write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))

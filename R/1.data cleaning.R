@@ -786,7 +786,7 @@ WES_seq <-
 
 # Merge all
 
-Germline1 <- left_join(WES_seq, Germline, by = "avatar_id") %>% 
+Germline <- left_join(WES_seq, Germline, by = "avatar_id") %>% 
   filter(SLID_germline.x == SLID_germline.y | is.na(SLID_germline.x == SLID_germline.y)) %>% 
   rename(SLID_germline = "SLID_germline.x", collectiondt_germline = "collectiondt_germline.x") %>% 
   # distinct(avatar_id, SLID_germline, .keep_all = TRUE) %>% 
@@ -796,7 +796,7 @@ Germline1 <- left_join(WES_seq, Germline, by = "avatar_id") %>%
 
 
 # Cleaning
-rm(Sequencing, Sequencing2, WES_tumor, WES_seq, Seq_WES_Raghu, Seq_WES, Seq_WES_Raghu2, Germ, Germ2, Germ3)
+rm(Sequencing, Sequencing2, WES_tumor, WES_seq, Seq_WES_Raghu, Seq_WES, Seq_WES_Raghu2, Germ, Germ2, Germ3, Germ4)
 ##################################################################################################  IV  ## Merge----
 # b <- full_join(Germline[, c("avatar_id", "WES_HUDSON_ALPHA_germline", "moffitt_sample_id_germline",
 #                                    "collectiondt_germline", "Disease_Status_germline", 
@@ -811,9 +811,10 @@ rm(Sequencing, Sequencing2, WES_tumor, WES_seq, Seq_WES_Raghu, Seq_WES, Seq_WES_
 # 
 # f <- full_join(e, Radiation, by = "avatar_id")
 
-Global_data <- full_join(Germline1[, c("avatar_id", "moffitt_sample_id_germline", "SLID_germline",
+Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_germline", "SLID_germline",
                              "collectiondt_germline", "Disease_Status_germline", 
-                             "collectiondt_tumor_1", "WES_HUDSON_ALPHA_germline")],
+                             starts_with("SLID_tumor"), starts_with("collectiondt_tumor_"),
+                             "WES_HUDSON_ALPHA_germline")),
                MM_history, by = "avatar_id") %>% 
   full_join(., Vitals, by = "avatar_id") %>% 
   full_join(., SCT, by = "avatar_id") %>% 

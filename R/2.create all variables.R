@@ -3,7 +3,7 @@
 all_dates <- Global_data %>% 
   select("avatar_id", "date_of_diagnosis_1",
          #"date_of_diagnosis_2", "date_of_diagnosis_3", "date_of_diagnosis_4",
-         "collectiondt_germline", "collectiondt_tumor_1", 
+         "collectiondt_germline", starts_with("collectiondt_tumor_"),
          "date_death", "date_last_follow_up", 
          starts_with("date_of_bmt_"),
          starts_with("drug_start_date_"),

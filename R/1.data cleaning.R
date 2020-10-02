@@ -474,7 +474,7 @@ Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "v
   arrange(vital_status_rec, date_last_follow_up) # %>% 
   # distinct(avatar_id, date_death, .keep_all = TRUE) # Eliminate patient who has duplicated date of death
 
-Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), 
+Vitals1 <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), 
                 value.var = c("vital_status", "date_death", 
                               "date_last_follow_up")) %>% 
   purrr::keep(~!all(is.na(.))) %>%
@@ -485,6 +485,19 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
   # Sometimes 1st "abstraction" record date_last_follow-up then second "abstraction" will record death (present in col 2)
   # Use coalesce so when is NA in date_death_1 will take the value in date_death_2 if present
   mutate(date_death = coalesce(!!! select(., starts_with("date_death_")))) %>% 
+  mutate(date_lost_contact = case_when(
+    vital_status_1 == 3 ~ date_last_follow_up_1,
+    vital_status_2 == 3 ~ date_last_follow_up_2,
+    vital_status_3 == 3 ~ date_last_follow_up_3,
+    vital_status_4 == 3 ~ date_last_follow_up_4,
+    vital_status_5 == 3 ~ date_last_follow_up_5,
+    vital_status_6 == 3 ~ date_last_follow_up_6,
+    vital_status_7 == 3 ~ date_last_follow_up_7,
+    vital_status_8 == 3 ~ date_last_follow_up_8,
+    vital_status_9 == 3 ~ date_last_follow_up_9,
+    vital_status_10 == 3 ~ date_last_follow_up_10,
+    vital_status_11 == 3 ~ date_last_follow_up_11
+  )) %>% 
   # Create my own vital_status var because found record with 
   # 1st "abstraction" give date_death so vital = dead
   # 2nd "abstraction" doesn't give date (probably because already recorded) so vital = alive
@@ -515,7 +528,7 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
   #   smoking_status == 1 ~ "current",
   #   TRUE ~ NA_character_
   # )) %>% 
-  select(c("avatar_id","end_vital_status", "vital_status", "date_death", "date_last_follow_up"))
+  select(c("avatar_id","end_vital_status", "date_lost_contact", "date_death", "date_last_follow_up"))
 # Note for smoking
 # 1 patient said 3 in V2 and 11 in V1
 # 1 patient said 3 in V2 and 12 in V1

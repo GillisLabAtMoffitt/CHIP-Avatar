@@ -463,6 +463,38 @@ MM_history <- MM_history %>%
   mutate(date_of_diagnosis = coalesce(date_of_diagnosis, date_of_diagnosis_1)) %>% 
   select(c("avatar_id", "date_of_diagnosis", everything()))
 write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
+# Progression
+Progression_V12 <- Progression_V12 %>% arrange(initial_1_pd_date_1) %>% distinct(avatar_id, .keep_all = TRUE)
+Progr_V12 <- Progr_V12 %>% arrange(relapse_date) %>% distinct(avatar_id, .keep_all = TRUE)
+
+Progression_V12 <- full_join(Progression_V12, Progr_V12, by= "avatar_id") %>% 
+  mutate(progression_date = case_when(
+    QC == "Yes" ~ relapse_date,
+    QC == "No" |
+      is.na(QC) ~ initial_1_pd_date_1
+  ))
+
+Progression <- 
+  bind_rows(Progression_V12, Progression, ProgressionV2, Progression_V4, Progression_V4.1, .id= "versionProg") %>%
+  distinct() %>% 
+  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
+  mutate(prog_before_diag = case_when(
+    progression_date < date_of_diagnosis ~ "removed",
+    progression_date == date_of_diagnosis ~ "equal?",
+    progression_date > date_of_diagnosis ~ "good"
+  )) %>% 
+  filter(prog_before_diag == "good"| prog_before_diag == "equal?") %>% 
+  select(-c("date_of_diagnosis", "prog_before_diag"))
+
+Progression <- Progression %>% 
+  arrange(progression_date) %>% # Keep earliest progression date
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(progression_surv = case_when(
+    !is.na(progression_date) ~ 1,
+    is.na(progression_date) ~ 0
+  ))
+write.csv(Progression,paste0(path, "/simplified files/Progression simplify.csv"))
+
 # Vitals ----
 
 Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
@@ -474,7 +506,17 @@ Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "v
   arrange(vital_status_rec, date_last_follow_up) # %>% 
   # distinct(avatar_id, date_death, .keep_all = TRUE) # Eliminate patient who has duplicated date of death
 
-Vitals1 <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), 
+# VitalsA <- Vitals %>%
+#   group_by(avatar_id) %>%
+#   mutate(V3 = any(vital_status == 3))
+Contact_lost <- Vitals %>% 
+  filter(vital_status == 3) %>% 
+  mutate(was_contact_lost = "Lost of contact") %>% 
+  arrange(date_last_follow_up) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(c("avatar_id", "was_contact_lost", date_contact_lost = "date_last_follow_up"))
+
+Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), 
                 value.var = c("vital_status", "date_death", 
                               "date_last_follow_up")) %>% 
   purrr::keep(~!all(is.na(.))) %>%
@@ -485,19 +527,6 @@ Vitals1 <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
   # Sometimes 1st "abstraction" record date_last_follow-up then second "abstraction" will record death (present in col 2)
   # Use coalesce so when is NA in date_death_1 will take the value in date_death_2 if present
   mutate(date_death = coalesce(!!! select(., starts_with("date_death_")))) %>% 
-  mutate(date_lost_contact = case_when(
-    vital_status_1 == 3 ~ date_last_follow_up_1,
-    vital_status_2 == 3 ~ date_last_follow_up_2,
-    vital_status_3 == 3 ~ date_last_follow_up_3,
-    vital_status_4 == 3 ~ date_last_follow_up_4,
-    vital_status_5 == 3 ~ date_last_follow_up_5,
-    vital_status_6 == 3 ~ date_last_follow_up_6,
-    vital_status_7 == 3 ~ date_last_follow_up_7,
-    vital_status_8 == 3 ~ date_last_follow_up_8,
-    vital_status_9 == 3 ~ date_last_follow_up_9,
-    vital_status_10 == 3 ~ date_last_follow_up_10,
-    vital_status_11 == 3 ~ date_last_follow_up_11
-  )) %>% 
   # Create my own vital_status var because found record with 
   # 1st "abstraction" give date_death so vital = dead
   # 2nd "abstraction" doesn't give date (probably because already recorded) so vital = alive
@@ -505,6 +534,8 @@ Vitals1 <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
     !is.na(date_death) ~ "Dead",
     !is.na(date_last_follow_up) ~ "Alive"
   )) %>% 
+  select(c("avatar_id","end_vital_status", "date_death", "date_last_follow_up"))
+
   # For BMI, we may need to keep both if want to see evolution but for now keep the earliest (closest to diagnisis)
   # then fill-up with second column when the first is NA using coalesce
   # mutate(bmi_at_dx_v2 = coalesce(bmi_at_dx_v2_1, bmi_at_dx_v2_2)) %>% 
@@ -528,10 +559,13 @@ Vitals1 <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
   #   smoking_status == 1 ~ "current",
   #   TRUE ~ NA_character_
   # )) %>% 
-  select(c("avatar_id","end_vital_status", "date_lost_contact", "date_death", "date_last_follow_up"))
 # Note for smoking
 # 1 patient said 3 in V2 and 11 in V1
 # 1 patient said 3 in V2 and 12 in V1
+
+
+Vitals <- full_join(Vitals, Contact_lost, by= "avatar_id")
+
 write.csv(Vitals,paste0(path, "/simplified files/Vitals simplify.csv"))
 
 # Bone marrow transplant ----
@@ -617,37 +651,6 @@ Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var =
                      c("rad_start_date", "rad_stop_date"))
 write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
 
-# Progression
-Progression_V12 <- Progression_V12 %>% arrange(initial_1_pd_date_1) %>% distinct(avatar_id, .keep_all = TRUE)
-Progr_V12 <- Progr_V12 %>% arrange(relapse_date) %>% distinct(avatar_id, .keep_all = TRUE)
-
-Progression_V12 <- full_join(Progression_V12, Progr_V12, by= "avatar_id") %>% 
-  mutate(progression_date = case_when(
-    QC == "Yes" ~ relapse_date,
-    QC == "No" |
-      is.na(QC) ~ initial_1_pd_date_1
-  ))
-
-Progression <- 
-  bind_rows(Progression_V12, Progression, ProgressionV2, Progression_V4, Progression_V4.1, .id= "versionProg") %>%
-  distinct() %>% 
-  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
-  mutate(prog_before_diag = case_when(
-    progression_date < date_of_diagnosis ~ "removed",
-    progression_date == date_of_diagnosis ~ "equal?",
-    progression_date > date_of_diagnosis ~ "good"
-  )) %>% 
-  filter(prog_before_diag == "good"| prog_before_diag == "equal?") %>% 
-  select(-c("date_of_diagnosis", "prog_before_diag"))
-
-Progression <- Progression %>% 
-  arrange(progression_date) %>% 
-  distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(progressed = case_when(
-    !is.na(progression_date) ~ 1,
-    is.na(progression_date) ~ 0
-  ))
-write.csv(Progression,paste0(path, "/simplified files/Progression simplify.csv"))
 
 # Cleaning
 rm(Demo_HRI, Demo_linkage,
@@ -658,7 +661,8 @@ rm(Demo_HRI, Demo_linkage,
    uid, uid_A, uid_MM, uid_R, uid_S, uid_T, uid_V, 
    Alc_Smo, Alc_Smo_V12, Alc_Smo_V2, Alc_SmoV4, Alc_SmoV4.1, 
    Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1,
-   Progr_V12, Progression_V12, ProgressionV2, Progression_V4, Progression_V4.1)
+   Progr_V12, Progression_V12, ProgressionV2, Progression_V4, Progression_V4.1,
+   Contact_lost)
 
 
 #######################################################################################  II  ## Plot----

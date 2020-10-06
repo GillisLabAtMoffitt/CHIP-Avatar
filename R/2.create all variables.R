@@ -4,7 +4,7 @@ all_dates <- Global_data %>%
   select("avatar_id", "date_of_diagnosis_1",
          #"date_of_diagnosis_2", "date_of_diagnosis_3", "date_of_diagnosis_4",
          "collectiondt_germline", starts_with("collectiondt_tumor_"),
-         "date_death", "date_last_follow_up", 
+         "date_death", "date_last_follow_up", "date_contact_lost",
          starts_with("date_of_bmt_"),
          starts_with("drug_start_date_"),
          # "drug_start_date_1", "drug_start_date_2", "drug_start_date_3", "drug_start_date_4", "drug_start_date_5", 
@@ -63,28 +63,15 @@ last_event <- dcast(setDT(all_dates), avatar_id ~ rowid(avatar_id),
 
 last_event <- last_event %>%  select(ncol(last_event):1) %>% 
   mutate(last_date_available = coalesce(!!! select(., starts_with("date_"))
-         # date_40, date_39, date_38, date_37, date_36, date_35, date_34,
-         #                                date_33, date_32, date_31, date_30, date_29, date_28, date_27, 
-         #                                date_26, date_25, date_24, date_23, date_22, date_21, date_20, 
-         #                                date_19, date_18, date_17, date_16, date_15, date_14, date_13, 
-         #                                date_12, date_11, date_10, date_9, date_8, date_7, date_6, 
-         #                                date_5, date_4, date_3, date_2, date_1
          )) %>% 
   mutate(last_event_available = coalesce(!!! select(., starts_with("event_"))
-    # event_40, event_39, event_38, event_37, event_36, event_35, 
-    #                                      event_34, event_33, event_32, event_31, event_30, event_29, 
-    #                                      event_28, event_27, event_26, event_25, event_24, event_23, 
-    #                                      event_22, event_21, event_20, event_19, event_18, event_17, 
-    #                                      event_16, event_15, event_14, event_13, event_12, event_11, 
-    #                                      event_10, event_9, event_8, event_7, event_6, event_5, 
-    #                                      event_4, event_3, event_2, event_1
     ))
 # write.csv(last_event, paste0(path, "/last_event.csv"))
 
 Global_data <- left_join(Global_data, 
                last_event %>% select(c("avatar_id", "last_date_available", "last_event_available")),
                by = "avatar_id") %>% 
-  mutate(progression_surv = coalesce(progression_date, last_date_available))
+  mutate(progression_date_surv = coalesce(progression_date, last_date_available))
 write.csv(Global_data, paste0(path, "/Global_data updated.csv"))
 
 
@@ -142,8 +129,9 @@ Age_data$Age_at_tumorcollect <- interval(start= Global_data$Date_of_Birth, end= 
 Age_data$Age_at_tumorcollect <- round(Age_data$Age_at_tumorcollect, 3)
 # summary(Age_data$Age_at_tumorcollect, na.rm = TRUE)
 
-Age_data$days_at_progression <- interval(start= Global_data$date_of_diagnosis, end= Global_data$progression_surv)/                      
+Age_data$month_at_progression <- interval(start= Global_data$date_of_diagnosis, end= Global_data$progression_date_surv)/                      
   duration(n=1, unit="months")
+Age_data$month_at_progression <- round(Age_data$month_at_progression, 3)
 
 ################################################################################################## III ## Germline ----
 # Create dataframe for only the patients who had germline sequenced
@@ -215,18 +203,16 @@ germline_patient_data <- germline_patient_data %>%
     collectiondt_germline < collectiondt_tumor_1 ~ "Germ first",
     collectiondt_germline > collectiondt_tumor_1 ~ "tumorWES first",
     collectiondt_germline == collectiondt_tumor_1 ~ "same date"
+  # )) %>% 
+  # mutate(progressed = case_when(
+  #   is.na(progressed) ~ 0,
+  #   TRUE ~ progressed
   )) %>% 
-  mutate(progressed = case_when(
-    is.na(progressed) ~ 0,
-    TRUE ~ progressed
-  )) %>% 
-  mutate(progressed_surv = case_when(
-    progressed == 1 &
-      vital_status == 3 &
-      progression_date > date_last_follow_up ~ "censored",
-    progressed == 0 &
-      vital_status == 3 ~ "censored",
-    TRUE ~ NA_character_
+  mutate(progression_surv = coalesce(progression_surv, 0)) %>%  # %>% # missing value because of merging
+  mutate(progressed_surv = case_when( # remove censored patient when progression_date_surv > date_contact_lost
+    progression_surv == 1 &
+      progression_date_surv > date_contact_lost ~ 0,
+    TRUE ~ progression_surv
   ))
 
 # write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))

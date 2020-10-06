@@ -28,7 +28,8 @@ data <- data %>%
   ))
 # Keep only the perfect slid
 data_perfect <- data %>% filter(GequalT_BFtreat == "Perfect") %>% 
-  distinct() # But keep 4 patients who had 2 tumor collected the same day
+  arrange(interv) %>% 
+  distinct(SLID_germline, .keep_all = TRUE) # But keep 4 patients who had 2 tumor collected the same day
 
 data1 <- data %>% 
   distinct(avatar_id, SLID_germline, .keep_all = TRUE)
@@ -74,7 +75,7 @@ data_perfect2 <- data %>%
   select(-c()) %>%
   mutate(abs_interv = abs(interv)) %>% 
   arrange(abs_interv) %>% 
-  distinct(avatar_id, tumor, .keep_all = TRUE)
+  distinct(SLID_germline, .keep_all = TRUE)
 
 
 DATA <- bind_rows(data_perfect, data1, data_perfect1, data_perfect2) %>% 

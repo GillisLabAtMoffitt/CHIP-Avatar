@@ -21,8 +21,14 @@ all_dates1 <- all_dates1 %>%
   drop_na("date") %>% 
   arrange(date, desc(event))
 # and bind
-all_dates <- bind_rows(all_dates1, all_dates)
-
+all_dates <- bind_rows(all_dates1, all_dates) %>% 
+  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
+  mutate(lastdate_sameas_diag = case_when(
+  date <= date_of_diagnosis ~ "removed",
+  date > date_of_diagnosis ~ "good"
+)) %>% 
+  filter(lastdate_sameas_diag == "good") %>% 
+  select(-c("date_of_diagnosis", "lastdate_sameas_diag"))
 
 # Get the last event and corresponding date----
 last_event <- dcast(setDT(all_dates), avatar_id ~ rowid(avatar_id), 
@@ -35,8 +41,9 @@ last_event <- last_event %>%  select(ncol(last_event):1) %>%
     ))
 # write.csv(last_event, paste0(path, "/last_event.csv"))
 
-Global_data <- left_join(Global_data, 
-               last_event %>% select(c("avatar_id", "last_date_available", "last_event_available")),
+Global_data <- Global_data %>% 
+  mutate(progression_date = coalesce(progression_date, date_death)) %>% 
+  left_join(., last_event %>% select(c("avatar_id", "last_date_available", "last_event_available")),
                by = "avatar_id") %>% 
   mutate(progression_date_surv = coalesce(progression_date, last_date_available))
 write.csv(Global_data, paste0(path, "/Global_data updated.csv"))

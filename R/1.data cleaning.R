@@ -796,37 +796,37 @@ rm(Demo_HRI, Demo_linkage, MM_history_V12, MM_historyV2, MM_historyV4, MM_histor
    Treatment_V12, TreatmentV2, TreatmentV4, Qcd_Treatment, Qcd_TreatmentV2, TreatmentV4.1)
 
 # Lab dates and biopsy to fill up last date of contact when not furnished ----
-LabsV1 <- gather(LabsV1, key = "lab_type", value = "lab_date", 2:ncol(LabsV1)) %>% 
+LabsV1 <- gather(LabsV1, key = "event", value = "date", 2:ncol(LabsV1)) %>% 
   drop_na(lab_date)
-LabsV2 <- gather(LabsV2, key = "lab_type", value = "lab_date", 2:ncol(LabsV2)) %>% 
+LabsV2 <- gather(LabsV2, key = "event", value = "date", 2:ncol(LabsV2)) %>% 
   drop_na(lab_date)
-Labs_V12 <- gather(Labs_V12, key = "lab_type", value = "lab_date", 2) %>% 
+Labs_V12 <- gather(Labs_V12, key = "event", value = "date", 2) %>% 
   drop_na(lab_date)
-LabsV4 <- gather(LabsV4, key = "lab_type", value = "lab_date", 2) %>% 
+LabsV4 <- gather(LabsV4, key = "event", value = "date", 2) %>% 
   drop_na(lab_date)
-LabsV4.1 <- gather(LabsV4.1, key = "lab_type", value = "lab_date", 2) %>% 
+LabsV4.1 <- gather(LabsV4.1, key = "event", value = "date", 2) %>% 
   drop_na(lab_date)
 labs_dates <- bind_rows(LabsV1, LabsV2, Labs_V12, LabsV4, LabsV4.1)
 rm(LabsV1, LabsV2, Labs_V12, LabsV4, LabsV4.1)
 
 biopsy <- bind_rows(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1) %>% 
   drop_na(biopsy_date) %>% 
-  gather(., key = "lab_type", value = "lab_date", 2)
+  gather(., key = "event", value = "date", 2)
 imaging <- bind_rows(Imaging, Imaging_V12, ImagingV2, ImagingV4, ImagingV4.1) %>% 
   drop_na() %>% 
-  gather(., key = "lab_type", value = "lab_date", 2)
+  gather(., key = "event", value = "date", 2)
 metastasis <- bind_rows(Metastasis_V12, MetastasisV4, MetastasisV4.1) %>% 
   drop_na() %>% 
-  gather(., key = "lab_type", value = "lab_date", 2)
+  gather(., key = "event", value = "date", 2)
 performance <- bind_rows(Performance_V12, PerformanceV2, PerformanceV4, PerformanceV4.1) %>% 
   drop_na() %>% 
-  gather(., key = "lab_type", value = "lab_date", 2)
+  gather(., key = "event", value = "date", 2)
 staging <- bind_rows(Staging, Staging_V12, StagingV2, StagingV4, StagingV4.1) %>% 
   drop_na() %>% 
-  gather(., key = "lab_type", value = "lab_date", 2)
+  gather(., key = "event", value = "date", 2)
 tumormarker <- bind_rows(TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1) %>% 
   drop_na() %>% 
-  gather(., key = "lab_type", value = "lab_date", 2)
+  gather(., key = "event", value = "date", 2)
 rm(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1,
    Imaging, Imaging_V12, ImagingV2, ImagingV4, ImagingV4.1,
    Metastasis_V12, MetastasisV4, MetastasisV4.1,
@@ -839,6 +839,7 @@ Labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performance, st
   filter(!str_detect(lab_date, "9999|2816|2077")) %>% 
   distinct(avatar_id, .keep_all = TRUE)
 rm(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker)
+
 
 # Cleaning
 rm(ClinicalCap_V12, ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, 
@@ -1008,8 +1009,7 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., SCT, by = "avatar_id") %>% 
   full_join(., Treatment, by = "avatar_id") %>% 
   full_join(., Radiation, by = "avatar_id") %>% 
-  full_join(., Progression, by= "avatar_id") %>% 
-  full_join(., Biopsy, by= "avatar_id")
+  full_join(., Progression, by= "avatar_id")
 
 Global_data <- right_join(Demo_RedCap_V4ish, Global_data, by = "avatar_id")
 # write.csv(Global_data, paste0(path, "/Global_data.csv"))

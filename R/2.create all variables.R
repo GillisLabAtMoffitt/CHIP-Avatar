@@ -6,28 +6,15 @@ all_dates <- Global_data %>%
          "collectiondt_germline", starts_with("collectiondt_tumor_"),
          "date_death", "date_last_follow_up", "date_contact_lost",
          starts_with("date_of_bmt_"),
-         starts_with("drug_start_date_"),
-         # "drug_start_date_1", "drug_start_date_2", "drug_start_date_3", "drug_start_date_4", "drug_start_date_5", 
-         # "drug_start_date_6", "drug_start_date_7", "drug_start_date_8", "drug_start_date_9", "drug_start_date_10", 
-         # "drug_start_date_11", "drug_start_date_12", "drug_start_date_13", "drug_start_date_14", "drug_start_date_15",
-         # "drug_start_date_16",
-         # "drug_start_date_17",
-         starts_with("drug_stop_date_"),
-         # "drug_stop_date_1_1", "drug_stop_date_1_2", "drug_stop_date_1_3", "drug_stop_date_1_4",
-         # "drug_stop_date_1_5", "drug_stop_date_1_6", "drug_stop_date_1_7", "drug_stop_date_1_8",
-         # "drug_stop_date_1_9", "drug_stop_date_1_10", "drug_stop_date_1_11", "drug_stop_date_1_12",
-         # "drug_stop_date_1_13", "drug_stop_date_1_14", "drug_stop_date_1_15", "drug_stop_date_1_16",
-         starts_with("rad_start_date_"),
-         starts_with("rad_stop_date_")
-         # "rad_start_date_1", "rad_start_date_2", "rad_start_date_3", "rad_start_date_4", "rad_stop_date_1",
-         # "rad_stop_date_2", "rad_stop_date_3", "rad_stop_date_4"
-         )
+         starts_with("drug_start_date_"), starts_with("drug_stop_date_"),
+         starts_with("rad_start_date_"), starts_with("rad_stop_date_"))
 all_dates1 <- Global_data %>% 
   select("avatar_id", "Date_of_Birth", "date_of_diagnosis")
 # pivot both
 all_dates <- all_dates %>% 
   pivot_longer(cols = 2:ncol(.), names_to = "event", values_to = "date") %>% 
   drop_na("date") %>% 
+  bind_rows(., Labs_dates) %>% 
   arrange(date, desc(event))
 all_dates1 <- all_dates1 %>% 
   pivot_longer(cols = 2:ncol(.), names_to = "event", values_to = "date") %>% 
@@ -37,29 +24,9 @@ all_dates1 <- all_dates1 %>%
 all_dates <- bind_rows(all_dates1, all_dates)
 
 
-# attribute number for each events chronographically to each patient # May not need that
-# all_dates <- all_dates %>% group_by(avatar_id) %>% # May not need that
-#   mutate(chronology = row_number()) # May not need that
-
-
 # Get the last event and corresponding date----
 last_event <- dcast(setDT(all_dates), avatar_id ~ rowid(avatar_id), 
                     value.var = c("event", "date"))
-# paste0("date_", seq(from=40,to=1))
-# a <- paste(paste0("event_", seq(from=40,to=1)), collapse = ", ")
-# 
-# c(paste0("date_", seq(from=40,to=1)))
-# colnames(all_date)
-# 
-# colnames(all_date[1:10])
-# colnames(all_date[2:41])
-# a <- rev(colnames(all_date[2:41]))
-# a
-# as.vector(paste(paste0("event_", seq(from=40,to=1)), collapse = ", "))
-# 
-# all_date <- all_dates %>% select(c(avatar_id, 81:2))
-# colnames(all_date)
-
 
 last_event <- last_event %>%  select(ncol(last_event):1) %>% 
   mutate(last_date_available = coalesce(!!! select(., starts_with("date_"))

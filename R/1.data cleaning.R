@@ -260,9 +260,23 @@ RadiationV1 <- RadiationV1[(!grepl(uid_R, RadiationV1$avatar_id)),]
 Biopsy <-
     readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
                     sheet = "Biopsy") %>%
-    select(c("avatar_id", biopsy_date = "date_bonemarrow_biopsy_results", 
-             "date_upep", "date_spep", "date_paraprotein_results",
-             imaging_date = "date_radiologicexam", staging_date = "date_staging_results", "date_flowcytometry_dna_"))
+    select(c("avatar_id", biopsy_date = "date_bonemarrow_biopsy_results"))
+#---
+Staging <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx"),
+                    sheet = "Biopsy") %>%
+  select(c("avatar_id", "date_staging_results"))
+#---
+Imaging <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx"),
+                    sheet = "Biopsy") %>%
+  select(c("avatar_id", imaging_date = "date_radiologicexam"))
+#---
+LabsV1 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx"),
+                    sheet = "Biopsy") %>%
+  select(c("avatar_id", "date_upep", "date_spep", "date_paraprotein_results",
+           "date_flowcytometry_dna_"))
 # V2 ----
 ClinicalCap_V2 <-
     fs::path(
@@ -328,12 +342,12 @@ RadiationV2 <- RadiationV2[(!grepl(uid_R, RadiationV2$avatar_id)),]
 BiopsyV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "Biopsy") %>%
-  select(c("avatar_id","date_bonemarrow_biopsy_results", "date_upep", "date_spep", "date_paraprotein_results"))
+  select(c("avatar_id", biopsy_date = "date_bonemarrow_biopsy_results"))
 #---
 PerformanceV2 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx"),
                     sheet = "Performance") %>%
-  select(c("avatar_id", "date_perf_status"))
+  select(c("avatar_id", date_perf_status_dx = "date_perf_status"))
 #---
 ImagingV2 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx"),
@@ -344,6 +358,11 @@ StagingV2 <-
   readxl::read_xlsx(paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx"),
                     sheet = "Staging") %>%
   select(c("avatar_id", "date_staging_results"))
+#---
+LabsV2 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx"),
+                    sheet = "Biopsy") %>%
+  select(c("avatar_id", "date_upep", "date_spep", "date_paraprotein_results"))
 # V4 ----
 ClinicalCap_V4 <-
     fs::path(
@@ -375,14 +394,6 @@ Alc_SmoV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                       sheet = "Comorbidities") %>%
   select(c("avatar_id","smoking_status", "alcohol_use"))
-#---
-# BiopsyV4 <-
-#   readxl::read_xlsx(ClinicalCap_V4,
-#                     sheet = "Biopsy") %>%
-#   arrange(Biopsy$date_bonemarrow_biopsy_results) %>%
-#   select(c("tcc_id" ,"number_of_bonemarrow_biopsies"))
-# Biopsy <- Biopsy[order(Biopsy$date_bonemarrow_biopsy_results),]
-# Biopsy <- Biopsy[,c("tcc_id" ,"number_of_bonemarrow_biopsies")]
 #---
 TreatmentV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
@@ -779,23 +790,58 @@ Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var =
                      c("rad_start_date", "rad_stop_date"))
 write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
 
-# Biopsy ----
-biopsy <- bind_rows(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1, .id = "versionRad") %>% 
-  drop_na("rad_start_date") %>% 
-  arrange(rad_start_date) %>% 
-  distinct(avatar_id, rad_start_date, rad_stop_date, .keep_all = TRUE)
-Biopsy <- dcast(setDT(biopsy), avatar_id ~ rowid(avatar_id), value.var = 
-                     c("rad_start_date", "rad_stop_date"))
-write.csv(Biopsy,paste0(path, "/simplified files/Biopsy simplify.csv"))
+# Cleaning
+rm(Demo_HRI, Demo_linkage, MM_history_V12, MM_historyV2, MM_historyV4, MM_historyV4.1,
+   Vitals_V12, VitalsV2, VitalsV4, VitalsV4.1, SCT_V12, SCTV2, SCTV4, SCTV4.1,
+   Treatment_V12, TreatmentV2, TreatmentV4, Qcd_Treatment, Qcd_TreatmentV2, TreatmentV4.1)
 
+# Lab dates and biopsy to fill up last date of contact when not furnished ----
+LabsV1 <- gather(LabsV1, key = "lab_type", value = "lab_date", 2:ncol(LabsV1)) %>% 
+  drop_na(lab_date)
+LabsV2 <- gather(LabsV2, key = "lab_type", value = "lab_date", 2:ncol(LabsV2)) %>% 
+  drop_na(lab_date)
+Labs_V12 <- gather(Labs_V12, key = "lab_type", value = "lab_date", 2) %>% 
+  drop_na(lab_date)
+LabsV4 <- gather(LabsV4, key = "lab_type", value = "lab_date", 2) %>% 
+  drop_na(lab_date)
+LabsV4.1 <- gather(LabsV4.1, key = "lab_type", value = "lab_date", 2) %>% 
+  drop_na(lab_date)
+labs_dates <- bind_rows(LabsV1, LabsV2, Labs_V12, LabsV4, LabsV4.1)
+rm(LabsV1, LabsV2, Labs_V12, LabsV4, LabsV4.1)
 
+biopsy <- bind_rows(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1) %>% 
+  drop_na(biopsy_date) %>% 
+  gather(., key = "lab_type", value = "lab_date", 2)
+imaging <- bind_rows(Imaging, Imaging_V12, ImagingV2, ImagingV4, ImagingV4.1) %>% 
+  drop_na() %>% 
+  gather(., key = "lab_type", value = "lab_date", 2)
+metastasis <- bind_rows(Metastasis_V12, MetastasisV4, MetastasisV4.1) %>% 
+  drop_na() %>% 
+  gather(., key = "lab_type", value = "lab_date", 2)
+performance <- bind_rows(Performance_V12, PerformanceV2, PerformanceV4, PerformanceV4.1) %>% 
+  drop_na() %>% 
+  gather(., key = "lab_type", value = "lab_date", 2)
+staging <- bind_rows(Staging, Staging_V12, StagingV2, StagingV4, StagingV4.1) %>% 
+  drop_na() %>% 
+  gather(., key = "lab_type", value = "lab_date", 2)
+tumormarker <- bind_rows(TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1) %>% 
+  drop_na() %>% 
+  gather(., key = "lab_type", value = "lab_date", 2)
+rm(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1,
+   Imaging, Imaging_V12, ImagingV2, ImagingV4, ImagingV4.1,
+   Metastasis_V12, MetastasisV4, MetastasisV4.1,
+   Performance_V12, PerformanceV2, PerformanceV4, PerformanceV4.1,
+   Staging, Staging_V12, StagingV2, StagingV4, StagingV4.1,
+   TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1)
+
+Labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker) %>% 
+  arrange(desc(lab_date)) %>% 
+  filter(!str_detect(lab_date, "9999|2816|2077")) %>% 
+  distinct(avatar_id, .keep_all = TRUE)
+rm(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker)
 
 # Cleaning
-rm(Demo_HRI, Demo_linkage,
-   ClinicalCap_V12, ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, 
-   MM_history_V12, MM_historyV2, MM_historyV4, MM_historyV4.1,
-   Vitals_V12, VitalsV2, VitalsV4, VitalsV4.1, SCT_V12, SCTV2, SCTV4, SCTV4.1,
-   Treatment_V12, TreatmentV2, TreatmentV4, Qcd_Treatment, Qcd_TreatmentV2, TreatmentV4.1, 
+rm(ClinicalCap_V12, ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, 
    uid, uid_A, uid_MM, uid_R, uid_S, uid_T, uid_V, 
    Alc_Smo, Alc_Smo_V12, Alc_Smo_V2, Alc_SmoV4, Alc_SmoV4.1, 
    Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1,

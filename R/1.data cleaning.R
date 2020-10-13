@@ -618,11 +618,10 @@ Progression <-
   distinct() %>% 
   left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
   mutate(prog_before_diag = case_when(
-    progression_date < date_of_diagnosis ~ "removed",
-    progression_date == date_of_diagnosis ~ "equal?",
+    progression_date <= date_of_diagnosis ~ "removed",
     progression_date > date_of_diagnosis ~ "good"
   )) %>% 
-  filter(prog_before_diag == "good"| prog_before_diag == "equal?") %>% 
+  filter(prog_before_diag == "good") %>% 
   select(-c("date_of_diagnosis", "prog_before_diag"))
 
 Progression <- Progression %>% 

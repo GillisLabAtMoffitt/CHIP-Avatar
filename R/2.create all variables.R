@@ -100,6 +100,9 @@ Age_data$month_at_progression <- interval(start= Global_data$date_of_diagnosis, 
   duration(n=1, unit="months")
 Age_data$month_at_progression <- round(Age_data$month_at_progression, 3)
 
+a <- Age_data[,c("avatar_id", "month_at_progression", "date_of_diagnosis", "progression_date_surv", "last_date_available", "progression_date", 
+                 "last_event_available")]
+
 ################################################################################################## III ## Germline ----
 # Create dataframe for only the patients who had germline sequenced
 germline_patient_data <- Age_data[!is.na(Age_data$moffitt_sample_id_germline),]

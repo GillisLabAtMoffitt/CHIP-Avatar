@@ -146,6 +146,41 @@ Radiation_V12 <-
                     sheet = "Radiation") %>%
   select(c("avatar_id", "rad_start_date", "rad_stop_date"))
 uid_R <- paste(unique(Radiation_V12$avatar_id), collapse = '|')
+#---
+Labs_V12 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx"),
+                    sheet = "Labs") %>%
+  select(c("avatar_id", lab_date = "lab_initial_date_1"))
+#---
+Metastasis_V12 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx"),
+                    sheet = "Metastatic_Disease") %>%
+  select(c("avatar_id", metastasis_date = "mets_verify_date"))
+#---
+Staging_V12 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx"),
+                    sheet = "Staging") %>%
+  select(c("avatar_id", "date_staging_results"))
+#---
+Imaging_V12 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx"),
+                    sheet = "Imaging") %>%
+  select(c("avatar_id", "imaging_date"))
+#---
+Performance_V12 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx"),
+                    sheet = "Performance") %>%
+  select(c("avatar_id", "date_perf_status_dx"))
+#---
+TumorMarker_V12 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx"),
+                    sheet = "Tumor_marker_flow") %>%
+  select(c("avatar_id", "tumor_marker_date"))
+#---
+Biopsy_V12 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx"),
+                    sheet = "Biopsy") %>%
+  select(c("avatar_id", "biopsy_date"))
 
 # V1 ----
 ClinicalCap_V1 <-
@@ -183,14 +218,6 @@ MM_history <- MM_history[(!grepl(uid_MM, MM_history$avatar_id)),]
 #                     sheet = "Comorbidities") #%>% 
 #select(c("avatar_id","smoking_status", "alcohol_use"))
 #---
-# Biopsy <-
-#   readxl::read_xlsx(ClinicalCap_V1,
-#                     sheet = "Biopsy") %>%
-#   arrange(Biopsy$date_bonemarrow_biopsy_results) %>%
-#   select(c("tcc_id" ,"number_of_bonemarrow_biopsies"))
-# Biopsy <- Biopsy[order(Biopsy$date_bonemarrow_biopsy_results),]
-# Biopsy <- Biopsy[,c("tcc_id" ,"number_of_bonemarrow_biopsies")]
-#---
 Treatment <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
                     sheet = "Treatment") %>%
@@ -224,6 +251,18 @@ RadiationV1 <- readxl::read_xlsx(paste0(ClinicalCap_V1, "/Radiation_Version1_Pat
   select(c("Avatar_ID", "Radiation Start Date", "Radiation End Date")) %>% 
   `colnames<-`(c("avatar_id", "rad_start_date", "rad_stop_date"))
 RadiationV1 <- RadiationV1[(!grepl(uid_R, RadiationV1$avatar_id)),]
+#---
+# Cytogenetic <-
+#   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
+#                     sheet = "QC'd_Cytogenetics") %>%
+#   select(c("avatar_id","date_bonemarrow_biopsy_results"))
+#---
+Biopsy <-
+    readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
+                    sheet = "Biopsy") %>%
+    select(c("avatar_id", biopsy_date = "date_bonemarrow_biopsy_results", 
+             "date_upep", "date_spep", "date_paraprotein_results",
+             imaging_date = "date_radiologicexam", staging_date = "date_staging_results", "date_flowcytometry_dna_"))
 # V2 ----
 ClinicalCap_V2 <-
     fs::path(
@@ -285,6 +324,26 @@ RadiationV2 <- readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Da
     select(c("avatar_id", "rad_start_date_v2", "rad_stop_date_v2")) %>% 
     `colnames<-`(c("avatar_id", "rad_start_date", "rad_stop_date"))
 RadiationV2 <- RadiationV2[(!grepl(uid_R, RadiationV2$avatar_id)),]
+#---
+BiopsyV2 <-
+  readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
+                    sheet = "Biopsy") %>%
+  select(c("avatar_id","date_bonemarrow_biopsy_results", "date_upep", "date_spep", "date_paraprotein_results"))
+#---
+PerformanceV2 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx"),
+                    sheet = "Performance") %>%
+  select(c("avatar_id", "date_perf_status"))
+#---
+ImagingV2 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx"),
+                    sheet = "Imaging") %>%
+  select(c("avatar_id", imaging_date = "date_radiologicexam"))
+#---
+StagingV2 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx"),
+                    sheet = "Staging") %>%
+  select(c("avatar_id", "date_staging_results"))
 # V4 ----
 ClinicalCap_V4 <-
     fs::path(
@@ -349,6 +408,41 @@ RadiationV4 <-
     readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                                  sheet = "Radiation") %>%
     select(c("avatar_id", "rad_start_date", "rad_stop_date"))
+#---
+LabsV4 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx"),
+                    sheet = "Labs") %>%
+  select(c("avatar_id", lab_date = "lab_initial_date_1"))
+#---
+MetastasisV4 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx"),
+                    sheet = "Metastatic_Disease") %>%
+  select(c("avatar_id", metastasis_date = "mets_verify_date"))
+#---
+StagingV4 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx"),
+                    sheet = "Staging") %>%
+  select(c("avatar_id", "date_staging_results"))
+#---
+ImagingV4 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx"),
+                    sheet = "Imaging") %>%
+  select(c("avatar_id", "imaging_date"))
+#---
+PerformanceV4 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx"),
+                    sheet = "Performance") %>%
+  select(c("avatar_id", "date_perf_status_dx"))
+#---
+TumorMarkerV4 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx"),
+                    sheet = "Tumor_marker_flow") %>%
+  select(c("avatar_id", "tumor_marker_date"))
+#---
+BiopsyV4 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx"),
+                    sheet = "Biopsy") %>%
+  select(c("avatar_id", biopsy_date = "date_bonemarrow_biopsy_results"))
 
 # V4.august2020 ----
 #---
@@ -391,7 +485,41 @@ RadiationV4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
                     sheet = "Radiation") %>%
   select(c("avatar_id", "rad_start_date", "rad_stop_date"))
-
+#---
+LabsV4.1 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
+                    sheet = "Labs") %>%
+  select(c("avatar_id", lab_date = "lab_initial_date_1"))
+#---
+MetastasisV4.1 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
+                    sheet = "Metastatic_Disease") %>%
+  select(c("avatar_id", metastasis_date = "mets_verify_date"))
+#---
+StagingV4.1 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
+                    sheet = "Staging") %>%
+  select(c("avatar_id", "date_staging_results"))
+#---
+ImagingV4.1 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
+                    sheet = "Imaging") %>%
+  select(c("avatar_id", "imaging_date"))
+#---
+PerformanceV4.1 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
+                    sheet = "Performance") %>%
+  select(c("avatar_id", "date_perf_status_dx"))
+#---
+TumorMarkerV4.1 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
+                    sheet = "Tumor_marker_flow") %>%
+  select(c("avatar_id", "tumor_marker_date"))
+#---
+BiopsyV4.1 <- 
+  readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
+                    sheet = "Biopsy") %>%
+  select(c("avatar_id", biopsy_date = "date_bonemarrow_biopsy_results"))
 
 
 
@@ -651,6 +779,16 @@ Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var =
                      c("rad_start_date", "rad_stop_date"))
 write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
 
+# Biopsy ----
+biopsy <- bind_rows(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1, .id = "versionRad") %>% 
+  drop_na("rad_start_date") %>% 
+  arrange(rad_start_date) %>% 
+  distinct(avatar_id, rad_start_date, rad_stop_date, .keep_all = TRUE)
+Biopsy <- dcast(setDT(biopsy), avatar_id ~ rowid(avatar_id), value.var = 
+                     c("rad_start_date", "rad_stop_date"))
+write.csv(Biopsy,paste0(path, "/simplified files/Biopsy simplify.csv"))
+
+
 
 # Cleaning
 rm(Demo_HRI, Demo_linkage,
@@ -824,7 +962,8 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., SCT, by = "avatar_id") %>% 
   full_join(., Treatment, by = "avatar_id") %>% 
   full_join(., Radiation, by = "avatar_id") %>% 
-  full_join(., Progression, by= "avatar_id")
+  full_join(., Progression, by= "avatar_id") %>% 
+  full_join(., Biopsy, by= "avatar_id")
 
 Global_data <- right_join(Demo_RedCap_V4ish, Global_data, by = "avatar_id")
 # write.csv(Global_data, paste0(path, "/Global_data.csv"))

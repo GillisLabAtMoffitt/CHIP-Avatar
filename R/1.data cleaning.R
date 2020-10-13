@@ -784,6 +784,8 @@ RadiationV1$rad_stop_date <- as.POSIXct(strptime(RadiationV1$rad_stop_date,
 
 radiation <- bind_rows(Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1, .id = "versionRad") %>% 
   drop_na("rad_start_date") %>% 
+  filter(!str_detect(rad_start_date, "3013")) %>% 
+  filter(!str_detect(rad_stop_date, "2300")) %>% 
   arrange(rad_start_date) %>% 
   distinct(avatar_id, rad_start_date, rad_stop_date, .keep_all = TRUE)
 Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 

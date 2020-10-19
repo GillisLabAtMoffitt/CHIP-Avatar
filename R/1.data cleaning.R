@@ -610,7 +610,7 @@ Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "v
     vital_status == 1 ~ "Alive",
     vital_status == 3 ~ "Lost"
   )) %>% 
-  arrange(vital_status_rec, date_last_follow_up) # %>% 
+  arrange(vital_status_rec, date_last_follow_up) # %>% Check-----------------------------------------------------
 # distinct(avatar_id, date_death, .keep_all = TRUE) # Eliminate patient who has duplicated date of death
 
 # VitalsA <- Vitals %>%
@@ -708,18 +708,18 @@ Progression <-
     progression_date > date_of_diagnosis ~ "good"
   )) %>% 
   filter(prog_before_diag == "good") %>% 
-  # Add date_death as progression_date when no previous progression_date
-  full_join(., Vitals %>% select(c("avatar_id", "date_death")), by = "avatar_id") %>% 
-  mutate(progression_date = coalesce(progression_date, date_death)) %>% 
+  # # Add date_death as progression_date when no previous progression_date
+  # full_join(., Vitals %>% select(c("avatar_id", "date_death")), by = "avatar_id") %>% 
+  # mutate(progression_date = coalesce(progression_date, date_death)) %>% 
   select(1:2)
 
 Progression <- Progression %>% 
   arrange(progression_date) %>% # Keep earliest progression_date
-  distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(progression_surv = case_when(
-    !is.na(progression_date) ~ 1,
-    is.na(progression_date) ~ 0
-  ))
+  distinct(avatar_id, .keep_all = TRUE) # %>% 
+  # mutate(progression_surv = case_when(
+  #   !is.na(progression_date) ~ 1,
+  #   is.na(progression_date) ~ 0
+  # ))
 
 write.csv(Progression,paste0(path, "/simplified files/Progression simplify.csv"))
 
@@ -814,37 +814,37 @@ rm(Demo_HRI, Demo_linkage, MM_history_V12, MM_historyV2, MM_historyV4, MM_histor
    Treatment_V12, TreatmentV2, TreatmentV4, Qcd_Treatment, Qcd_TreatmentV2, TreatmentV4.1)
 
 # Lab dates and biopsy to fill up last date of contact when not furnished ----
-LabsV1 <- gather(LabsV1, key = "event", value = "date", 2:ncol(LabsV1)) %>% 
-  drop_na(date)
-LabsV2 <- gather(LabsV2, key = "event", value = "date", 2:ncol(LabsV2)) %>% 
-  drop_na(date)
-Labs_V12 <- gather(Labs_V12, key = "event", value = "date", 2) %>% 
-  drop_na(date)
-LabsV4 <- gather(LabsV4, key = "event", value = "date", 2) %>% 
-  drop_na(date)
-LabsV4.1 <- gather(LabsV4.1, key = "event", value = "date", 2) %>% 
-  drop_na(date)
+LabsV1 <- gather(LabsV1, key = "event", value = "labs_last_date", 2:ncol(LabsV1)) %>% 
+  drop_na(labs_last_date)
+LabsV2 <- gather(LabsV2, key = "event", value = "labs_last_date", 2:ncol(LabsV2)) %>% 
+  drop_na(labs_last_date)
+Labs_V12 <- gather(Labs_V12, key = "event", value = "labs_last_date", 2) %>% 
+  drop_na(labs_last_date)
+LabsV4 <- gather(LabsV4, key = "event", value = "labs_last_date", 2) %>% 
+  drop_na(labs_last_date)
+LabsV4.1 <- gather(LabsV4.1, key = "event", value = "labs_last_date", 2) %>% 
+  drop_na(labs_last_date)
 labs_dates <- bind_rows(LabsV1, LabsV2, Labs_V12, LabsV4, LabsV4.1)
 rm(LabsV1, LabsV2, Labs_V12, LabsV4, LabsV4.1)
 
 biopsy <- bind_rows(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1) %>% 
   drop_na(biopsy_date) %>% 
-  gather(., key = "event", value = "date", 2)
+  gather(., key = "event", value = "labs_last_date", 2)
 imaging <- bind_rows(Imaging, Imaging_V12, ImagingV2, ImagingV4, ImagingV4.1) %>% 
   drop_na() %>% 
-  gather(., key = "event", value = "date", 2)
+  gather(., key = "event", value = "labs_last_date", 2)
 metastasis <- bind_rows(Metastasis_V12, MetastasisV4, MetastasisV4.1) %>% 
   drop_na() %>% 
-  gather(., key = "event", value = "date", 2)
+  gather(., key = "event", value = "labs_last_date", 2)
 performance <- bind_rows(Performance_V12, PerformanceV2, PerformanceV4, PerformanceV4.1) %>% 
   drop_na() %>% 
-  gather(., key = "event", value = "date", 2)
+  gather(., key = "event", value = "labs_last_date", 2)
 staging <- bind_rows(Staging, Staging_V12, StagingV2, StagingV4, StagingV4.1) %>% 
   drop_na() %>% 
-  gather(., key = "event", value = "date", 2)
+  gather(., key = "event", value = "labs_last_date", 2)
 tumormarker <- bind_rows(TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1) %>% 
   drop_na() %>% 
-  gather(., key = "event", value = "date", 2)
+  gather(., key = "event", value = "labs_last_date", 2)
 rm(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1,
    Imaging, Imaging_V12, ImagingV2, ImagingV4, ImagingV4.1,
    Metastasis_V12, MetastasisV4, MetastasisV4.1,
@@ -852,11 +852,18 @@ rm(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1,
    Staging, Staging_V12, StagingV2, StagingV4, StagingV4.1,
    TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1)
 
-Labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker) %>% 
-  arrange(desc(date)) %>% 
-  filter(!str_detect(date, "9999|2816|2077")) %>% 
+Last_Labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker) %>% 
+  arrange(desc(labs_last_date)) %>% 
+  filter(!str_detect(labs_last_date, "9999|2816|2077")) %>% 
+  # remove if its equal to date_of_diagnosis
+  left_join(., MM_history %>% select(c(avatar_id, "date_of_diagnosis")), by = "avatar_id") %>% 
+  mutate(labs_before_diag = case_when(
+    labs_last_date <= date_of_diagnosis ~ "removed",
+    labs_last_date > date_of_diagnosis ~ "good"
+  )) %>% 
+  filter(labs_before_diag == "good") %>% 
   distinct(avatar_id, .keep_all = TRUE)
-rm(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker)
+rm(labs_dates, labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker)
 
 
 # Cleaning

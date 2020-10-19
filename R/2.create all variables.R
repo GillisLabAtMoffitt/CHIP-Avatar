@@ -1,35 +1,38 @@
 ########################################### I ### Create dataframe for all start dates, will use that for timeline ----
 # Need to separate in 2 df then bind because of date_of_diag = date of treatment
-all_dates <- Global_data %>% 
+all_dates <- full_join(Global_data, Last_Labs_dates, by = "avatar_id") %>% # Add dates from labs,cytogenetics, mets, imaging, etc
   select("avatar_id", # "date_of_diagnosis_1",
-         starts_with("date_of_diagnosis_"),
+         # starts_with("date_of_diagnosis_"),
          # "date_of_diagnosis_2", "date_of_diagnosis_3", "date_of_diagnosis_4",
          "collectiondt_germline", starts_with("collectiondt_tumor_"),
-         "date_death", "date_last_follow_up", "date_contact_lost",
+         "date_death",
          starts_with("date_of_bmt_"),
          starts_with("drug_start_date_"), starts_with("drug_stop_date_"),
-         starts_with("rad_start_date_"), starts_with("rad_stop_date_"))
+         starts_with("rad_start_date_"), starts_with("rad_stop_date_"),
+         "labs_last_date", "date_last_follow_up", "date_contact_lost")
 all_dates1 <- Global_data %>% 
   select("avatar_id", "Date_of_Birth", "date_of_diagnosis")
 # pivot both
 all_dates <- all_dates %>% 
   pivot_longer(cols = 2:ncol(.), names_to = "event", values_to = "date") %>% 
   drop_na("date") %>% 
-  bind_rows(., Labs_dates) %>% 
-  arrange(date, desc(event))
+  # bind_rows(., Labs_dates) %>% # Add dates from labs,cytogenetics, mets, imaging, etc
+  arrange(date)
 all_dates1 <- all_dates1 %>% 
   pivot_longer(cols = 2:ncol(.), names_to = "event", values_to = "date") %>% 
   drop_na("date") %>% 
-  arrange(date, desc(event))
+  arrange(date)
 # and bind
-all_dates <- bind_rows(all_dates1, all_dates) %>% 
-  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
-  mutate(lastdate_sameas_diag = case_when(
-  date <= date_of_diagnosis ~ "removed",
-  date > date_of_diagnosis ~ "good"
-)) %>% 
-  filter(lastdate_sameas_diag == "good") %>% 
-  select(-c("date_of_diagnosis", "lastdate_sameas_diag"))
+all_dates <- bind_rows(all_dates1, all_dates) 
+
+# %>% 
+  # left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") # %>% 
+#   mutate(lastdate_sameas_diag = case_when(
+#   date <= date_of_diagnosis ~ "removed",
+#   date > date_of_diagnosis ~ "good"
+# )) %>% 
+  # filter(lastdate_sameas_diag == "good") %>% 
+  # select(-c("date_of_diagnosis", "lastdate_sameas_diag"))
 
 # Get the last event and corresponding date----
 last_event <- dcast(setDT(all_dates), avatar_id ~ rowid(avatar_id), 
@@ -40,10 +43,22 @@ last_event <- last_event %>%  select(ncol(last_event):1) %>%
          )) %>% 
   mutate(last_event_available = coalesce(!!! select(., starts_with("event_"))
     ))
-# write.csv(last_event, paste0(path, "/last_event.csv"))
+table(last_event$last_event_available) # Check why date_contact_lost are for only 3 patients
+table(Global_data$date_contact_lost) # 
+Global_data$avatar_id[which(!is.na(Global_data$date_contact_lost))]
+a <- last_event[which(!is.na(Global_data$date_contact_lost)),] %>% 
+  purrr::keep(~!all(is.na(.)))
+
+write.csv(last_event, paste0(path, "/last_event.csv"))
 
 Global_data <- Global_data %>% 
+  # Add date_death as progression_date when no previous progression_date
   mutate(progression_date = coalesce(progression_date, date_death)) %>% 
+  mutate(porgression_surv = case_when(
+    !is.na(progression_date) ~ 1,
+    is.na(progression_date) ~ 0
+  )) %>% 
+  # Add last_date_available
   left_join(., last_event %>% select(c("avatar_id", "last_date_available", "last_event_available")),
                by = "avatar_id") %>% 
   mutate(progression_date_surv = coalesce(progression_date, last_date_available))
@@ -108,7 +123,7 @@ Age_data$month_at_progression <- interval(start= Global_data$date_of_diagnosis, 
   duration(n=1, unit="months")
 Age_data$month_at_progression <- round(Age_data$month_at_progression, 3)
 
-a <- Age_data[,c("avatar_id", "month_at_progression", "date_of_diagnosis", "progression_date_surv", "last_date_available", "progression_date", 
+b <- Age_data[,c("avatar_id", "month_at_progression", "date_of_diagnosis", "progression_date_surv", "last_date_available", "progression_date", 
                  "last_event_available")]
 
 ################################################################################################## III ## Germline ----
@@ -181,14 +196,9 @@ germline_patient_data <- germline_patient_data %>%
     collectiondt_germline < collectiondt_tumor_1 ~ "Germ first",
     collectiondt_germline > collectiondt_tumor_1 ~ "tumorWES first",
     collectiondt_germline == collectiondt_tumor_1 ~ "same date"
-  # )) %>% 
-  # mutate(progressed = case_when(
-  #   is.na(progressed) ~ 0,
-  #   TRUE ~ progressed
   )) %>% 
-  mutate(progression_surv = coalesce(progression_surv, 0)) %>%  # %>% # missing value because of merging---------------------HERE do when date is not na to include death-----------------
-# remove the one befoer in Progression  
-mutate(progressed_surv = case_when( # remove censored patient when progression_date_surv > date_contact_lost
+  # remove censored patient when progression_date_surv > date_contact_lost----------------------------
+mutate(progressed_surv = case_when( 
     progression_surv == 1 &
       progression_date_surv > date_contact_lost ~ 0,
     TRUE ~ progression_surv

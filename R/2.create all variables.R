@@ -1,8 +1,9 @@
 ########################################### I ### Create dataframe for all start dates, will use that for timeline ----
 # Need to separate in 2 df then bind because of date_of_diag = date of treatment
 all_dates <- Global_data %>% 
-  select("avatar_id", "date_of_diagnosis_1",
-         #"date_of_diagnosis_2", "date_of_diagnosis_3", "date_of_diagnosis_4",
+  select("avatar_id", # "date_of_diagnosis_1",
+         starts_with("date_of_diagnosis_"),
+         # "date_of_diagnosis_2", "date_of_diagnosis_3", "date_of_diagnosis_4",
          "collectiondt_germline", starts_with("collectiondt_tumor_"),
          "date_death", "date_last_follow_up", "date_contact_lost",
          starts_with("date_of_bmt_"),
@@ -185,8 +186,9 @@ germline_patient_data <- germline_patient_data %>%
   #   is.na(progressed) ~ 0,
   #   TRUE ~ progressed
   )) %>% 
-  mutate(progression_surv = coalesce(progression_surv, 0)) %>%  # %>% # missing value because of merging
-  mutate(progressed_surv = case_when( # remove censored patient when progression_date_surv > date_contact_lost
+  mutate(progression_surv = coalesce(progression_surv, 0)) %>%  # %>% # missing value because of merging---------------------HERE do when date is not na to include death-----------------
+# remove the one befoer in Progression  
+mutate(progressed_surv = case_when( # remove censored patient when progression_date_surv > date_contact_lost
     progression_surv == 1 &
       progression_date_surv > date_contact_lost ~ 0,
     TRUE ~ progression_surv

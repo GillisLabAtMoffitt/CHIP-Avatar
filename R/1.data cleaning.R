@@ -127,11 +127,11 @@ uid_T <- paste(unique(Treatment_V12$avatar_id), collapse = '|')
 Progression_V12 <-
   readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Treatment_Outcomes") %>%
-  select(c("avatar_id", "initial_1_pd_date_1")) # For the non qc'd
+  select(c("avatar_id", progression_date = "initial_1_pd_date_1")) # For the non qc'd
 Progr_V12 <-
   readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", "relapse_date", "QC")) # For the qc'd
+  select(c("avatar_id", progression_date = "relapse_date", "QC")) # For the qc'd
 uid_P <- paste(c(unique(Progression_V12$avatar_id), unique(Progr_V12$avatar_id)), collapse = '|')
 #---
 SCT_V12 <-
@@ -602,37 +602,6 @@ MM_history <- MM_history %>%
   mutate(date_of_diagnosis = coalesce(date_of_diagnosis, date_of_diagnosis_1)) %>% 
   select(c("avatar_id", "date_of_diagnosis", everything()))
 write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
-# Progression
-Progression_V12 <- Progression_V12 %>% arrange(initial_1_pd_date_1) %>% distinct(avatar_id, .keep_all = TRUE)
-Progr_V12 <- Progr_V12 %>% arrange(relapse_date) %>% distinct(avatar_id, .keep_all = TRUE)
-
-Progression_V12 <- full_join(Progression_V12, Progr_V12, by= "avatar_id") %>% 
-  mutate(progression_date = case_when(
-    QC == "Yes" ~ relapse_date,
-    QC == "No" |
-      is.na(QC) ~ initial_1_pd_date_1
-  ))
-
-Progression <- 
-  bind_rows(Progression_V12, Progression, ProgressionV2, Progression_V4, Progression_V4.1, .id= "versionProg") %>%
-  distinct() %>% 
-  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
-  mutate(prog_before_diag = case_when(
-    progression_date <= date_of_diagnosis ~ "removed",
-    progression_date > date_of_diagnosis ~ "good"
-  )) %>% 
-  filter(prog_before_diag == "good") %>% 
-  select(-c("date_of_diagnosis", "prog_before_diag"))
-
-Progression <- Progression %>% 
-  arrange(progression_date) %>% # Keep earliest progression date
-  distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(progression_surv = case_when(
-    !is.na(progression_date) ~ 1,
-    is.na(progression_date) ~ 0
-  ))
-write.csv(Progression,paste0(path, "/simplified files/Progression simplify.csv"))
-
 # Vitals ----
 
 Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
@@ -642,7 +611,7 @@ Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "v
     vital_status == 3 ~ "Lost"
   )) %>% 
   arrange(vital_status_rec, date_last_follow_up) # %>% 
-  # distinct(avatar_id, date_death, .keep_all = TRUE) # Eliminate patient who has duplicated date of death
+# distinct(avatar_id, date_death, .keep_all = TRUE) # Eliminate patient who has duplicated date of death
 
 # VitalsA <- Vitals %>%
 #   group_by(avatar_id) %>%
@@ -674,29 +643,29 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
   )) %>% 
   select(c("avatar_id","end_vital_status", "date_death", "date_last_follow_up"))
 
-  # For BMI, we may need to keep both if want to see evolution but for now keep the earliest (closest to diagnisis)
-  # then fill-up with second column when the first is NA using coalesce
-  # mutate(bmi_at_dx_v2 = coalesce(bmi_at_dx_v2_1, bmi_at_dx_v2_2)) %>% 
-  # Have patients who had "abstraction" 3 times and for who the alcohol_use and smoking_status was recorded only on the third
-  # Take third record, fill it up by the second when NA then the first when NA
-  # That is to get the latest info. We may switch it if we want the closest to diag.
-  # mutate(alcohol_use = coalesce(alcohol_use_2, alcohol_use_1)) %>% 
-  # mutate(alcohol_use = case_when(
-  #   alcohol_use %in% c(0,3) ~ "never",
-  #   alcohol_use == 2 ~ "former",
-  #   alcohol_use == 1 ~ "current",
-  #   TRUE ~ NA_character_
-  # )) %>% 
-  # # Smoking V1 have 2 var current_smoker_1 (1-2), smoking_status_1 ()
-  # # Fill-up current_smoker_1 by smoking_status_1
-  # # That is to get the lastest info. We may switch it if we want the closest to diag.
-  # mutate(smoking_status = coalesce(smoking_status_2, current_smoker_1, smoking_status_1)) %>% 
-  # mutate(smoking_status = case_when(
-  #   smoking_status %in% c(0,3) ~ "never",
-  #   smoking_status == 2 ~ "former",
-  #   smoking_status == 1 ~ "current",
-  #   TRUE ~ NA_character_
-  # )) %>% 
+# For BMI, we may need to keep both if want to see evolution but for now keep the earliest (closest to diagnisis)
+# then fill-up with second column when the first is NA using coalesce
+# mutate(bmi_at_dx_v2 = coalesce(bmi_at_dx_v2_1, bmi_at_dx_v2_2)) %>% 
+# Have patients who had "abstraction" 3 times and for who the alcohol_use and smoking_status was recorded only on the third
+# Take third record, fill it up by the second when NA then the first when NA
+# That is to get the latest info. We may switch it if we want the closest to diag.
+# mutate(alcohol_use = coalesce(alcohol_use_2, alcohol_use_1)) %>% 
+# mutate(alcohol_use = case_when(
+#   alcohol_use %in% c(0,3) ~ "never",
+#   alcohol_use == 2 ~ "former",
+#   alcohol_use == 1 ~ "current",
+#   TRUE ~ NA_character_
+# )) %>% 
+# # Smoking V1 have 2 var current_smoker_1 (1-2), smoking_status_1 ()
+# # Fill-up current_smoker_1 by smoking_status_1
+# # That is to get the lastest info. We may switch it if we want the closest to diag.
+# mutate(smoking_status = coalesce(smoking_status_2, current_smoker_1, smoking_status_1)) %>% 
+# mutate(smoking_status = case_when(
+#   smoking_status %in% c(0,3) ~ "never",
+#   smoking_status == 2 ~ "former",
+#   smoking_status == 1 ~ "current",
+#   TRUE ~ NA_character_
+# )) %>% 
 # Note for smoking
 # 1 patient said 3 in V2 and 11 in V1
 # 1 patient said 3 in V2 and 12 in V1
@@ -705,6 +674,54 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
 Vitals <- full_join(Vitals, Contact_lost, by= "avatar_id")
 
 write.csv(Vitals,paste0(path, "/simplified files/Vitals simplify.csv"))
+
+# Progression----
+Progr_V12 <- Progr_V12 %>% 
+  filter(QC == "Yes") %>% 
+  # arrange(relapse_date) %>% 
+  drop_na(progression_date) %>% 
+  distinct() %>% 
+  select(-QC)
+  # distinct(avatar_id, .keep_all = TRUE)
+uid_P12 <- paste(unique(Progr_V12$avatar_id), collapse = '|')
+Progression_V12 <- Progression_V12 %>% 
+  drop_na(progression_date) %>% 
+  distinct()
+# arrange(initial_1_pd_date_1) %>% distinct(avatar_id, .keep_all = TRUE)
+Progression_V12 <- Progression_V12[(!grepl(uid_P12, Progression_V12$avatar_id)),]
+
+# Progression_V12a <- full_join(Progression_V12, Progr_V12, by= "avatar_id") %>% 
+#   mutate(progression_date = case_when(
+#     QC == "Yes" ~ relapse_date, # From Prog_V12
+#     QC == "No" |
+#       is.na(QC) ~ initial_1_pd_date_1 # from Progression_V12
+#   ))
+
+Progression <- 
+  bind_rows(Progr_V12, Progression_V12, 
+            Progression, ProgressionV2, Progression_V4, Progression_V4.1) %>%
+  distinct() %>% 
+  # Taking only the dates of progression after date_of_diagnosis (official as not MGUS or SM)
+  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
+  mutate(prog_before_diag = case_when(
+    progression_date <= date_of_diagnosis ~ "removed",
+    progression_date > date_of_diagnosis ~ "good"
+  )) %>% 
+  filter(prog_before_diag == "good") %>% 
+  # Add date_death as progression_date when no previous progression_date
+  full_join(., Vitals %>% select(c("avatar_id", "date_death")), by = "avatar_id") %>% 
+  mutate(progression_date = coalesce(progression_date, date_death)) %>% 
+  select(1:2)
+
+Progression <- Progression %>% 
+  arrange(progression_date) %>% # Keep earliest progression_date
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(progression_surv = case_when(
+    !is.na(progression_date) ~ 1,
+    is.na(progression_date) ~ 0
+  ))
+
+write.csv(Progression,paste0(path, "/simplified files/Progression simplify.csv"))
 
 # Bone marrow transplant ----
 SCT <- SCT %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt, date_of_third_bmt),
@@ -798,15 +815,15 @@ rm(Demo_HRI, Demo_linkage, MM_history_V12, MM_historyV2, MM_historyV4, MM_histor
 
 # Lab dates and biopsy to fill up last date of contact when not furnished ----
 LabsV1 <- gather(LabsV1, key = "event", value = "date", 2:ncol(LabsV1)) %>% 
-  drop_na(lab_date)
+  drop_na(date)
 LabsV2 <- gather(LabsV2, key = "event", value = "date", 2:ncol(LabsV2)) %>% 
-  drop_na(lab_date)
+  drop_na(date)
 Labs_V12 <- gather(Labs_V12, key = "event", value = "date", 2) %>% 
-  drop_na(lab_date)
+  drop_na(date)
 LabsV4 <- gather(LabsV4, key = "event", value = "date", 2) %>% 
-  drop_na(lab_date)
+  drop_na(date)
 LabsV4.1 <- gather(LabsV4.1, key = "event", value = "date", 2) %>% 
-  drop_na(lab_date)
+  drop_na(date)
 labs_dates <- bind_rows(LabsV1, LabsV2, Labs_V12, LabsV4, LabsV4.1)
 rm(LabsV1, LabsV2, Labs_V12, LabsV4, LabsV4.1)
 
@@ -836,8 +853,8 @@ rm(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1,
    TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1)
 
 Labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker) %>% 
-  arrange(desc(lab_date)) %>% 
-  filter(!str_detect(lab_date, "9999|2816|2077")) %>% 
+  arrange(desc(date)) %>% 
+  filter(!str_detect(date, "9999|2816|2077")) %>% 
   distinct(avatar_id, .keep_all = TRUE)
 rm(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker)
 

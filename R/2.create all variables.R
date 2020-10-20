@@ -1,16 +1,15 @@
 ########################################### I ### Create dataframe for all start dates, will use that for timeline ----
-# Need to separate in 2 df then bind because of date_of_diag = date of treatment
-all_dates <- full_join(Global_data, Last_Labs_dates, by = "avatar_id") %>% # Add dates from labs,cytogenetics, mets, imaging, etc
+# Need to separate in 2 df ,do diag separately to make sure it appear before germ or tumor date, date of treatment
+all_dates <- Global_data %>% 
   select("avatar_id", # "date_of_diagnosis_1",
          # starts_with("date_of_diagnosis_"),
          # "date_of_diagnosis_2", "date_of_diagnosis_3", "date_of_diagnosis_4",
          "collectiondt_germline", starts_with("collectiondt_tumor_"),
-         "date_death",
          starts_with("date_of_bmt_"),
          starts_with("drug_start_date_"), starts_with("drug_stop_date_"),
          starts_with("rad_start_date_"), starts_with("rad_stop_date_"),
-         "labs_last_date", "date_last_follow_up", "date_contact_lost")
-all_dates1 <- Global_data %>% 
+         "labs_last_date", "date_last_follow_up", "date_contact_lost", "date_death")
+all_dates1 <- Global_data %>%
   select("avatar_id", "Date_of_Birth", "date_of_diagnosis")
 # pivot both
 all_dates <- all_dates %>% 
@@ -46,15 +45,15 @@ last_event <- last_event %>%  select(ncol(last_event):1) %>%
 table(last_event$last_event_available) # Check why date_contact_lost are for only 3 patients
 table(Global_data$date_contact_lost) # 
 Global_data$avatar_id[which(!is.na(Global_data$date_contact_lost))]
+
 a <- last_event[which(!is.na(Global_data$date_contact_lost)),] %>% 
   purrr::keep(~!all(is.na(.)))
 
 write.csv(last_event, paste0(path, "/last_event.csv"))
 
-Global_data <- Global_data %>% 
-  # Add date_death as progression_date when no previous progression_date
+Global_data <- Global_data %>% # Add date_death as progression_date when no previous progression_date
   mutate(progression_date = coalesce(progression_date, date_death)) %>% 
-  mutate(porgression_surv = case_when(
+  mutate(progression_surv = case_when(
     !is.na(progression_date) ~ 1,
     is.na(progression_date) ~ 0
   )) %>% 
@@ -62,6 +61,13 @@ Global_data <- Global_data %>%
   left_join(., last_event %>% select(c("avatar_id", "last_date_available", "last_event_available")),
                by = "avatar_id") %>% 
   mutate(progression_date_surv = coalesce(progression_date, last_date_available))
+
+Global_data[, c("avatar_id", "progression_date", "progression_surv", "progression_date_surv", "last_date_available", "last_event_available")]
+
+d <- Global_data[which(!is.na(Global_data$date_contact_lost)), 
+                 c("date_of_diagnosis", "date_last_follow_up", "date_contact_lost", "date_death", "last_date_available")]
+
+
 write.csv(Global_data, paste0(path, "/Global_data updated.csv"))
 
 
@@ -144,7 +150,7 @@ write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
 
 
 # Cleaning
-rm(Global_data, enddate)
+# rm(Global_data, enddate)
 
 # Do a check on dates
 germline_patient_data <- germline_patient_data %>% 
@@ -196,13 +202,13 @@ germline_patient_data <- germline_patient_data %>%
     collectiondt_germline < collectiondt_tumor_1 ~ "Germ first",
     collectiondt_germline > collectiondt_tumor_1 ~ "tumorWES first",
     collectiondt_germline == collectiondt_tumor_1 ~ "same date"
-  )) %>% 
-  # remove censored patient when progression_date_surv > date_contact_lost----------------------------
-mutate(progressed_surv = case_when( 
-    progression_surv == 1 &
+  )) %>% # remove censored patient when progression_date_surv > date_contact_lost
+  mutate(progressed_surv = case_when( 
+    progression_surv == 1 & 
       progression_date_surv > date_contact_lost ~ 0,
     TRUE ~ progression_surv
   ))
+germline_patient_data1$progressed_surv == germline_patient_data1$progression_surv
 
 # write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))
 tab <- table(germline_patient_data$GermBFtumorWES)

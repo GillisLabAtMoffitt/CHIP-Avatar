@@ -610,16 +610,12 @@ Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "v
     vital_status == 1 ~ "Alive",
     vital_status == 3 ~ "Lost"
   )) %>% 
-  arrange(vital_status_rec, date_last_follow_up) # %>% Check-----------------------------------------------------
-# distinct(avatar_id, date_death, .keep_all = TRUE) # Eliminate patient who has duplicated date of death
+  arrange(vital_status_rec, date_death, date_last_follow_up) # %>% Check-----------------------------------------------------
 
-# VitalsA <- Vitals %>%
-#   group_by(avatar_id) %>%
-#   mutate(V3 = any(vital_status == 3))
 Contact_lost <- Vitals %>% 
   filter(vital_status == 3) %>% 
-  mutate(was_contact_lost = "Lost of contact") %>% 
-  arrange(date_last_follow_up) %>% 
+  mutate(was_contact_lost = "Loss of contact") %>% 
+  arrange(desc(date_last_follow_up)) %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   select(c("avatar_id", "was_contact_lost", date_contact_lost = "date_last_follow_up"))
 
@@ -678,18 +674,14 @@ write.csv(Vitals,paste0(path, "/simplified files/Vitals simplify.csv"))
 # Progression----
 Progr_V12 <- Progr_V12 %>% 
   filter(QC == "Yes") %>% 
-  # arrange(relapse_date) %>% 
   drop_na(progression_date) %>% 
   distinct() %>% 
   select(-QC)
-  # distinct(avatar_id, .keep_all = TRUE)
 uid_P12 <- paste(unique(Progr_V12$avatar_id), collapse = '|')
-Progression_V12 <- Progression_V12 %>% 
+Progression_V12 <- Progression_V12[(!grepl(uid_P12, Progression_V12$avatar_id)),] %>%  # Remove ID QC'd in Prog_V12
+#Progression_V12 <- Progression_V12 %>% 
   drop_na(progression_date) %>% 
   distinct()
-# arrange(initial_1_pd_date_1) %>% distinct(avatar_id, .keep_all = TRUE)
-Progression_V12 <- Progression_V12[(!grepl(uid_P12, Progression_V12$avatar_id)),]
-
 # Progression_V12a <- full_join(Progression_V12, Progr_V12, by= "avatar_id") %>% 
 #   mutate(progression_date = case_when(
 #     QC == "Yes" ~ relapse_date, # From Prog_V12
@@ -708,19 +700,9 @@ Progression <-
     progression_date > date_of_diagnosis ~ "good"
   )) %>% 
   filter(prog_before_diag == "good") %>% 
-  # # Add date_death as progression_date when no previous progression_date
-  # full_join(., Vitals %>% select(c("avatar_id", "date_death")), by = "avatar_id") %>% 
-  # mutate(progression_date = coalesce(progression_date, date_death)) %>% 
-  select(1:2)
-
-Progression <- Progression %>% 
+  select(1:2) %>% 
   arrange(progression_date) %>% # Keep earliest progression_date
-  distinct(avatar_id, .keep_all = TRUE) # %>% 
-  # mutate(progression_surv = case_when(
-  #   !is.na(progression_date) ~ 1,
-  #   is.na(progression_date) ~ 0
-  # ))
-
+  distinct(avatar_id, .keep_all = TRUE)
 write.csv(Progression,paste0(path, "/simplified files/Progression simplify.csv"))
 
 # Bone marrow transplant ----
@@ -852,10 +834,10 @@ rm(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1,
    Staging, Staging_V12, StagingV2, StagingV4, StagingV4.1,
    TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1)
 
-Last_Labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker) %>% 
+Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker) %>% 
   arrange(desc(labs_last_date)) %>% 
-  filter(!str_detect(labs_last_date, "9999|2816|2077")) %>% 
-  # remove if its equal to date_of_diagnosis
+  filter(!str_detect(labs_last_date, "9999|2816|2077")) %>% # Remove mistakes and missing dates
+  # remove if its <= to date_of_diagnosis (before MM diagnosis)
   left_join(., MM_history %>% select(c(avatar_id, "date_of_diagnosis")), by = "avatar_id") %>% 
   mutate(labs_before_diag = case_when(
     labs_last_date <= date_of_diagnosis ~ "removed",
@@ -872,7 +854,8 @@ rm(ClinicalCap_V12, ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4,
    Alc_Smo, Alc_Smo_V12, Alc_Smo_V2, Alc_SmoV4, Alc_SmoV4.1, 
    Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1,
    Progr_V12, Progression_V12, ProgressionV2, Progression_V4, Progression_V4.1,
-   Contact_lost)
+   #Contact_lost
+   )
 
 
 #######################################################################################  II  ## Plot----
@@ -1034,7 +1017,8 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., SCT, by = "avatar_id") %>% 
   full_join(., Treatment, by = "avatar_id") %>% 
   full_join(., Radiation, by = "avatar_id") %>% 
-  full_join(., Progression, by= "avatar_id")
+  full_join(., Progression, by= "avatar_id") %>% 
+  full_join(., Last_labs_dates %>% select(c("avatar_id", "labs_last_date")), by = "avatar_id")
 
 Global_data <- right_join(Demo_RedCap_V4ish, Global_data, by = "avatar_id")
 # write.csv(Global_data, paste0(path, "/Global_data.csv"))

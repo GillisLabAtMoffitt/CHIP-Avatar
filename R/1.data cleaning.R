@@ -835,19 +835,19 @@ rm(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1,
    TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1)
 
 Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker) %>% 
-  arrange(desc(labs_last_date)) %>% 
   filter(!str_detect(labs_last_date, "9999|2816|2077")) %>% # Remove mistakes and missing dates
   # remove if its <= to date_of_diagnosis (before MM diagnosis)
-  # remove if its => to lost_contact_date 
+  # remove if its => to date_contact_lost 
   left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
-  left_join(., Contact_lost %>% select(c("avatar_id", "lost_contact_date")), by = "avatar_id") %>% 
+  left_join(., Contact_lost %>% select(c("avatar_id", "date_contact_lost")), by = "avatar_id") %>% 
   mutate(labs_before_diag = case_when(
-    labs_last_date <= date_of_diagnosis ~ "removed",#|
-      #labs_last_date >= lost_contact_date ~ "removed",
+    labs_last_date <= date_of_diagnosis ~ "removed",
+    labs_last_date >= date_contact_lost ~ "removed",
     # TRUE ~ "good"
     labs_last_date > date_of_diagnosis ~ "good"
   )) %>% 
-  filter(labs_before_diag == "good") %>% 
+  filter(labs_before_diag != "removed") %>% 
+  arrange(desc(labs_last_date)) %>% 
   distinct(avatar_id, .keep_all = TRUE)
 rm(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker)
 

@@ -44,9 +44,13 @@ last_event <- last_event %>%  select(ncol(last_event):1) %>%
     ))
 table(last_event$last_event_available) # Check why date_contact_lost are for only 3 patients
 table(Global_data$date_contact_lost) # 
-Global_data$avatar_id[which(!is.na(Global_data$date_contact_lost))]
+id <- paste(unique( Global_data$avatar_id[which(!is.na(Global_data$was_contact_lost))] ), collapse = '|')
 
 a <- last_event[which(!is.na(Global_data$date_contact_lost)),] %>% 
+  purrr::keep(~!all(is.na(.)))
+
+a <- last_event %>% 
+  filter(str_detect(avatar_id , id)) %>% 
   purrr::keep(~!all(is.na(.)))
 
 write.csv(last_event, paste0(path, "/last_event.csv"))
@@ -208,7 +212,7 @@ germline_patient_data <- germline_patient_data %>%
       progression_date_surv > date_contact_lost ~ 0,
     TRUE ~ progression_surv
   ))
-germline_patient_data1$progressed_surv == germline_patient_data1$progression_surv
+germline_patient_data$progressed_surv == germline_patient_data$progression_surv
 
 # write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))
 tab <- table(germline_patient_data$GermBFtumorWES)

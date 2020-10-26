@@ -628,7 +628,7 @@ Pre_Treat_ <- germline_patient_data %>%
   filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma") %>%
   select(c("avatar_id", "collectiondt_germline",
            "drug_start_date_1", "germlineBFdrugs",
-           "date_of_first_bmt", "germlineBFbmt1",
+           "date_of_bmt_1", "germlineBFbmt1",
            "rad_start_date_1", "germlineBFrad1")) %>%
   arrange(germlineBFdrugs)
 

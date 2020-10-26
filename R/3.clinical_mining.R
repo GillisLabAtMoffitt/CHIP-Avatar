@@ -270,14 +270,14 @@ NROW(which(!is.na(germline_patient_data$date_death))) # 89
 NROW(which(!is.na(germline_patient_data$date_of_diagnosis))) # 532
 
 # nbr had bmt1 
-NROW(which(!is.na(germline_patient_data$date_of_first_bmt))) # 251
-bmtINgerm <- germline_patient_data[!is.na(germline_patient_data$date_of_first_bmt),]
+NROW(which(!is.na(germline_patient_data$date_of_bmt_1))) # 251
+bmtINgerm <- germline_patient_data[!is.na(germline_patient_data$date_of_bmt_1),]
 # nbr had drug1
 NROW(which(!is.na(germline_patient_data$drug_start_date_1))) # 435
 drugINgerm <- germline_patient_data[!is.na(germline_patient_data$drug_start_date_1),]
 # nbr commun in bmt1 and drug
 had_GERM_BMT_DRUGS <- bmtINgerm[!is.na(bmtINgerm$drug_start_date_1),] # 251
-NROW(which(!is.na(drugINgerm$date_of_first_bmt))) # same
+NROW(which(!is.na(drugINgerm$date_of_bmt_1))) # same
 NROW(which(!is.na(bmtINgerm$drug_start_date_1)))
 
 
@@ -302,7 +302,7 @@ rm(bmtINgerm, drugINgerm, had_GERM_BMT_DRUGS)
 ################### Radiation / BMT
 
 bmt_patients <- germline_patient_data %>% 
-  filter(!is.na(germline_patient_data$date_of_first_bmt))
+  filter(!is.na(germline_patient_data$date_of_bmt_1))
 rad_patients <- germline_patient_data %>% 
   filter(!is.na(germline_patient_data$rad_start_date_1))
 drug_patients <- germline_patient_data %>% 
@@ -465,15 +465,15 @@ treatment_number <- matrix(c(
   "Radiation", sum(!is.na(Pre_Treat$rad_start_date_1)), sum(!is.na(Post_Treat$rad_start_date_1)),
   sum(!is.na(Early_Relapse$rad_start_date_1)), sum(!is.na(Late_Relapse$rad_start_date_1)),
   sum(!is.na(Mgus$rad_start_date_1)), sum(!is.na(Smoldering$rad_start_date_1)),
-  "SCT", sum(!is.na(Pre_Treat$date_of_first_bmt)), sum(!is.na(Post_Treat$date_of_first_bmt)),
-  sum(!is.na(Early_Relapse$date_of_first_bmt)), sum(!is.na(Late_Relapse$date_of_first_bmt)),
-  sum(!is.na(Mgus$date_of_first_bmt)), sum(!is.na(Smoldering$date_of_first_bmt)),
-  "No treatment", sum(is.na(Pre_Treat$drug_start_date_1) & is.na(Pre_Treat$rad_start_date_1) & is.na(Pre_Treat$date_of_first_bmt)),
-  sum(is.na(Post_Treat$drug_start_date_1) & is.na(Post_Treat$rad_start_date_1) & is.na(Post_Treat$date_of_first_bmt)),
-  sum(is.na(Early_Relapse$drug_start_date_1) & is.na(Early_Relapse$rad_start_date_1) & is.na(Early_Relapse$date_of_first_bmt)),
-  sum(is.na(Late_Relapse$drug_start_date_1) & is.na(Late_Relapse$rad_start_date_1) & is.na(Late_Relapse$date_of_first_bmt)),
-  sum(is.na(Mgus$drug_start_date_1) & is.na(Mgus$rad_start_date_1) & is.na(Mgus$date_of_first_bmt)),
-  sum(is.na(Smoldering$drug_start_date_1) & is.na(Smoldering$rad_start_date_1) & is.na(Smoldering$date_of_first_bmt))
+  "SCT", sum(!is.na(Pre_Treat$date_of_bmt_1)), sum(!is.na(Post_Treat$date_of_bmt_1)),
+  sum(!is.na(Early_Relapse$date_of_bmt_1)), sum(!is.na(Late_Relapse$date_of_bmt_1)),
+  sum(!is.na(Mgus$date_of_bmt_1)), sum(!is.na(Smoldering$date_of_bmt_1)),
+  "No treatment", sum(is.na(Pre_Treat$drug_start_date_1) & is.na(Pre_Treat$rad_start_date_1) & is.na(Pre_Treat$date_of_bmt_1)),
+  sum(is.na(Post_Treat$drug_start_date_1) & is.na(Post_Treat$rad_start_date_1) & is.na(Post_Treat$date_of_bmt_1)),
+  sum(is.na(Early_Relapse$drug_start_date_1) & is.na(Early_Relapse$rad_start_date_1) & is.na(Early_Relapse$date_of_bmt_1)),
+  sum(is.na(Late_Relapse$drug_start_date_1) & is.na(Late_Relapse$rad_start_date_1) & is.na(Late_Relapse$date_of_bmt_1)),
+  sum(is.na(Mgus$drug_start_date_1) & is.na(Mgus$rad_start_date_1) & is.na(Mgus$date_of_bmt_1)),
+  sum(is.na(Smoldering$drug_start_date_1) & is.na(Smoldering$rad_start_date_1) & is.na(Smoldering$date_of_bmt_1))
 ), ncol = 7, byrow = TRUE)
 
 write.csv(treatment_number, paste0(path, "/Treatment of MM patients per disease status.csv"))

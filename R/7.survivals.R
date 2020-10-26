@@ -16,7 +16,7 @@ ggsurvplot(myplot, data = germline_patient_data,
            tables.height = 0.2,
            risk.table.title = "Risk table",
            conf.int = FALSE,
-           censor = FALSE
+           censor = TRUE
 )
 
 Surv(germline_patient_data$month_at_progression, germline_patient_data$progressed_surv)[1:10]

@@ -5,6 +5,8 @@ library(VennDiagram)
 library(viridis)
 library(lubridate)
 library(gtsummary)
+library(survival)
+library(survminer)
 
 #######################################################################################  I  ### Load data----
 path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
@@ -698,7 +700,7 @@ Progression <-
   mutate(prog_before_diag = case_when(
     progression_date <= date_of_diagnosis ~ "removed",
     progression_date > date_of_diagnosis ~ "good"
-  )) %>% 
+  )) %>% # Don't take the NA as they come from date of diag
   filter(prog_before_diag == "good") %>% 
   select(1:2) %>% 
   arrange(progression_date) %>% # Keep earliest progression_date
@@ -842,11 +844,9 @@ Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performanc
   left_join(., Contact_lost %>% select(c("avatar_id", "date_contact_lost")), by = "avatar_id") %>% 
   mutate(labs_before_diag = case_when(
     labs_last_date <= date_of_diagnosis ~ "removed",
-    labs_last_date >= date_contact_lost ~ "removed",
-    # TRUE ~ "good"
-    labs_last_date > date_of_diagnosis ~ "good"
+    labs_last_date >= date_contact_lost ~ "removed"
   )) %>% 
-  filter(labs_before_diag != "removed") %>% 
+  filter(is.na(labs_before_diag)) %>% 
   arrange(desc(labs_last_date)) %>% 
   distinct(avatar_id, .keep_all = TRUE)
 rm(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker)
@@ -857,7 +857,7 @@ rm(ClinicalCap_V12, ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4,
    uid, uid_A, uid_MM, uid_R, uid_S, uid_T, uid_V, 
    Alc_Smo, Alc_Smo_V12, Alc_Smo_V2, Alc_SmoV4, Alc_SmoV4.1, 
    Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1,
-   Progr_V12, Progression_V12, ProgressionV2, Progression_V4, Progression_V4.1,
+   Progr_V12, Progression_V12, ProgressionV2, Progression_V4, Progression_V4.1#,
    #Contact_lost
    )
 

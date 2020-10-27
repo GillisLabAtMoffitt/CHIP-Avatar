@@ -15,23 +15,21 @@ all_dates1 <- Global_data %>%
 all_dates <- all_dates %>% 
   pivot_longer(cols = 2:ncol(.), names_to = "event", values_to = "date") %>% 
   drop_na("date") %>% 
-  # bind_rows(., Labs_dates) %>% # Add dates from labs,cytogenetics, mets, imaging, etc
   arrange(date)
 all_dates1 <- all_dates1 %>% 
   pivot_longer(cols = 2:ncol(.), names_to = "event", values_to = "date") %>% 
   drop_na("date") %>% 
   arrange(date)
 # and bind
-all_dates <- bind_rows(all_dates1, all_dates) 
-
-# %>% 
-  # left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") # %>% 
-#   mutate(lastdate_sameas_diag = case_when(
-#   date <= date_of_diagnosis ~ "removed",
-#   date > date_of_diagnosis ~ "good"
-# )) %>% 
-  # filter(lastdate_sameas_diag == "good") %>% 
-  # select(-c("date_of_diagnosis", "lastdate_sameas_diag"))
+all_dates <- bind_rows(all_dates1, all_dates) %>% 
+  left_join(., Contact_lost %>% select(c("avatar_id", "date_contact_lost")), by = "avatar_id") %>%
+  left_join(., Vitals %>% select(c("avatar_id", "date_death")), by = "avatar_id") %>%
+  mutate(date_sameas_last = case_when(
+    date > date_contact_lost        ~ "removed",
+    date > date_death               ~ "removed"
+    )) %>% 
+  filter(is.na(date_sameas_last)) %>%
+  select(-c("date_contact_lost", "date_death", "date_sameas_last"))
 
 # Get the last event and corresponding date----
 last_event <- dcast(setDT(all_dates), avatar_id ~ rowid(avatar_id), 

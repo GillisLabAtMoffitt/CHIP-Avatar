@@ -1,6 +1,7 @@
 ########################################### I ### Create dataframe for all start dates, will use that for timeline ----
 # Need to separate in 2 df ,do diag separately to make sure it appear before germ or tumor date, date of treatment
 all_dates <- Global_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
   select("avatar_id", # "date_of_diagnosis_1",
          # starts_with("date_of_diagnosis_"),
          # "date_of_diagnosis_2", "date_of_diagnosis_3", "date_of_diagnosis_4",
@@ -9,7 +10,8 @@ all_dates <- Global_data %>%
          starts_with("drug_start_date_"), starts_with("drug_stop_date_"),
          starts_with("rad_start_date_"), starts_with("rad_stop_date_"),
          "labs_last_date", "date_last_follow_up", "date_contact_lost", "date_death")
-all_dates1 <- Global_data %>%
+all_dates1 <- Global_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>%
   select("avatar_id", "Date_of_Birth", "date_of_diagnosis")
 # pivot both
 all_dates <- all_dates %>% 
@@ -22,11 +24,13 @@ all_dates1 <- all_dates1 %>%
   arrange(date)
 # and bind
 all_dates <- bind_rows(all_dates1, all_dates) %>% 
-  left_join(., Contact_lost %>% select(c("avatar_id", "date_contact_lost")), by = "avatar_id") %>%
-  left_join(., Vitals %>% select(c("avatar_id", "date_death")), by = "avatar_id") %>%
+  # left_join(., Contact_lost %>% select(c("avatar_id", "date_contact_lost")), by = "avatar_id") %>%
+  left_join(., Vitals %>% 
+              select(c("avatar_id", "date_death", "date_contact_lost", "date_last_follow_up")), by = "avatar_id") %>%
   mutate(date_sameas_last = case_when(
-    date > date_contact_lost        ~ "removed",
-    date > date_death               ~ "removed"
+    date >= date_contact_lost               ~ "removed",
+    date > date_death                       ~ "removed",
+    date >= date_last_follow_up             ~ "removed"
     )) %>% 
   filter(is.na(date_sameas_last)) %>%
   select(-c("date_contact_lost", "date_death", "date_sameas_last"))
@@ -34,6 +38,24 @@ all_dates <- bind_rows(all_dates1, all_dates) %>%
 # Get the last event and corresponding date----
 last_event <- dcast(setDT(all_dates), avatar_id ~ rowid(avatar_id), 
                     value.var = c("event", "date"))
+table(last_event$event_3)
+
+
+
+a <- last_event %>% 
+  filter(str_detect(event_3, "bmt|stop")) %>% 
+  right_join(Global_data[c("avatar_id", "Disease_Status_germline")], ., by = "avatar_id") %>% 
+  select(c("avatar_id", "Disease_Status_germline", "event_1", "date_1", "event_2", "date_2", "event_3", "date_3", 
+           "event_4", "date_4", "event_5", "date_5", "event_6", "date_6"))
+# b <- last_event %>% 
+#   filter(str_detect(event_3, "collectiondt_germline|collectiondt_tumor_1")) %>% 
+#   filter(str_detect(event_4, "rad")) %>% 
+#   right_join(Global_data[c("avatar_id", "Disease_Status_germline")], ., by = "avatar_id") %>% 
+#   select(c("avatar_id", "Disease_Status_germline", "event_1", "date_1", "event_2", "date_2", "event_3", "date_3", 
+#            "event_4", "date_4", "event_5", "date_5", "event_6", "date_6"))
+
+table(b$event_4)
+
 
 last_event <- last_event %>%  select(ncol(last_event):1) %>% 
   mutate(last_date_available = coalesce(!!! select(., starts_with("date_"))
@@ -127,12 +149,12 @@ Age_data$Age_at_tumorcollect <- interval(start= Global_data$Date_of_Birth, end= 
 Age_data$Age_at_tumorcollect <- round(Age_data$Age_at_tumorcollect, 3)
 # summary(Age_data$Age_at_tumorcollect, na.rm = TRUE)
 
-Age_data$month_at_progression <- interval(start= Global_data$date_of_diagnosis, end= Global_data$progression_date_surv)/                      
+Age_data$month_at_progression_Dx <- interval(start= Global_data$date_of_diagnosis, end= Global_data$progression_date_surv)/                      
   duration(n=1, unit="months")
-Age_data$month_at_progression <- round(Age_data$month_at_progression, 3)
-
+Age_data$month_at_progression_Dx <- round(Age_data$month_at_progression_Dx, 3)
 b <- Age_data[,c("avatar_id", "month_at_progression", "date_of_diagnosis", "progression_date_surv", "last_date_available", "progression_date", 
                  "last_event_available")]
+
 
 ################################################################################################## III ## Germline ----
 # Create dataframe for only the patients who had germline sequenced

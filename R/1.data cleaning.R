@@ -841,10 +841,12 @@ Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performanc
   # remove if its <= to date_of_diagnosis (before MM diagnosis)
   # remove if its => to date_contact_lost 
   left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
-  left_join(., Contact_lost %>% select(c("avatar_id", "date_contact_lost")), by = "avatar_id") %>% 
+  # left_join(., Contact_lost %>% select(c("avatar_id", "date_contact_lost")), by = "avatar_id") %>% 
+  left_join(., Vitals %>% select(c("avatar_id", "date_contact_lost", "date_last_follow_up")), by = "avatar_id") %>% 
   mutate(labs_before_diag = case_when(
-    labs_last_date <= date_of_diagnosis ~ "removed",
-    labs_last_date >= date_contact_lost ~ "removed"
+    labs_last_date <= date_of_diagnosis               ~ "removed",
+    labs_last_date >= date_contact_lost               ~ "removed",
+    labs_last_date >= date_last_follow_up             ~ "removed"
   )) %>% 
   filter(is.na(labs_before_diag)) %>% 
   arrange(desc(labs_last_date)) %>% 

@@ -8,7 +8,7 @@ all_dates <- Global_data %>%
          "collectiondt_germline", starts_with("collectiondt_tumor_"),
          starts_with("date_of_bmt_"),
          starts_with("drug_start_date_"), starts_with("drug_stop_date_"),
-         starts_with("rad_start_date_"), starts_with("rad_stop_date_"),
+         starts_with("rad_start_date_"), starts_with("rad_stop_date_"), "progression_date",
          "labs_last_date", "date_last_follow_up", "date_contact_lost", "date_death")
 all_dates1 <- Global_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>%
@@ -152,8 +152,12 @@ Age_data$Age_at_tumorcollect <- round(Age_data$Age_at_tumorcollect, 3)
 Age_data$month_at_progression_Dx <- interval(start= Global_data$date_of_diagnosis, end= Global_data$progression_date_surv)/                      
   duration(n=1, unit="months")
 Age_data$month_at_progression_Dx <- round(Age_data$month_at_progression_Dx, 3)
-b <- Age_data[,c("avatar_id", "month_at_progression", "date_of_diagnosis", "progression_date_surv", "last_date_available", "progression_date", 
+b <- Age_data[,c("avatar_id", "month_at_progression_Dx", "date_of_diagnosis", "progression_date_surv", "last_date_available", "progression_date", 
                  "last_event_available")]
+
+Age_data$month_at_progression <- interval(start= Global_data$drug_start_date_1, end= Global_data$progression_date_surv)/                      
+  duration(n=1, unit="months")
+Age_data$month_at_progression <- round(Age_data$month_at_progression, 3)
 
 
 ################################################################################################## III ## Germline ----

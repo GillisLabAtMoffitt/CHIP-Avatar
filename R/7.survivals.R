@@ -62,6 +62,7 @@ ggsurvplot(myplot, data = germline_patient_data_simp,
 )
 # dev.off()
 
+
 myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data_simp)
 # jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline.jpeg"), width = 1400, height = 900)
 ggsurvplot(myplot, data = germline_patient_data_simp,
@@ -106,6 +107,67 @@ survdiff(Surv(time = germline_patient_data_simp$month_at_progression_Dx, event =
            Disease_Status_germline, data = germline_patient_data_simp)
 
 
+################################################################################### II ### PFS Survivals from first date of drugs ----
+mysurv <- Surv(time = germline_patient_data_simp$month_at_progression, event = germline_patient_data_simp$progressed_surv)
+myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data_simp)
+# jpeg(paste0(path, "/Output Survivals/PFS for disease status germline from drugs date.jpeg"), width = 1600, height = 800)
+ggsurvplot(myplot, data = germline_patient_data_simp,
+           title = "PFS from drugs date",
+           font.main = c(16, "bold", "black"),
+           xlab = "Time (months)", 
+           legend = "right",
+           legend.title = "Disease Status at germline",
+           legend.labs = c("Early Relapse Multiple Myeloma", "Late Relapse Multiple Myeloma ", "MGUS",
+                           "Post Treatment Newly Diagnosed Multiple Myeloma", "Pre Treatment Newly Diagnosed Multiple Myeloma",
+                           "SM"),
+           surv.median.line = c("hv"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           risk.table = TRUE,
+           tables.height = 0.3,
+           risk.table.title = "Risk table",
+           tables.theme = theme_survminer(font.y = c(14, "plain", "transparent")),
+           # Censor
+           censor = TRUE
+)
+# dev.off()
+summary(myplot)
+a <- summary(myplot)$table
+write.csv(a, paste0(path, "/summary surv.csv"))
+
+myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data_simp)
+# jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline from drugs date.jpeg"), width = 1400, height = 900)
+ggsurvplot(myplot, data = germline_patient_data_simp,
+           title = "PFS from drugs date",
+           font.main = c(16, "bold", "black"),
+           font.x = c(14),
+           # font.y = c(16),
+           font.legend = c(14),
+           
+           xlab = "Time (months)", 
+           legend = "right",
+           legend.title = "Disease Status at germline",
+           legend.labs = c("MGUS", "MM", "SM"),
+           surv.median.line = "hv",
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           # risk.table = TRUE,
+           tables.height = 0.14,
+           risk.table.title = "Risk table",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.y = c(14, "plain", "transparent"))
+           # risk.table.pos = "in",
+           # Censor
+           # censor = TRUE,
+           # ncensor.plot = TRUE
+)
+# dev.off()
+summary(myplot)
+a <- summary(myplot)$table
+write.csv(a, paste0(path, "/summary surv simplified disease status.csv"))
 
 
-
+germline_patient_data[c("month_at_progression_Dx", "month_at_progression")]

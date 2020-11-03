@@ -596,31 +596,32 @@ MM_history <- MM_history %>%
   # Then when not "active" take the first date of Dx available (mgus or smoldering or NA without regarding order- 
   # usually mgus before smoldering)
   mutate(date_of_diagnosis = case_when(
-    disease_stage_1 == "active" ~ date_of_diagnosis_1,
-    disease_stage_2 == "active" ~ date_of_diagnosis_2,
-    disease_stage_3 == "active" ~ date_of_diagnosis_3,
-    disease_stage_4 == "active" ~ date_of_diagnosis_4,
+    disease_stage_1 == "active"          ~ date_of_diagnosis_1,
+    disease_stage_2 == "active"          ~ date_of_diagnosis_2,
+    disease_stage_3 == "active"          ~ date_of_diagnosis_3,
+    disease_stage_4 == "active"          ~ date_of_diagnosis_4,
   )) %>% 
   mutate(date_of_diagnosis = coalesce(date_of_diagnosis, date_of_diagnosis_1)) %>% 
   select(c("avatar_id", "date_of_diagnosis", everything()))
 write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
 # Vitals ----
-
+# Bind and arrange to have dates in order within each Alive, Dead, and Lost
 Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
-  mutate(vital_status_rec = case_when(
-    vital_status == 2 ~ "Dead",
-    vital_status == 1 ~ "Alive",
-    vital_status == 3 ~ "Lost"
-  )) %>% 
-  arrange(vital_status_rec, date_death, date_last_follow_up) # %>% Check-----------------------------------------------------
+  # mutate(vital_status_rec = case_when(
+  #   vital_status == 2         ~ "Dead",
+  #   vital_status == 1         ~ "Alive",
+  #   vital_status == 3         ~ "Lost"
+  # )) %>% 
+  arrange(vital_status, date_death, date_last_follow_up) 
 
+# Create a separate df to bind after cleaning to Vitals for tracking lost of contact
 Contact_lost <- Vitals %>% 
   filter(vital_status == 3) %>% 
   mutate(was_contact_lost = "Loss of contact") %>% 
-  arrange(desc(date_last_follow_up)) %>% 
-  distinct(avatar_id, .keep_all = TRUE) %>% 
+  distinct(.) %>% 
   select(c("avatar_id", "was_contact_lost", date_contact_lost = "date_last_follow_up"))
 
+# Pivot wider
 Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), 
                 value.var = c("vital_status", "date_death", 
                               "date_last_follow_up")) %>% 
@@ -636,8 +637,8 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
   # 1st "abstraction" give date_death so vital = dead
   # 2nd "abstraction" doesn't give date (probably because already recorded) so vital = alive
   mutate(end_vital_status = case_when(
-    !is.na(date_death) ~ "Dead",
-    !is.na(date_last_follow_up) ~ "Alive"
+    !is.na(date_death)                  ~ "Dead",
+    !is.na(date_last_follow_up)         ~ "Alive"
   )) %>% 
   select(c("avatar_id","end_vital_status", "date_death", "date_last_follow_up"))
 
@@ -668,8 +669,18 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
 # 1 patient said 3 in V2 and 11 in V1
 # 1 patient said 3 in V2 and 12 in V1
 
-
-Vitals <- full_join(Vitals, Contact_lost, by= "avatar_id")
+# Clean date_last_follow_up to be NA when:
+# the date_last_follow_up is the date_contact_lost
+# happen before or equal death
+Vitals <- full_join(Vitals, Contact_lost, by= "avatar_id") %>% 
+  mutate(date_last_follow_up = case_when(
+    !is.na(date_contact_lost)   ~ NA_POSIXct_,
+    is.na(date_contact_lost)    ~ date_last_follow_up
+  ))  %>% 
+  mutate(date_last_follow_up = case_when(
+    date_last_follow_up <= date_death       ~ NA_POSIXct_,
+    is.na(date_death)                       ~ date_last_follow_up
+  )) 
 
 write.csv(Vitals,paste0(path, "/simplified files/Vitals simplify.csv"))
 
@@ -698,8 +709,8 @@ Progression <-
   # Taking only the dates of progression after date_of_diagnosis (official as not MGUS or SM)
   left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
   mutate(prog_before_diag = case_when(
-    progression_date <= date_of_diagnosis ~ "removed",
-    progression_date > date_of_diagnosis ~ "good"
+    progression_date <= date_of_diagnosis         ~ "removed",
+    progression_date > date_of_diagnosis          ~ "good"
   )) %>% # Don't take the NA as they come from date of diag
   filter(prog_before_diag == "good") %>% 
   select(1:2) %>% 
@@ -856,7 +867,7 @@ rm(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker)
 
 # Cleaning
 rm(ClinicalCap_V12, ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, 
-   uid, uid_A, uid_MM, uid_R, uid_S, uid_T, uid_V, 
+   uid, uid_A, uid_MM, uid_R, uid_S, uid_T, uid_V, uid_P, uid_P12,
    Alc_Smo, Alc_Smo_V12, Alc_Smo_V2, Alc_SmoV4, Alc_SmoV4.1, 
    Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1,
    Progr_V12, Progression_V12, ProgressionV2, Progression_V4, Progression_V4.1#,
@@ -1000,20 +1011,9 @@ Germline <- left_join(WES_seq, Germline, by = "avatar_id") %>%
 
 # Cleaning
 rm(Sequencing, Sequencing2, WES_tumor, WES_seq, Seq_WES_Raghu, Seq_WES, Seq_WES_Raghu2, Germ, Germ2, Germ3, Germ4)
-##################################################################################################  IV  ## Merge----
-# b <- full_join(Germline[, c("avatar_id", "WES_HUDSON_ALPHA_germline", "moffitt_sample_id_germline",
-#                                    "collectiondt_germline", "Disease_Status_germline", 
-#                                            "collectiondt_tumor_1", "Disease_Status_tumor_1")],
-#                       MM_history, by = "avatar_id")
-# 
-# c <- full_join(b, Vitals, by = "avatar_id")
-# 
-# d <- full_join(c, SCT, by = "avatar_id")
-# 
-# e <- full_join(d, Treatment, by = "avatar_id")
-# 
-# f <- full_join(e, Radiation, by = "avatar_id")
 
+
+##################################################################################################  IV  ## Merge----
 Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_germline", "SLID_germline",
                              "collectiondt_germline", "Disease_Status_germline", 
                              starts_with("SLID_tumor"), starts_with("collectiondt_tumor_"),

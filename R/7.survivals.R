@@ -39,9 +39,9 @@ germline_patient_data_simp <- germline_patient_data %>%
 
 mysurv <- Surv(time = germline_patient_data_simp$month_at_progression_Dx, event = germline_patient_data_simp$progressed_surv)
 myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data_simp)
-# jpeg(paste0(path, "/Output Survivals/PFS for disease status germline.jpeg"), width = 1600, height = 800)
+# jpeg(paste0(path, "/Output Survivals/PFS for disease status germline.# jpeg"), width = 1600, height = 800)
 ggsurvplot(myplot, data = germline_patient_data_simp,
-           title = "PFS",
+           title = "PFS from diagnosis",
            font.main = c(16, "bold", "black"),
            xlab = "Time (months)", 
            legend = "right",
@@ -64,9 +64,9 @@ ggsurvplot(myplot, data = germline_patient_data_simp,
 
 
 myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data_simp)
-# jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline.jpeg"), width = 1400, height = 900)
+# jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline.# jpeg"), width = 1400, height = 900)
 ggsurvplot(myplot, data = germline_patient_data_simp,
-           title = "PFS",
+           title = "PFS from diagnosis",
            font.main = c(16, "bold", "black"),
            font.x = c(14),
            # font.y = c(16),
@@ -107,10 +107,10 @@ survdiff(Surv(time = germline_patient_data_simp$month_at_progression_Dx, event =
            Disease_Status_germline, data = germline_patient_data_simp)
 
 
-################################################################################### II ### PFS Survivals from first date of drugs ----
+################################################################################### III ### PFS Survivals from first date of drugs ----
 mysurv <- Surv(time = germline_patient_data_simp$month_at_progression, event = germline_patient_data_simp$progressed_surv)
 myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data_simp)
-# jpeg(paste0(path, "/Output Survivals/PFS for disease status germline from drugs date.jpeg"), width = 1600, height = 800)
+# jpeg(paste0(path, "/Output Survivals/PFS for disease status germline from drugs date.# jpeg"), width = 1600, height = 800)
 ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "PFS from drugs date",
            font.main = c(16, "bold", "black"),
@@ -137,7 +137,7 @@ a <- summary(myplot)$table
 write.csv(a, paste0(path, "/summary surv.csv"))
 
 myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data_simp)
-# jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline from drugs date.jpeg"), width = 1400, height = 900)
+# jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline from drugs date.# jpeg"), width = 1400, height = 900)
 ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "PFS from drugs date",
            font.main = c(16, "bold", "black"),
@@ -173,12 +173,12 @@ write.csv(a, paste0(path, "/summary surv simplified disease status.csv"))
 germline_patient_data[c("month_at_progression_Dx", "month_at_progression")]
 
 
-################################################################################### III ### Overall Survival from date of diagnosis----
-mysurv <- Surv(time = germline_patient_data$month_at_os, event = germline_patient_data$os_surv_surv)
+################################################################################### IV ### Overall Survival from date of diagnosis----
+mysurv <- Surv(time = germline_patient_data$month_at_os, event = germline_patient_data$os_surv_cor)
 myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data)
-# jpeg(paste0(path, "/Output Survivals/OS for disease status germline from date of diagnosis.jpeg"), width = 1600, height = 800)
+# jpeg(paste0(path, "/Output Survivals/OS for disease status germline from date of diagnosis.# jpeg"), width = 1600, height = 800)
 ggsurvplot(myplot, data = germline_patient_data,
-           title = "PFS from date of diagnosis",
+           title = "OS from date of diagnosis",
            font.main = c(16, "bold", "black"),
            xlab = "Time (months)", 
            legend = "right",
@@ -203,9 +203,9 @@ a <- summary(myplot)$table
 # write.csv(a, paste0(path, "/summary.csv"))
 
 myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data)
-# jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline from date of diagnosis.jpeg"), width = 1400, height = 900)
+# jpeg(paste0(path, "/Output Survivals/OS for simplify disease status germline from date of diagnosis.# jpeg"), width = 1400, height = 900)
 ggsurvplot(myplot, data = germline_patient_data,
-           title = "PFS date of diagnosis",
+           title = "OS date of diagnosis",
            font.main = c(16, "bold", "black"),
            font.x = c(14),
            # font.y = c(16),

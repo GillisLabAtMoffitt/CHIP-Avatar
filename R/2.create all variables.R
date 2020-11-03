@@ -28,8 +28,8 @@ all_dates <- bind_rows(all_dates1, all_dates) %>%
   left_join(., Vitals %>% 
               select(c("avatar_id", "date_death", "date_contact_lost", "date_last_follow_up")), by = "avatar_id") %>%
   mutate(date_sameas_last = case_when(
-    date > date_contact_lost                ~ "removed",
-    date > date_death                       ~ "removed",
+    date > date_contact_lost |
+    date > date_death |
     date > date_last_follow_up              ~ "removed"
     )) %>% 
   filter(is.na(date_sameas_last)) %>%
@@ -54,8 +54,6 @@ a <- last_event %>%
 #   select(c("avatar_id", "Disease_Status_germline", "event_1", "date_1", "event_2", "date_2", "event_3", "date_3", 
 #            "event_4", "date_4", "event_5", "date_5", "event_6", "date_6"))
 
-table(b$event_4)
-
 
 last_event <- last_event %>%  select(ncol(last_event):1) %>% 
   mutate(last_date_available = coalesce(!!! select(., starts_with("date_"))
@@ -79,8 +77,8 @@ write.csv(last_event, paste0(path, "/last_event.csv"))
 Global_data <- Global_data %>% # Add date_death as progression_date when no previous progression_date
   mutate(progression_date = coalesce(progression_date, date_death)) %>% 
   mutate(progression_surv = case_when(
-    !is.na(progression_date) ~ 1,
-    is.na(progression_date) ~ 0
+    !is.na(progression_date)      ~ 1,
+    is.na(progression_date)       ~ 0
   )) %>% 
   # Add last_date_available
   left_join(., last_event %>% select(c("avatar_id", "last_date_available", "last_event_available")),
@@ -88,8 +86,8 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
   mutate(progression_date_surv = coalesce(progression_date, last_date_available)) %>% 
   mutate(os_date_surv = coalesce(date_death, last_date_available)) %>% 
   mutate(os_surv =  case_when(
-    !is.na(date_death) ~ 1,
-    is.na(date_death) ~ 0
+    !is.na(date_death)           ~ 1,
+    is.na(date_death)            ~ 0
     ))
 
 Global_data[, c("avatar_id", "os_date_surv", "last_date_available", "date_death", "os_surv")]
@@ -171,6 +169,9 @@ Age_data$month_at_os <- interval(start= Global_data$date_of_diagnosis, end= Glob
 Age_data$month_at_os <- round(Age_data$month_at_os, 3)
 b <- Age_data[,c("avatar_id", "month_at_os", "date_death", "date_of_diagnosis", "os_date_surv", "os_surv", "last_date_available"
                  )]
+
+rm(a,b,d)
+
 
 ################################################################################################## III ## Germline ----
 # Create dataframe for only the patients who had germline sequenced
@@ -263,7 +264,7 @@ barplot(tab, main = "Frequency of collection date first observed", ylim = c(0,50
 tab
 
 # Cleaning
-rm(tab, all_dates, all_dates1, last_event)
+rm(tab, all_dates, all_dates1, last_event, Last_labs_dates)
 
 
 # Request info from Raghu

@@ -28,9 +28,9 @@ all_dates <- bind_rows(all_dates1, all_dates) %>%
   left_join(., Vitals %>% 
               select(c("avatar_id", "date_death", "date_contact_lost", "date_last_follow_up")), by = "avatar_id") %>%
   mutate(date_sameas_last = case_when(
-    date >= date_contact_lost               ~ "removed",
+    date > date_contact_lost                ~ "removed",
     date > date_death                       ~ "removed",
-    date >= date_last_follow_up             ~ "removed"
+    date > date_last_follow_up              ~ "removed"
     )) %>% 
   filter(is.na(date_sameas_last)) %>%
   select(-c("date_contact_lost", "date_death", "date_sameas_last"))
@@ -75,6 +75,7 @@ a <- last_event %>%
 
 write.csv(last_event, paste0(path, "/last_event.csv"))
 
+
 Global_data <- Global_data %>% # Add date_death as progression_date when no previous progression_date
   mutate(progression_date = coalesce(progression_date, date_death)) %>% 
   mutate(progression_surv = case_when(
@@ -84,8 +85,14 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
   # Add last_date_available
   left_join(., last_event %>% select(c("avatar_id", "last_date_available", "last_event_available")),
                by = "avatar_id") %>% 
-  mutate(progression_date_surv = coalesce(progression_date, last_date_available))
+  mutate(progression_date_surv = coalesce(progression_date, last_date_available)) %>% 
+  mutate(os_date_surv = coalesce(date_death, last_date_available)) %>% 
+  mutate(os_surv =  case_when(
+    !is.na(date_death) ~ 1,
+    is.na(date_death) ~ 0
+    ))
 
+Global_data[, c("avatar_id", "os_date_surv", "last_date_available", "date_death", "os_surv")]
 Global_data[, c("avatar_id", "progression_date", "progression_surv", "progression_date_surv", "last_date_available", "last_event_available")]
 
 d <- Global_data[which(!is.na(Global_data$date_contact_lost)), 
@@ -159,6 +166,11 @@ Age_data$month_at_progression <- interval(start= Global_data$drug_start_date_1, 
   duration(n=1, unit="months")
 Age_data$month_at_progression <- round(Age_data$month_at_progression, 3)
 
+Age_data$month_at_os <- interval(start= Global_data$date_of_diagnosis, end= Global_data$os_date_surv)/                      
+  duration(n=1, unit="months")
+Age_data$month_at_os <- round(Age_data$month_at_os, 3)
+b <- Age_data[,c("avatar_id", "month_at_os", "date_death", "date_of_diagnosis", "os_date_surv", "os_surv", "last_date_available"
+                 )]
 
 ################################################################################################## III ## Germline ----
 # Create dataframe for only the patients who had germline sequenced
@@ -235,6 +247,11 @@ germline_patient_data <- germline_patient_data %>%
     progression_surv == 1 & 
       progression_date_surv > date_contact_lost ~ 0,
     TRUE ~ progression_surv
+  )) %>% # remove censored patient when date_death > date_contact_lost (just in case)
+  mutate(os_surv_cor = case_when( 
+    os_surv == 1 & 
+      date_death > date_contact_lost ~ 0,
+    TRUE ~ os_surv
   ))
 germline_patient_data$progressed_surv == germline_patient_data$progression_surv
 

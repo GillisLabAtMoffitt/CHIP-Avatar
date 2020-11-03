@@ -171,3 +171,68 @@ write.csv(a, paste0(path, "/summary surv simplified disease status.csv"))
 
 
 germline_patient_data[c("month_at_progression_Dx", "month_at_progression")]
+
+
+################################################################################### III ### Overall Survival from date of diagnosis----
+mysurv <- Surv(time = germline_patient_data$month_at_os, event = germline_patient_data$os_surv_surv)
+myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data)
+# jpeg(paste0(path, "/Output Survivals/OS for disease status germline from date of diagnosis.jpeg"), width = 1600, height = 800)
+ggsurvplot(myplot, data = germline_patient_data,
+           title = "PFS from date of diagnosis",
+           font.main = c(16, "bold", "black"),
+           xlab = "Time (months)", 
+           legend = "right",
+           legend.title = "Disease Status at germline",
+           # legend.labs = c("Early Relapse Multiple Myeloma", "Late Relapse Multiple Myeloma ", "MGUS",
+           #                 "Post Treatment Newly Diagnosed Multiple Myeloma", "Pre Treatment Newly Diagnosed Multiple Myeloma",
+           #                 "SM"),
+           surv.median.line = c("hv"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           risk.table = TRUE,
+           tables.height = 0.3,
+           risk.table.title = "Risk table",
+           tables.theme = theme_survminer(font.y = c(14, "plain", "transparent")),
+           # Censor
+           censor = TRUE
+)
+# dev.off()
+summary(myplot)
+a <- summary(myplot)$table
+# write.csv(a, paste0(path, "/summary.csv"))
+
+myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data)
+# jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline from date of diagnosis.jpeg"), width = 1400, height = 900)
+ggsurvplot(myplot, data = germline_patient_data,
+           title = "PFS date of diagnosis",
+           font.main = c(16, "bold", "black"),
+           font.x = c(14),
+           # font.y = c(16),
+           font.legend = c(14),
+           
+           xlab = "Time (months)", 
+           legend = "right",
+           legend.title = "Disease Status at germline",
+           legend.labs = c("MGUS", "MM", "SM"),
+           surv.median.line = "hv",
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           # risk.table = TRUE,
+           tables.height = 0.14,
+           risk.table.title = "Risk table",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.y = c(14, "plain", "transparent"))
+           # risk.table.pos = "in",
+           # Censor
+           # censor = TRUE,
+           # ncensor.plot = TRUE
+)
+# dev.off()
+summary(myplot)
+a <- summary(myplot)$table
+# write.csv(a, paste0(path, "/summary.csv"))
+
+

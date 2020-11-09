@@ -11,16 +11,16 @@ Patient_sequenced <- left_join(Patient_sequenced, germline_patient_data %>%
     Disease_Status_germline1 == Disease_Status_germline ~ "keep"
   )) %>% 
   filter(keep == "keep") %>% 
-  mutate(Race = case_when(
-    Race %in% c("African American")                      ~ "Black",
-    TRUE                                                 ~ Race
-  )) %>% 
-  mutate(Ethnicity = case_when(
-    Ethnicity %in% c("Spanish; Hispanic")                                   ~ "Hispanic",
-    Ethnicity %in% c("Non- Hispanic", "Non-Spanish; non-Hispanic")          ~ "Non-Hispanic",
-    Ethnicity %in% c("Unknown", "Prefer not to answer")                     ~ "Unknown",
-    TRUE                                                                    ~ Ethnicity
-  ))
+  # mutate(Race = case_when(
+  #   Race %in% c("African American")                      ~ "Black",
+  #   TRUE                                                 ~ Race
+  # )) %>% 
+  # mutate(Ethnicity = case_when(
+  #   Ethnicity %in% c("Spanish; Hispanic")                                   ~ "Hispanic",
+  #   Ethnicity %in% c("Non- Hispanic", "Non-Spanish; non-Hispanic")          ~ "Non-Hispanic",
+  #   Ethnicity %in% c("Unknown", "Prefer not to answer")                     ~ "Unknown",
+  #   TRUE                                                                    ~ Ethnicity
+  # ))
 
 
 tbl <- 
@@ -37,20 +37,20 @@ gt::gtsave(tbl, expand = 1, zoom = 1.5,
 ################################################################################################## II ### For whole germline patients
 
 germline_patient_data <- germline_patient_data %>% 
-  mutate(Race = case_when(
-    Race %in% c("African American")                           ~ "Black",
-    Race %in% c("Other")                                      ~ "Others",
-    Race %in% c("More Than One Race")                         ~ "More than one race",
-    Race %in% c("Other Asian including Asian and Oriental")   ~ "Asian",
-    Race %in% c("PT Not Present")                             ~ "Unknown",
-    TRUE                                                      ~ Race
-  )) %>% 
-  mutate(Ethnicity = case_when(
-    Ethnicity %in% c("Spanish; Hispanic")                                   ~ "Hispanic",
-    Ethnicity %in% c("Non- Hispanic", "Non-Spanish; non-Hispanic")          ~ "Non-Hispanic",
-    Ethnicity %in% c("Unknown", "Prefer not to answer", "PT Not Present")   ~ "Unknown",
-    TRUE                                                                    ~ Ethnicity
-  ))
+  # mutate(Race = case_when(
+  #   Race %in% c("African American")                           ~ "Black",
+  #   Race %in% c("Other")                                      ~ "Others",
+  #   Race %in% c("More Than One Race")                         ~ "More than one race",
+  #   Race %in% c("Other Asian including Asian and Oriental")   ~ "Asian",
+  #   Race %in% c("PT Not Present")                             ~ "Unknown",
+  #   TRUE                                                      ~ Race
+  # )) %>% 
+  # mutate(Ethnicity = case_when(
+  #   Ethnicity %in% c("Spanish; Hispanic")                                   ~ "Hispanic",
+  #   Ethnicity %in% c("Non- Hispanic", "Non-Spanish; non-Hispanic")          ~ "Non-Hispanic",
+  #   Ethnicity %in% c("Unknown", "Prefer not to answer", "PT Not Present")   ~ "Unknown",
+  #   TRUE                                                                    ~ Ethnicity
+  # ))
 
 tbl <- 
   germline_patient_data %>% select( "Race", "Ethnicity", "Disease_Status_germline") %>% 

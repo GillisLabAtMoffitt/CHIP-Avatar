@@ -580,6 +580,22 @@ Demo_HRI$Date_of_Birth <- as.POSIXct(strptime(Demo_HRI$Date_of_Birth,
 uid <- paste(unique(Demo_RedCap_V4ish$avatar_id), collapse = '|')
 Demo_HRI <- Demo_HRI[(!grepl(uid, Demo_HRI$avatar_id)),]
 Demo_RedCap_V4ish <- bind_rows(Demo_RedCap_V4ish, Demo_HRI, .id = "versionDemo")
+Demo_RedCap_V4ish <- Demo_RedCap_V4ish %>% 
+  mutate(Race = case_when(
+    Race %in% c("African American")                           ~ "Black",
+    Race %in% c("Other")                                      ~ "Others",
+    Race %in% c("More Than One Race")                         ~ "More than one race",
+    Race %in% c("Other Asian including Asian and Oriental")   ~ "Asian",
+    Race %in% c("PT Not Present")                             ~ "Unknown",
+    TRUE                                                      ~ Race
+  )) %>% 
+  mutate(Ethnicity = case_when(
+    Ethnicity %in% c("Spanish; Hispanic")                                   ~ "Hispanic",
+    Ethnicity %in% c("Non- Hispanic", "Non-Spanish; non-Hispanic")          ~ "Non-Hispanic",
+    Ethnicity %in% c("Unknown", "Prefer not to answer", "PT Not Present")   ~ "Unknown",
+    TRUE                                                                    ~ Ethnicity
+  ))
+
 # Patient history ----
 # MM_historyV4 <- bind_rows(MM_historyV4, MM_historyV4.1) %>% 
 #   drop_na("date_of_diagnosis") %>% 
@@ -695,12 +711,6 @@ Progression_V12 <- Progression_V12[(!grepl(uid_P12, Progression_V12$avatar_id)),
 #Progression_V12 <- Progression_V12 %>% 
   drop_na(progression_date) %>% 
   distinct()
-# Progression_V12a <- full_join(Progression_V12, Progr_V12, by= "avatar_id") %>% 
-#   mutate(progression_date = case_when(
-#     QC == "Yes" ~ relapse_date, # From Prog_V12
-#     QC == "No" |
-#       is.na(QC) ~ initial_1_pd_date_1 # from Progression_V12
-#   ))
 
 Progression <- 
   bind_rows(Progr_V12, Progression_V12, 

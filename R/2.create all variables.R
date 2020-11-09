@@ -84,10 +84,17 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
   left_join(., last_event %>% select(c("avatar_id", "last_date_available", "last_event_available")),
                by = "avatar_id") %>% 
   mutate(progression_date_surv = coalesce(progression_date, last_date_available)) %>% 
-  mutate(os_date_surv = coalesce(date_death, last_date_available)) %>% 
+  
+  mutate(os_date_death = case_when(
+    date_death > date_last_follow_up           ~ NA_POSIXct_, # 36 patients have date of death after last follow up
+    date_death <= date_last_follow_up |
+      is.na(date_death) |
+      is.na(date_last_follow_up)               ~ date_death
+  ))
+  mutate(os_date_surv = coalesce(os_date_death, last_date_available)) %>% 
   mutate(os_surv =  case_when(
-    !is.na(date_death)           ~ 1,
-    is.na(date_death)            ~ 0
+    !is.na(os_date_death)           ~ 1,
+    is.na(os_date_death)            ~ 0
     ))
 
 Global_data[, c("avatar_id", "os_date_surv", "last_date_available", "date_death", "os_surv")]

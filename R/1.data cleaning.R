@@ -533,7 +533,9 @@ BiopsyV4.1 <-
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
                     sheet = "Biopsy") %>%
   select(c("avatar_id", biopsy_date = "date_bonemarrow_biopsy_results"))
-
+#----
+OS_data <- readxl::read_xlsx(paste0(path, "/Raghu MM/Overall Survival/HRI_Last_Followupdata.xlsx")) %>% 
+  select(avatar_id = "germline_patient_data_avatar_id", "final_vitals", "Vital_Status_Date")
 
 
 
@@ -620,6 +622,7 @@ MM_history <- MM_history %>%
   mutate(date_of_diagnosis = coalesce(date_of_diagnosis, date_of_diagnosis_1)) %>% 
   select(c("avatar_id", "date_of_diagnosis", everything()))
 write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
+
 # Vitals ----
 # Bind and arrange to have dates in order within each Alive, Dead, and Lost
 Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
@@ -652,12 +655,23 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
   # Create my own vital_status var because found record with 
   # 1st "abstraction" give date_death so vital = dead
   # 2nd "abstraction" doesn't give date (probably because already recorded) so vital = alive
-  mutate(end_vital_status = case_when(
-    !is.na(date_death)                  ~ "Dead",
-    !is.na(date_last_follow_up)         ~ "Alive"
-  )) %>% 
-  select(c("avatar_id","end_vital_status", "date_death", "date_last_follow_up"))
+  # mutate(end_vital_status = case_when(
+  #   !is.na(date_death)                  ~ "Dead",
+  #   !is.na(date_last_follow_up)         ~ "Alive"
+  # )) %>% 
+  select(c("avatar_id", "date_death", "date_last_follow_up"))
 
+Vitals <- full_join(Vitals, Contact_lost, by= "avatar_id") %>% 
+  mutate(date_last_follow_up = case_when( # just to remove the last date of follow up when is contact lost
+    !is.na(date_contact_lost)   ~ NA_POSIXct_,
+    is.na(date_contact_lost)    ~ date_last_follow_up
+  )) # %>% Cannot use that when doing PFS, need to keep date of last follow up even before death 
+  # mutate(date_last_follow_up = case_when(
+  #   date_last_follow_up <= date_death       ~ NA_POSIXct_,
+  #   is.na(date_death)                       ~ date_last_follow_up
+  # )) 
+
+write.csv(Vitals,paste0(path, "/simplified files/Vitals simplify.csv"))
 # For BMI, we may need to keep both if want to see evolution but for now keep the earliest (closest to diagnisis)
 # then fill-up with second column when the first is NA using coalesce
 # mutate(bmi_at_dx_v2 = coalesce(bmi_at_dx_v2_1, bmi_at_dx_v2_2)) %>% 
@@ -688,17 +702,6 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
 # Clean date_last_follow_up to be NA when:
 # the date_last_follow_up is the date_contact_lost
 # happen before or equal death
-Vitals <- full_join(Vitals, Contact_lost, by= "avatar_id") %>% 
-  mutate(date_last_follow_up = case_when(
-    !is.na(date_contact_lost)   ~ NA_POSIXct_,
-    is.na(date_contact_lost)    ~ date_last_follow_up
-  ))  %>% 
-  mutate(date_last_follow_up = case_when(
-    date_last_follow_up <= date_death       ~ NA_POSIXct_,
-    is.na(date_death)                       ~ date_last_follow_up
-  )) 
-
-write.csv(Vitals,paste0(path, "/simplified files/Vitals simplify.csv"))
 
 # Progression----
 Progr_V12 <- Progr_V12 %>% 
@@ -722,6 +725,14 @@ Progression <-
     progression_date <= date_of_diagnosis         ~ "removed",
     progression_date > date_of_diagnosis          ~ "good"
   )) %>% # Don't take the NA as they come from date of diag
+  filter(prog_before_diag == "good") %>% 
+  select(1:2) %>% 
+  left_join(., Vitals %>% select(c("avatar_id", "date_death")), by = "avatar_id") %>% 
+  mutate(prog_before_diag = case_when(
+    progression_date > date_death                 ~ "removed",
+    progression_date < date_death |
+      is.na (date_death)                          ~ "good"
+  )) %>%
   filter(prog_before_diag == "good") %>% 
   select(1:2) %>% 
   arrange(progression_date) %>% # Keep earliest progression_date
@@ -1034,7 +1045,8 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., Treatment, by = "avatar_id") %>% 
   full_join(., Radiation, by = "avatar_id") %>% 
   full_join(., Progression, by= "avatar_id") %>% 
-  full_join(., Last_labs_dates %>% select(c("avatar_id", "labs_last_date")), by = "avatar_id")
+  full_join(., Last_labs_dates %>% select(c("avatar_id", "labs_last_date")), by = "avatar_id") %>% 
+  full_join(., OS_data, by = "avatar_id")
 
 Global_data <- right_join(Demo_RedCap_V4ish, Global_data, by = "avatar_id")
 # write.csv(Global_data, paste0(path, "/Global_data.csv"))

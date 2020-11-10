@@ -535,8 +535,8 @@ BiopsyV4.1 <-
   select(c("avatar_id", biopsy_date = "date_bonemarrow_biopsy_results"))
 #----
 OS_data <- readxl::read_xlsx(paste0(path, "/Raghu MM/Overall Survival/HRI_Last_Followupdata.xlsx")) %>% 
-  select(avatar_id = "germline_patient_data_avatar_id", "final_vitals", "Vital_Status_Date")
-
+  select(avatar_id = "germline_patient_data_avatar_id", "final_vitals", "Vital_Status_Date") %>% 
+  distinct()
 
 
 # Plot data recorded ---------------------------------------------------------------------------------------------
@@ -718,18 +718,18 @@ Progression_V12 <- Progression_V12[(!grepl(uid_P12, Progression_V12$avatar_id)),
 Progression <- 
   bind_rows(Progr_V12, Progression_V12, 
             Progression, ProgressionV2, Progression_V4, Progression_V4.1) %>%
-  distinct() %>% 
+  distinct() %>% drop_na(progression_date) %>% 
   # Taking only the dates of progression after date_of_diagnosis (official as not MGUS or SM)
   left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
   mutate(prog_before_diag = case_when(
-    progression_date <= date_of_diagnosis         ~ "removed",
+    progression_date <= date_of_diagnosis         ~ "removed", # 7 are removed as they become MM
     progression_date > date_of_diagnosis          ~ "good"
   )) %>% # Don't take the NA as they come from date of diag
   filter(prog_before_diag == "good") %>% 
   select(1:2) %>% 
   left_join(., Vitals %>% select(c("avatar_id", "date_death")), by = "avatar_id") %>% 
   mutate(prog_before_diag = case_when(
-    progression_date > date_death                 ~ "removed",
+    progression_date > date_death                 ~ "removed", # 0 patient removed :)
     progression_date < date_death |
       is.na (date_death)                          ~ "good"
   )) %>%

@@ -75,30 +75,35 @@ write.csv(last_event, paste0(path, "/last_event.csv"))
 
 
 Global_data <- Global_data %>% # Add date_death as progression_date when no previous progression_date
-  mutate(progression_date = coalesce(progression_date, date_death)) %>% 
+  # mutate(prog_before_last = case_when(
+  #   progression_date > date_last_follow_up                 ~ NA_POSIXct_,
+  #   progression_date <= date_last_follow_up |
+  #     is.na (date_last_follow_up)                          ~ progression_date # Keep all because really close
+  # )) %>% 
+  mutate(pfs_date_death= case_when(
+    date_death > date_last_follow_up |
+      is.na(date_death)                          ~ NA_POSIXct_,
+    date_death <= date_last_follow_up |
+        is.na(date_last_follow_up)               ~ date_death # remove 36 dates
+    )) %>%
+  mutate(pfs_progression_date = coalesce(progression_date, pfs_date_death)) %>% 
   mutate(progression_surv = case_when(
-    !is.na(progression_date)      ~ 1,
-    is.na(progression_date)       ~ 0
+    !is.na(pfs_progression_date)      ~ 1,
+    is.na(pfs_progression_date)       ~ 0
   )) %>% 
   # Add last_date_available
   left_join(., last_event %>% select(c("avatar_id", "last_date_available", "last_event_available")),
                by = "avatar_id") %>% 
-  mutate(progression_date_surv = coalesce(progression_date, last_date_available)) %>% 
+  mutate(progression_date_surv = coalesce(pfs_progression_date, last_date_available)) %>% 
   
-  mutate(os_date_death = case_when(
-    date_death > date_last_follow_up           ~ NA_POSIXct_, # 36 patients have date of death after last follow up
-    date_death <= date_last_follow_up |
-      is.na(date_death) |
-      is.na(date_last_follow_up)               ~ date_death
-  ))
-  mutate(os_date_surv = coalesce(os_date_death, last_date_available)) %>% 
+  mutate(os_date_surv = Vital_Status_Date) %>% 
   mutate(os_surv =  case_when(
-    !is.na(os_date_death)           ~ 1,
-    is.na(os_date_death)            ~ 0
+    final_vitals == "Dead"            ~ 1,
+    final_vitals != "Dead"            ~ 0
     ))
 
-Global_data[, c("avatar_id", "os_date_surv", "last_date_available", "date_death", "os_surv")]
-Global_data[, c("avatar_id", "progression_date", "progression_surv", "progression_date_surv", "last_date_available", "last_event_available")]
+
+Global_data[, c("avatar_id", "pfs_progression_date", "progression_surv", "progression_date_surv", "last_date_available", "last_event_available")]
 
 d <- Global_data[which(!is.na(Global_data$date_contact_lost)), 
                  c("date_of_diagnosis", "date_last_follow_up", "date_contact_lost", "date_death", "last_date_available")]
@@ -271,7 +276,7 @@ barplot(tab, main = "Frequency of collection date first observed", ylim = c(0,50
 tab
 
 # Cleaning
-rm(tab, all_dates, all_dates1, last_event, Last_labs_dates)
+# rm(tab, all_dates, all_dates1, last_event, Last_labs_dates)
 
 
 # Request info from Raghu

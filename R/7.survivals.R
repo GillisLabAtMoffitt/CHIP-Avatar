@@ -39,68 +39,85 @@ germline_patient_data_simp <- germline_patient_data %>%
 
 mysurv <- Surv(time = germline_patient_data_simp$month_at_progression_Dx, event = germline_patient_data_simp$progressed_surv)
 myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data_simp)
-# jpeg(paste0(path, "/Output Survivals/PFS for disease status germline.# jpeg"), width = 1600, height = 800)
+jpeg(paste0(path, "/Output Survivals/PFS for disease status germline.jpeg"), width = 1600, height = 800)
 ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "PFS from diagnosis",
-           font.main = c(16, "bold", "black"),
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5, # line thickness default = 1
+           
            xlab = "Time (months)", 
            legend = "right",
            legend.title = "Disease Status at germline",
            legend.labs = c("Early Relapse Multiple Myeloma", "Late Relapse Multiple Myeloma ", "MGUS",
                            "Post Treatment Newly Diagnosed Multiple Myeloma", "Pre Treatment Newly Diagnosed Multiple Myeloma",
                            "SM"),
-           surv.median.line = c("hv"),
+           # surv.median.line = c("hv"),
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
            risk.table = TRUE,
            tables.height = 0.3,
            risk.table.title = "Risk table",
-           tables.theme = theme_survminer(font.y = c(14, "plain", "transparent")),
+           tables.theme = theme_survminer(font.y = c(16, "plain", "transparent")),
            # Censor
            censor = TRUE
 )
-# dev.off()
+dev.off()
 
 
 myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data_simp)
-# jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline.# jpeg"), width = 1400, height = 900)
+jpeg(paste0(path, "/Output Survivals/new PFS for simplify disease status germline.jpeg"), width = 1400, height = 900)
 ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "PFS from diagnosis",
-           font.main = c(16, "bold", "black"),
-           font.x = c(14),
-           # font.y = c(16),
-           font.legend = c(14),
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5, # line thickness default = 1
            
            xlab = "Time (months)", 
-           legend = "right",
-           legend.title = "Disease Status at germline",
+           legend = "top",
+           legend.title = "Disease Status",
            legend.labs = c("MGUS", "MM", "SM"),
-           surv.median.line = "hv",
+           # surv.median.line = "hv",
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
            # risk.table = TRUE,
-           tables.height = 0.14,
+           tables.height = 0.17,
            risk.table.title = "Risk table",
            risk.table = "abs_pct",
            risk.table.y.text = FALSE,
-           tables.theme = theme_survminer(font.y = c(14, "plain", "transparent"))
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+                                          )
            # risk.table.pos = "in",
            # Censor
            # censor = TRUE,
            # ncensor.plot = TRUE
            )
-# dev.off()
+dev.off()
 
 temp <- germline_patient_data[,c("Disease_Status_germline", "month_at_progression_Dx", "progressed_surv", "progression_date", 
                          "date_death", "was_contact_lost", "date_of_diagnosis", "last_date_available", "last_event_available")] %>% 
   filter(str_detect(Disease_Status_germline, "Amyloidosis|marrow|MYELOFIBROSIS|Solitary|WALDENSTROM|Refractory"))
 
-summary(myplot)
 # Summary of survival curves
 res.sum <- surv_summary(myplot)
 res.sum
+
+summary(myplot)
+a <- summary(myplot)$table
+write.csv(a, paste0(path, "/summary New PFS from Dx surv.csv"))
 
 # Log-Rank test comparing survival curves for Significant Difference
 survdiff(Surv(time = germline_patient_data_simp$month_at_progression_Dx, event = germline_patient_data_simp$progressed_surv) ~
@@ -110,10 +127,16 @@ survdiff(Surv(time = germline_patient_data_simp$month_at_progression_Dx, event =
 ################################################################################### III ### PFS Survivals from first date of drugs ----
 mysurv <- Surv(time = germline_patient_data_simp$month_at_progression, event = germline_patient_data_simp$progressed_surv)
 myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data_simp)
-# jpeg(paste0(path, "/Output Survivals/PFS for disease status germline from drugs date.# jpeg"), width = 1600, height = 800)
+jpeg(paste0(path, "/Output Survivals/PFS for disease status germline from drugs date.jpeg"), width = 1600, height = 800)
 ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "PFS from drugs date",
-           font.main = c(16, "bold", "black"),
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5, # line thickness default = 1
+           
            xlab = "Time (months)", 
            legend = "right",
            legend.title = "Disease Status at germline",
@@ -131,40 +154,46 @@ ggsurvplot(myplot, data = germline_patient_data_simp,
            # Censor
            censor = TRUE
 )
-# dev.off()
+dev.off()
 summary(myplot)
 a <- summary(myplot)$table
 write.csv(a, paste0(path, "/summary surv.csv"))
 
 myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data_simp)
-# jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline from drugs date.# jpeg"), width = 1400, height = 900)
+jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline from drugs date.jpeg"), width = 1400, height = 900)
 ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "PFS from drugs date",
-           font.main = c(16, "bold", "black"),
-           font.x = c(14),
-           # font.y = c(16),
-           font.legend = c(14),
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5, # line thickness default = 1
            
            xlab = "Time (months)", 
-           legend = "right",
+           legend = "top",
            legend.title = "Disease Status at germline",
            legend.labs = c("MGUS", "MM", "SM"),
-           surv.median.line = "hv",
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
            # risk.table = TRUE,
-           tables.height = 0.14,
+           tables.height = 0.17,
            risk.table.title = "Risk table",
            risk.table = "abs_pct",
            risk.table.y.text = FALSE,
-           tables.theme = theme_survminer(font.y = c(14, "plain", "transparent"))
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black"))
            # risk.table.pos = "in",
            # Censor
            # censor = TRUE,
            # ncensor.plot = TRUE
 )
-# dev.off()
+dev.off()
 summary(myplot)
 a <- summary(myplot)$table
 write.csv(a, paste0(path, "/summary surv simplified disease status.csv"))
@@ -174,12 +203,18 @@ germline_patient_data[c("month_at_progression_Dx", "month_at_progression")]
 
 
 ################################################################################### IV ### Overall Survival from date of diagnosis----
-mysurv <- Surv(time = germline_patient_data$month_at_os, event = germline_patient_data$os_surv_cor)
-myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data)
-# jpeg(paste0(path, "/Output Survivals/OS for disease status germline from date of diagnosis.# jpeg"), width = 1600, height = 800)
-ggsurvplot(myplot, data = germline_patient_data,
+mysurv <- Surv(time = germline_patient_data_simp$month_at_os, event = germline_patient_data_simp$os_surv_cor)
+myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data_simp)
+jpeg(paste0(path, "/Output Survivals/OS for disease status germline from date of diagnosis.jpeg"), width = 1600, height = 800)
+ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "OS from date of diagnosis",
-           font.main = c(16, "bold", "black"),
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5, # line thickness default = 1
+           
            xlab = "Time (months)", 
            legend = "right",
            legend.title = "Disease Status at germline",
@@ -190,47 +225,54 @@ ggsurvplot(myplot, data = germline_patient_data,
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
-           risk.table = TRUE,
            tables.height = 0.3,
            risk.table.title = "Risk table",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
            tables.theme = theme_survminer(font.y = c(14, "plain", "transparent")),
            # Censor
            censor = TRUE
 )
-# dev.off()
+dev.off()
 summary(myplot)
 a <- summary(myplot)$table
 # write.csv(a, paste0(path, "/summary.csv"))
 
-myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data)
-# jpeg(paste0(path, "/Output Survivals/OS for simplify disease status germline from date of diagnosis.# jpeg"), width = 1400, height = 900)
-ggsurvplot(myplot, data = germline_patient_data,
+myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data_simp)
+jpeg(paste0(path, "/Output Survivals/OS for simplify disease status germline from date of diagnosis.jpeg"), width = 1400, height = 900)
+ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "OS date of diagnosis",
-           font.main = c(16, "bold", "black"),
-           font.x = c(14),
-           # font.y = c(16),
-           font.legend = c(14),
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5, # line thickness default = 1
            
            xlab = "Time (months)", 
-           legend = "right",
+           legend = "top",
            legend.title = "Disease Status at germline",
            legend.labs = c("MGUS", "MM", "SM"),
-           surv.median.line = "hv",
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
            # risk.table = TRUE,
-           tables.height = 0.14,
+           tables.height = 0.17,
            risk.table.title = "Risk table",
            risk.table = "abs_pct",
            risk.table.y.text = FALSE,
-           tables.theme = theme_survminer(font.y = c(14, "plain", "transparent"))
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black"))
            # risk.table.pos = "in",
            # Censor
            # censor = TRUE,
            # ncensor.plot = TRUE
 )
-# dev.off()
+dev.off()
 summary(myplot)
 a <- summary(myplot)$table
 # write.csv(a, paste0(path, "/summary.csv"))

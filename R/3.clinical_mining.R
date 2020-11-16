@@ -1,3 +1,11 @@
+
+germline_patient_data %>%
+  mutate(Whole = "Germline patients") %>% 
+  select(ISS, Whole) %>% 
+  tbl_summary(by = Whole)
+
+
+
 # We have 512 unique patient IDs in Sequencing, does they match the treatment
 # Treatment$avatar_id == Germline$avatar_id # No
 
@@ -593,7 +601,6 @@ write.csv(drug_table_4, paste0(path, "/table drugs single used per patient in fi
 
 
 # Cleaning
-rm(drug_table, Pre_Treat_, Post_Treat_, Early_Relapse_, Late_Relapse_, Smoldering_, Mgus_,
+rm(Pre_Treat_, Post_Treat_, Early_Relapse_, Late_Relapse_, Smoldering_, Mgus_,
    regimen1, drug_table_)
-rm(TREATM, TREATME, TREATMEN)
 rm(Germline, a, treatment_number, germ_before_treatment)

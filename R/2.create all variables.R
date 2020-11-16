@@ -33,7 +33,7 @@ all_dates <- bind_rows(all_dates1, all_dates) %>%
     date > date_last_follow_up              ~ "removed"
     )) %>% 
   filter(is.na(date_sameas_last)) %>%
-  select(-c("date_contact_lost", "date_death", "date_sameas_last"))
+  select(-c("date_contact_lost", "date_death", "date_sameas_last", "date_last_follow_up"))
 
 # Get the last event and corresponding date----
 last_event <- dcast(setDT(all_dates), avatar_id ~ rowid(avatar_id), 
@@ -276,7 +276,7 @@ barplot(tab, main = "Frequency of collection date first observed", ylim = c(0,50
 tab
 
 # Cleaning
-# rm(tab, all_dates, all_dates1, last_event, Last_labs_dates)
+# rm(tab, all_dates1, last_event, Last_labs_dates)
 
 
 # Request info from Raghu

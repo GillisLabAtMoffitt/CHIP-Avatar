@@ -1,8 +1,6 @@
 # Here we centered the data on the ones having a germline collection date
 
 ################################################################################# TABLE disease status year ####
-head(germline_patient_data)
-germline_patient_data$Disease_Status_germline
 Disease_status_table <- table(germline_patient_data$Disease_Status_germline)
 write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
 
@@ -612,16 +610,16 @@ write.csv(disease_stat_germVStreatment, paste0(path, "/Disease status in germlin
 
 ###########################################################################################################################################
 
-temp <- germ_BF_drugs[(germ_BF_drugs$Disease_Status_germline == "Early Relapse Multiple Myeloma"), 
-                      c("avatar_id", "Date_of_Birth", "date_of_diagnosis","date_of_diagnosis_1",
-                        "date_of_first_bmt", "GermBFtumorWES",
-                                                                                             "collectiondt_germline","Disease_Status_germline", 
-                                                                                             "collectiondt_tumor_1", "Disease_Status_tumor_1",
-                                                                                             "date_death", "date_last_follow_up",
-                                                                                             "drug_start_date_1",
-                                                                                             "rad_start_date_1", "versionMM_1")]
-# write.csv(temp, paste0(path, "/temp file.csv"))
-rm(temp)
+# temp <- germ_BF_drugs[(germ_BF_drugs$Disease_Status_germline == "Early Relapse Multiple Myeloma"), 
+#                       c("avatar_id", "Date_of_Birth", "date_of_diagnosis","date_of_diagnosis_1",
+#                         "date_of_first_bmt", "GermBFtumorWES",
+#                                                                                              "collectiondt_germline","Disease_Status_germline", 
+#                                                                                              "collectiondt_tumor_1", "Disease_Status_tumor_1",
+#                                                                                              "date_death", "date_last_follow_up",
+#                                                                                              "drug_start_date_1",
+#                                                                                              "rad_start_date_1", "versionMM_1")]
+# # write.csv(temp, paste0(path, "/temp file.csv"))
+# rm(temp)
 
 # Here is a list of patients classified as “Pre-treatment” but who HAD received drugs before germline.
 Pre_Treat_ <- germline_patient_data %>%

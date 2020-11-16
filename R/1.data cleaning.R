@@ -537,6 +537,9 @@ BiopsyV4.1 <-
 OS_data <- readxl::read_xlsx(paste0(path, "/Raghu MM/Overall Survival/HRI_Last_Followupdata.xlsx")) %>% 
   select(avatar_id = "germline_patient_data_avatar_id", "final_vitals", "Vital_Status_Date") %>% 
   distinct()
+Staging_ISS <- readxl::read_xlsx(paste0(path, "/Raghu MM/Staging_09142020.xlsx")) %>% 
+  select("avatar_id", "collectiondt_germline", "Labs_Result_Date", "Final_Albumin", "Final_Beta2", "Final_LDH", "ISS") %>% 
+  distinct()
 
 
 # Plot data recorded ---------------------------------------------------------------------------------------------
@@ -1046,7 +1049,8 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., Radiation, by = "avatar_id") %>% 
   full_join(., Progression, by= "avatar_id") %>% 
   full_join(., Last_labs_dates %>% select(c("avatar_id", "labs_last_date")), by = "avatar_id") %>% 
-  full_join(., OS_data, by = "avatar_id")
+  full_join(., OS_data, by = "avatar_id") %>% 
+  full_join(., Staging_ISS, by = c("avatar_id", "collectiondt_germline"))
 
 Global_data <- right_join(Demo_RedCap_V4ish, Global_data, by = "avatar_id")
 # write.csv(Global_data, paste0(path, "/Global_data.csv"))

@@ -86,6 +86,8 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
     date_death <= date_last_follow_up |
         is.na(date_last_follow_up)               ~ date_death # remove 36 dates
     )) %>%
+  
+  # PFS FROM Dx DATE
   mutate(pfs_progression_date = coalesce(progression_date, pfs_date_death)) %>% 
   mutate(progression_surv = case_when(
     !is.na(pfs_progression_date)      ~ 1,
@@ -96,6 +98,16 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
                by = "avatar_id") %>% 
   mutate(progression_date_surv = coalesce(pfs_progression_date, last_date_available)) %>% 
   
+  # PFS FROM DRUG DATE
+  mutate(pfs_drug_progression_date = coalesce(progression_drug_date, pfs_date_death)) %>% 
+  mutate(progression_drug_surv = case_when(
+    !is.na(pfs_drug_progression_date)      ~ 1,
+    is.na(pfs_drug_progression_date)       ~ 0
+  )) %>% 
+  # Add last_date_available
+  mutate(drug_progression_date_surv = coalesce(pfs_drug_progression_date, last_date_available)) %>% 
+  
+  # OS FROM Dx DATE
   mutate(os_date_surv = Vital_Status_Date) %>% 
   mutate(os_surv =  case_when(
     final_vitals == "Dead"            ~ 1,
@@ -172,9 +184,9 @@ Age_data$month_at_progression_Dx <- round(Age_data$month_at_progression_Dx, 3)
 b <- Age_data[,c("avatar_id", "month_at_progression_Dx", "date_of_diagnosis", "progression_date_surv", "last_date_available", "progression_date", 
                  "last_event_available")]
 
-Age_data$month_at_progression <- interval(start= Global_data$drug_start_date_1, end= Global_data$progression_date_surv)/                      
+Age_data$month_at_progression_drug <- interval(start= Global_data$drug_start_date_1, end= Global_data$drug_progression_date_surv)/                      
   duration(n=1, unit="months")
-Age_data$month_at_progression <- round(Age_data$month_at_progression, 3)
+Age_data$month_at_progression_drug <- round(Age_data$month_at_progression_drug, 3)
 
 Age_data$month_at_os <- interval(start= Global_data$date_of_diagnosis, end= Global_data$os_date_surv)/                      
   duration(n=1, unit="months")
@@ -260,6 +272,11 @@ germline_patient_data <- germline_patient_data %>%
     progression_surv == 1 & 
       progression_date_surv > date_contact_lost ~ 0,
     TRUE ~ progression_surv
+  )) %>% # remove censored patient when progression_date_surv > date_contact_lost - remove 1 patient
+  mutate(drug_progressed_surv = case_when( 
+    progression_drug_surv == 1 & 
+      drug_progression_date_surv > date_contact_lost ~ 0,
+    TRUE ~ progression_drug_surv
   )) %>% # remove censored patient when date_death > date_contact_lost (just in case)
   mutate(os_surv_cor = case_when( 
     os_surv == 1 & 

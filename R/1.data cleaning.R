@@ -706,42 +706,6 @@ write.csv(Vitals,paste0(path, "/simplified files/Vitals simplify.csv"))
 # the date_last_follow_up is the date_contact_lost
 # happen before or equal death
 
-# Progression----
-Progr_V12 <- Progr_V12 %>% 
-  filter(QC == "Yes") %>% 
-  drop_na(progression_date) %>% 
-  distinct() %>% 
-  select(-QC)
-uid_P12 <- paste(unique(Progr_V12$avatar_id), collapse = '|')
-Progression_V12 <- Progression_V12[(!grepl(uid_P12, Progression_V12$avatar_id)),] %>%  # Remove ID QC'd in Prog_V12
-#Progression_V12 <- Progression_V12 %>% 
-  drop_na(progression_date) %>% 
-  distinct()
-
-Progression <- 
-  bind_rows(Progr_V12, Progression_V12, 
-            Progression, ProgressionV2, Progression_V4, Progression_V4.1) %>%
-  distinct() %>% drop_na(progression_date) %>% 
-  # Taking only the dates of progression after date_of_diagnosis (official as not MGUS or SM)
-  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
-  mutate(prog_before_diag = case_when(
-    progression_date <= date_of_diagnosis         ~ "removed", # 7 are removed as they become MM
-    progression_date > date_of_diagnosis          ~ "good"
-  )) %>% # Don't take the NA as they come from date of diag
-  filter(prog_before_diag == "good") %>% 
-  select(1:2) %>% 
-  left_join(., Vitals %>% select(c("avatar_id", "date_death")), by = "avatar_id") %>% 
-  mutate(prog_before_diag = case_when(
-    progression_date > date_death                 ~ "removed", # 0 patient removed :)
-    progression_date < date_death |
-      is.na (date_death)                          ~ "good"
-  )) %>%
-  filter(prog_before_diag == "good") %>% 
-  select(1:2) %>% 
-  arrange(progression_date) %>% # Keep earliest progression_date
-  distinct(avatar_id, .keep_all = TRUE)
-write.csv(Progression,paste0(path, "/simplified files/Progression simplify.csv"))
-
 # Bone marrow transplant ----
 SCT <- SCT %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt, date_of_third_bmt),
                              values_to = "date_of_bmt", values_drop_na = TRUE)
@@ -809,6 +773,58 @@ Treatment <- Treatment %>%
   purrr::keep(~!all(is.na(.)))
 write.csv(Treatment,paste0(path, "/simplified files/Treatment simplify.csv"))
 
+# Progression----
+Progr_V12 <- Progr_V12 %>% 
+  filter(QC == "Yes") %>% 
+  drop_na(progression_date) %>% 
+  distinct() %>% 
+  select(-QC)
+uid_P12 <- paste(unique(Progr_V12$avatar_id), collapse = '|')
+Progression_V12 <- Progression_V12[(!grepl(uid_P12, Progression_V12$avatar_id)),] %>%  # Remove ID QC'd in Prog_V12
+  #Progression_V12 <- Progression_V12 %>% 
+  drop_na(progression_date) %>% 
+  distinct()
+
+Progression <- 
+  bind_rows(Progr_V12, Progression_V12, 
+            Progression, ProgressionV2, Progression_V4, Progression_V4.1) %>%
+  distinct() %>% drop_na(progression_date) %>% 
+  # Taking only the dates of progression after date_of_diagnosis (official as not MGUS or SM)
+  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
+  mutate(prog_before_diag = case_when(
+    progression_date <= date_of_diagnosis         ~ "removed", # 7 are removed as they become MM
+    progression_date > date_of_diagnosis          ~ "good"
+  )) %>% # Don't take the NA as they come from date of diag
+  filter(prog_before_diag == "good") %>% 
+  select(1:2) %>% 
+  left_join(., Vitals %>% select(c("avatar_id", "date_death")), by = "avatar_id") %>% 
+  mutate(prog_before_diag = case_when(
+    progression_date > date_death                 ~ "removed", # 0 patient removed :)
+    progression_date < date_death |
+      is.na (date_death)                          ~ "good"
+  )) %>%
+  filter(prog_before_diag == "good") %>% 
+  select(1:2)
+Progression_drugs <- Progression
+
+Progression <- Progression %>% 
+  arrange(progression_date) %>% # Keep earliest progression_date
+  distinct(avatar_id, .keep_all = TRUE)
+write.csv(Progression, paste0(path, "/simplified files/Progression simplify.csv"))
+
+Progression_drugs <- Progression_drugs %>% 
+  left_join(., Treatment %>% select(c("avatar_id", "drug_start_date_1")), by = "avatar_id") %>% 
+  mutate(prog_before_drug = case_when(
+    progression_date < drug_start_date_1                 ~ "removed", # 0 patient removed :)
+    progression_date >= drug_start_date_1 |
+      is.na (drug_start_date_1)                          ~ "good"
+  )) %>%
+  filter(prog_before_drug == "good") %>% 
+  select(1:2) %>% 
+  arrange(progression_date) %>% # Keep earliest progression_date
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  rename(progression_drug_date = "progression_date")
+write.csv(Progression_drugs, paste0(path, "/simplified files/Progression used for survivals from drugs date.csv"))
 
 # Radiation ----
 # Radiation V1 does't have a date format
@@ -1048,6 +1064,7 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., Treatment, by = "avatar_id") %>% 
   full_join(., Radiation, by = "avatar_id") %>% 
   full_join(., Progression, by= "avatar_id") %>% 
+  full_join(., Progression_drugs, by= "avatar_id") %>% 
   full_join(., Last_labs_dates %>% select(c("avatar_id", "labs_last_date")), by = "avatar_id") %>% 
   full_join(., OS_data, by = "avatar_id") %>% 
   full_join(., Staging_ISS, by = c("avatar_id", "collectiondt_germline"))

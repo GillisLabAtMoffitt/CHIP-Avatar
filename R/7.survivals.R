@@ -1,10 +1,9 @@
 ################################################################################### I ### PFS Survivals from date of diagnosis ----
-
 mysurv <- Surv(time = germline_patient_data$month_at_progression_Dx, event = germline_patient_data$progressed_surv)
-
 myplot <- survfit(mysurv~1)
 plot(myplot)
 
+# jpeg(paste0(path, "/Output Survivals/General PFS from Dx.jpeg"), width = 1000, height = 800)
 ggsurvplot(myplot, data = germline_patient_data,
            title = "PFS",
            font.main = c(16, "bold", "black"),
@@ -17,7 +16,7 @@ ggsurvplot(myplot, data = germline_patient_data,
            conf.int = FALSE,
            censor = TRUE
 )
-
+# dev.off()
 Surv(germline_patient_data$month_at_progression_Dx, germline_patient_data$progressed_surv)[1:10]
 germline_patient_data$progressed_surv[1:10]
 
@@ -39,7 +38,7 @@ germline_patient_data_simp <- germline_patient_data %>%
 
 mysurv <- Surv(time = germline_patient_data_simp$month_at_progression_Dx, event = germline_patient_data_simp$progressed_surv)
 myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data_simp)
-jpeg(paste0(path, "/Output Survivals/PFS for disease status germline.jpeg"), width = 1600, height = 800)
+# jpeg(paste0(path, "/Output Survivals/PFS for disease status germline.jpeg"), width = 1600, height = 800)
 ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "PFS from diagnosis",
            font.main = c(24, "bold", "black"),
@@ -66,11 +65,11 @@ ggsurvplot(myplot, data = germline_patient_data_simp,
            # Censor
            censor = TRUE
 )
-dev.off()
+# dev.off()
 
 
 myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data_simp)
-jpeg(paste0(path, "/Output Survivals/new PFS for simplify disease status germline.jpeg"), width = 1400, height = 900)
+# jpeg(paste0(path, "/Output Survivals/new PFS for simplify disease status germline.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "PFS from diagnosis",
            font.main = c(24, "bold", "black"),
@@ -105,7 +104,7 @@ ggsurvplot(myplot, data = germline_patient_data_simp,
            # censor = TRUE,
            # ncensor.plot = TRUE
            )
-dev.off()
+# dev.off()
 
 temp <- germline_patient_data[,c("Disease_Status_germline", "month_at_progression_Dx", "progressed_surv", "progression_date", 
                          "date_death", "was_contact_lost", "date_of_diagnosis", "last_date_available", "last_event_available")] %>% 
@@ -125,9 +124,9 @@ survdiff(Surv(time = germline_patient_data_simp$month_at_progression_Dx, event =
 
 
 ################################################################################### III ### PFS Survivals from first date of drugs ----
-mysurv <- Surv(time = germline_patient_data_simp$month_at_progression, event = germline_patient_data_simp$progressed_surv)
+mysurv <- Surv(time = germline_patient_data_simp$month_at_progression_drug, event = germline_patient_data_simp$drug_progressed_surv)
 myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data_simp)
-jpeg(paste0(path, "/Output Survivals/PFS for disease status germline from drugs date.jpeg"), width = 1600, height = 800)
+# jpeg(paste0(path, "/Output Survivals/PFS for disease status germline from drugs date.jpeg"), width = 1600, height = 800)
 ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "PFS from drugs date",
            font.main = c(24, "bold", "black"),
@@ -154,13 +153,13 @@ ggsurvplot(myplot, data = germline_patient_data_simp,
            # Censor
            censor = TRUE
 )
-dev.off()
+# dev.off()
 summary(myplot)
 a <- summary(myplot)$table
 write.csv(a, paste0(path, "/summary surv.csv"))
 
 myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data_simp)
-jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline from drugs date.jpeg"), width = 1400, height = 900)
+# jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline from drugs date.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "PFS from drugs date",
            font.main = c(24, "bold", "black"),
@@ -193,19 +192,19 @@ ggsurvplot(myplot, data = germline_patient_data_simp,
            # censor = TRUE,
            # ncensor.plot = TRUE
 )
-dev.off()
+# dev.off()
 summary(myplot)
 a <- summary(myplot)$table
 write.csv(a, paste0(path, "/summary surv simplified disease status.csv"))
 
 
-germline_patient_data[c("month_at_progression_Dx", "month_at_progression")]
+germline_patient_data[c("month_at_progression_Dx", "month_at_progression_drug")]
 
 
 ################################################################################### IV ### Overall Survival from date of diagnosis----
 mysurv <- Surv(time = germline_patient_data_simp$month_at_os, event = germline_patient_data_simp$os_surv_cor)
 myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data_simp)
-jpeg(paste0(path, "/Output Survivals/OS for disease status germline from date of diagnosis.jpeg"), width = 1600, height = 800)
+# jpeg(paste0(path, "/Output Survivals/OS for disease status germline from date of diagnosis.jpeg"), width = 1600, height = 800)
 ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "OS from date of diagnosis",
            font.main = c(24, "bold", "black"),
@@ -233,13 +232,13 @@ ggsurvplot(myplot, data = germline_patient_data_simp,
            # Censor
            censor = TRUE
 )
-dev.off()
+# dev.off()
 summary(myplot)
 a <- summary(myplot)$table
 # write.csv(a, paste0(path, "/summary.csv"))
 
 myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data_simp)
-jpeg(paste0(path, "/Output Survivals/OS for simplify disease status germline from date of diagnosis.jpeg"), width = 1400, height = 900)
+# jpeg(paste0(path, "/Output Survivals/OS for simplify disease status germline from date of diagnosis.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_data_simp,
            title = "OS date of diagnosis",
            font.main = c(24, "bold", "black"),
@@ -272,7 +271,7 @@ ggsurvplot(myplot, data = germline_patient_data_simp,
            # censor = TRUE,
            # ncensor.plot = TRUE
 )
-dev.off()
+# dev.off()
 summary(myplot)
 a <- summary(myplot)$table
 # write.csv(a, paste0(path, "/summary.csv"))

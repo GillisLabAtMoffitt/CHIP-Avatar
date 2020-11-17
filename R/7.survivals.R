@@ -1,5 +1,5 @@
 ################################################################################### I ### PFS Survivals from date of diagnosis ----
-mysurv <- Surv(time = germline_patient_data$month_at_progression_Dx, event = germline_patient_data$progressed_surv)
+mysurv <- Surv(time = germline_patient_data$month_at_progression_Dx, event = germline_patient_data$progression_surv)
 myplot <- survfit(mysurv~1)
 plot(myplot)
 
@@ -17,8 +17,8 @@ ggsurvplot(myplot, data = germline_patient_data,
            censor = TRUE
 )
 # dev.off()
-Surv(germline_patient_data$month_at_progression_Dx, germline_patient_data$progressed_surv)[1:10]
-germline_patient_data$progressed_surv[1:10]
+Surv(germline_patient_data$month_at_progression_Dx, germline_patient_data$progression_surv)[1:10]
+germline_patient_data$progression_surv[1:10]
 
 names(myplot)
 myplot
@@ -26,7 +26,7 @@ myplot
 summary(survfit(mysurv~1), times = 12) # probability of surviving (PFS) beyond 12 months 
 
 # 651 patient in germline_patient_data -1 for the one duplicated patient
-table(germline_patient_data$progressed_surv)
+table(germline_patient_data$progression_surv)
 # 285 who progressed
 
 
@@ -36,7 +36,7 @@ table(germline_patient_data$progressed_surv)
 germline_patient_data_simp <- germline_patient_data %>% 
   filter(!str_detect(Disease_Status_germline, "Amyloidosis|MYELOFIBROSIS|Solitary|WALDENSTROM|Refractory|Normal"))
 
-mysurv <- Surv(time = germline_patient_data_simp$month_at_progression_Dx, event = germline_patient_data_simp$progressed_surv)
+mysurv <- Surv(time = germline_patient_data_simp$month_at_progression_Dx, event = germline_patient_data_simp$progression_surv)
 myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data_simp)
 # jpeg(paste0(path, "/Output Survivals/PFS for disease status germline.jpeg"), width = 1600, height = 800)
 ggsurvplot(myplot, data = germline_patient_data_simp,
@@ -106,9 +106,9 @@ ggsurvplot(myplot, data = germline_patient_data_simp,
            )
 # dev.off()
 
-temp <- germline_patient_data[,c("Disease_Status_germline", "month_at_progression_Dx", "progressed_surv", "progression_date", 
-                         "date_death", "was_contact_lost", "date_of_diagnosis", "last_date_available", "last_event_available")] %>% 
-  filter(str_detect(Disease_Status_germline, "Amyloidosis|marrow|MYELOFIBROSIS|Solitary|WALDENSTROM|Refractory"))
+# temp <- germline_patient_data[,c("Disease_Status_germline", "month_at_progression_Dx", "progressed_surv", "progression_date", 
+#                          "date_death", "was_contact_lost", "date_of_diagnosis", "last_date_available", "last_event_available")] %>% 
+#   filter(str_detect(Disease_Status_germline, "Amyloidosis|marrow|MYELOFIBROSIS|Solitary|WALDENSTROM|Refractory"))
 
 # Summary of survival curves
 res.sum <- surv_summary(myplot)
@@ -119,12 +119,12 @@ a <- summary(myplot)$table
 write.csv(a, paste0(path, "/summary New PFS from Dx surv.csv"))
 
 # Log-Rank test comparing survival curves for Significant Difference
-survdiff(Surv(time = germline_patient_data_simp$month_at_progression_Dx, event = germline_patient_data_simp$progressed_surv) ~
+survdiff(Surv(time = germline_patient_data_simp$month_at_progression_Dx, event = germline_patient_data_simp$progression_surv) ~
            Disease_Status_germline, data = germline_patient_data_simp)
 
 
 ################################################################################### III ### PFS Survivals from first date of drugs ----
-mysurv <- Surv(time = germline_patient_data_simp$month_at_progression_drug, event = germline_patient_data_simp$drug_progressed_surv)
+mysurv <- Surv(time = germline_patient_data_simp$month_at_progression_drug, event = germline_patient_data_simp$progression_drug_surv)
 myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data_simp)
 # jpeg(paste0(path, "/Output Survivals/PFS for disease status germline from drugs date.jpeg"), width = 1600, height = 800)
 ggsurvplot(myplot, data = germline_patient_data_simp,
@@ -156,7 +156,7 @@ ggsurvplot(myplot, data = germline_patient_data_simp,
 # dev.off()
 summary(myplot)
 a <- summary(myplot)$table
-write.csv(a, paste0(path, "/summary surv.csv"))
+write.csv(a, paste0(path, "/summary PFS from drug date.csv"))
 
 myplot <- survfit(mysurv~Disease_Status_facet, data = germline_patient_data_simp)
 # jpeg(paste0(path, "/Output Survivals/PFS for simplify disease status germline from drugs date.jpeg"), width = 1200, height = 900)
@@ -195,10 +195,9 @@ ggsurvplot(myplot, data = germline_patient_data_simp,
 # dev.off()
 summary(myplot)
 a <- summary(myplot)$table
-write.csv(a, paste0(path, "/summary surv simplified disease status.csv"))
+write.csv(a, paste0(path, "/summary PFS from drug date simplified disease status.csv"))
 
 
-germline_patient_data[c("month_at_progression_Dx", "month_at_progression_drug")]
 
 
 ################################################################################### IV ### Overall Survival from date of diagnosis----

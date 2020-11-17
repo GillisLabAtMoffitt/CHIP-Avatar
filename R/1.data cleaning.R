@@ -791,37 +791,38 @@ Progression <-
   distinct() %>% drop_na(progression_date) %>% 
   # Taking only the dates of progression after date_of_diagnosis (official as not MGUS or SM)
   left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
-  mutate(prog_before_diag = case_when(
+  mutate(prog_after_diag = case_when(
     progression_date <= date_of_diagnosis         ~ "removed", # 7 are removed as they become MM
-    progression_date > date_of_diagnosis          ~ "good"
-  )) %>% # Don't take the NA as they come from date of diag
-  filter(prog_before_diag == "good") %>% 
+    progression_date > date_of_diagnosis          ~ "good" # No NA in date of Dx
+  )) %>% 
+  filter(prog_after_diag == "good") %>% 
   select(1:2) %>% 
+  # Taking only the dates of progression before date_death (it's a sanity check-like)
   left_join(., Vitals %>% select(c("avatar_id", "date_death")), by = "avatar_id") %>% 
-  mutate(prog_before_diag = case_when(
+  mutate(prog_before_death = case_when(
     progression_date > date_death                 ~ "removed", # 0 patient removed :)
     progression_date < date_death |
       is.na (date_death)                          ~ "good"
   )) %>%
-  filter(prog_before_diag == "good") %>% 
+  filter(prog_before_death == "good") %>% 
   select(1:2)
-Progression_drugs <- Progression
+Progression_drugs <- Progression # Create 2 df for dates from Dx or drug (will not have the same clean up)
 
-Progression <- Progression %>% 
-  arrange(progression_date) %>% # Keep earliest progression_date
+Progression <- Progression %>% # Keep earliest progression_date
+  arrange(progression_date) %>% 
   distinct(avatar_id, .keep_all = TRUE)
 write.csv(Progression, paste0(path, "/simplified files/Progression simplify.csv"))
 
-Progression_drugs <- Progression_drugs %>% 
+Progression_drugs <- Progression_drugs %>% # Remove progression < drug and keep earliest progression_drug_date
   left_join(., Treatment %>% select(c("avatar_id", "drug_start_date_1")), by = "avatar_id") %>% 
   mutate(prog_before_drug = case_when(
     progression_date < drug_start_date_1                 ~ "removed", # 0 patient removed :)
-    progression_date >= drug_start_date_1 |
-      is.na (drug_start_date_1)                          ~ "good"
+    progression_date > drug_start_date_1 |
+      is.na (drug_start_date_1)                          ~ "good" # progression have to be strictly > drug
   )) %>%
   filter(prog_before_drug == "good") %>% 
   select(1:2) %>% 
-  arrange(progression_date) %>% # Keep earliest progression_date
+  arrange(progression_date) %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   rename(progression_drug_date = "progression_date")
 write.csv(Progression_drugs, paste0(path, "/simplified files/Progression used for survivals from drugs date.csv"))

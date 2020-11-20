@@ -14,14 +14,14 @@ Tml1 <- gather(Tml1,"type", "date", "date_last_follow_up", "date_death")
 #                lastfollow = Vitals[, c("avatar_id", "date_last_follow_up")])
 # df <- as.data.frame.list(LiDate)
 Tml2 <- Radiation[, ]
-Tml2 <- gather(Tml2,"state", "date", 2:5)
+Tml2 <- gather(Tml2,"state", "date", 2:5) %>% select(c(avatar_id, type, date))
 Tml2$type <- "Radiation"
 
-Tml3 <- SCT[, c(2:5)]
-Tml3 <- gather(Tml3,"type", "date", 2:4)
+Tml3 <- SCT[, c(1:2)] %>% rename(date = date_of_bmt_1)
+Tml3$type <- "SCT"
 
-Tml4 <- Treatment[, c(1:18, 49:63)]
-Tml4 <- gather(Tml4,"state", "date", 2:33) %>% 
+Tml4 <- Treatment[, c(1:4, 38, 56, 72)]
+Tml4 <- gather(Tml4,"state", "date", 2:ncol(Tml4)) %>% 
 mutate_all(funs(str_replace_all(., "drug_start_date_..", "start"))) %>%
 mutate_all(funs(str_replace_all(., "drug_start_date_.", "start"))) %>%
 mutate_all(funs(str_replace_all(., "drug_stop_date_..", "stop"))) %>%
@@ -71,6 +71,64 @@ gg
 summary(g)
 gg +
   geom_point(aes(color = type), size = 1)
+
+#############################################################################################################
+# events_dates <- all_dates %>% 
+#   filter(grepl("drug|rad", event))
+
+events_dates <- all_dates %>% 
+  filter(!str_starts(event, "drug|rad"))
+
+events_period <- all_dates %>% 
+  filter(str_starts(event, "drug|rad")) %>% 
+  mutate(status = case_when(
+    str_detect(event, "start") ~ "start",
+    str_detect(event, "stop") ~ "stop"
+  )) %>% 
+  mutate(event = 
+           str_replace(event,
+                       "_1_1|_1_2|_1_3|_1_4|_1_5|_1_6|_1_7|_1_8|_1_9|_1_10|_1_11|_1_12|_1_13|_1_14|_1_15|_1_16|_1_17|_1_18",
+                       "_1")) %>% 
+  mutate(event = 
+           str_replace(event,
+                       "_2_1|_2_2|_2_3|_2_4|_2_5|_2_6|_2_7|_2_8|_2_9",
+                       "_1")) %>% 
+  mutate(event = 
+           str_replace(event,
+                       "_3_1|_3_2|_3_3|_3_4|_3_5|_3_6|_3_7",
+                       "_1")) %>% 
+  group_by(avatar_id, event) %>% 
+  distinct(event, .keep_all = TRUE)
+
+events <-  bind_rows(events_dates, events_period)
+
+events_dates %>% 
+  ggplot() +
+  geom_point(aes(x=date, y=avatar_id, color=event))
+
+events_period %>% 
+  ggplot(aes(x=date, y=avatar_id, color=event, group = avatar_id)) +
+  geom_line()
+
+events %>% 
+  ggplot(aes(x=date, y=avatar_id, color=event, group = avatar_id)) +
+  geom_line()+
+  geom_point(aes(x=date, y=avatar_id, color=event))
+
+gg <- ggplot()
+ggg <- gg + geom_line(data = events_period, aes(x=date, y=avatar_id, color=event, group = avatar_id))
+gggg <- ggg + geom_point(data = events_dates, aes(x=date, y=avatar_id, color=event))
+
+#### Without date of birth
+
+events_dates1 <- events_dates %>% 
+  filter(!str_detect(event, "Birth"))
+
+gg_ev <- ggg + geom_point(data = events_dates1, aes(x=date, y=avatar_id, color=event), size=1, alpha=0.3) +
+  theme(legend.position='top')
+
+
+
 
 
 

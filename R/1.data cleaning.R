@@ -540,7 +540,9 @@ OS_data <- readxl::read_xlsx(paste0(path, "/Raghu MM/Overall Survival/HRI_Last_F
 Staging_ISS <- readxl::read_xlsx(paste0(path, "/Raghu MM/Staging_09142020.xlsx")) %>% 
   select("avatar_id", "collectiondt_germline", "Labs_Result_Date", "Final_Albumin", "Final_Beta2", "Final_LDH", "ISS") %>% 
   distinct()
-
+CHIP_status <- read_csv(paste0(path, "/PreliminaryCHcalls_11.23.20.csv")) %>% 
+  mutate(CH_status = ifelse(CH_status == "CH", "CHIP", "No CHIP")) %>% 
+  mutate(patient_germline_id = str_remove(patient_germline_id, "_normal"))
 
 # Plot data recorded ---------------------------------------------------------------------------------------------
 # jpeg(paste0(path, "/barplot1.jpg"), width = 350, height = 350)
@@ -1068,11 +1070,10 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., Progression_drugs, by= "avatar_id") %>% 
   full_join(., Last_labs_dates %>% select(c("avatar_id", "labs_last_date")), by = "avatar_id") %>% 
   full_join(., OS_data, by = "avatar_id") %>% 
-  full_join(., Staging_ISS, by = c("avatar_id", "collectiondt_germline"))
-
-Global_data <- right_join(Demo_RedCap_V4ish, Global_data, by = "avatar_id")
+  full_join(., Staging_ISS, by = c("avatar_id", "collectiondt_germline")) %>% 
+  right_join(Demo_RedCap_V4ish, ., by = "avatar_id")
 # write.csv(Global_data, paste0(path, "/Global_data.csv"))
-
+Global_data <- left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id"))
 
 #------------------------------------
 # avatar_no_germline <- Global_data %>% filter(is.na(Global_data$Disease_Status_germline)) %>% 

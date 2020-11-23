@@ -680,7 +680,7 @@ rm(germ_stricBF_bmt1_mgus, germ_stricBF_bmt1_MM, germ_stricBF_bmt1_smoldering, g
 
 #----------------- Smoldering patient list
 
-# a <- germline_patient_data %>% filter(Disease_Status_germline == "Smoldering Multiple Myeloma") %>% 
-#   select(avatar_id, collectiondt_germline, drug_start_date_1, germlineBFdrugs) %>% 
-#   arrange(drug_start_date_1)
+# a <- germline_patient_data %>% filter(str_detect(Disease_Status_germline, "Smoldering|Mgus")) %>%
+#   select(avatar_id, collectiondt_germline, Disease_Status_germline, drug_start_date_1, drug_name__1, progression_date) %>%
+#   filter(!is.na(drug_start_date_1))
 # write.csv(a, paste0(path, "/list smoldering patients who had drugs.csv"))

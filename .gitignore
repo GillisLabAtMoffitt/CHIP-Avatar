@@ -10,6 +10,7 @@ data*
 *.html
 *.jpg
 *.csv
+*.rds
 
 # Ignore data directory or data dir if it is a symlink
 data/*
@@ -32,7 +33,7 @@ _*/
 # Session Data files
 .RData
 
-# Temporary code
+# Temporary script
 *-Ex.R
 *-Ex.Rmd
 

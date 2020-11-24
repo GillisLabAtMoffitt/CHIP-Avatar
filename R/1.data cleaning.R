@@ -1087,7 +1087,7 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   right_join(Demo_RedCap_V4ish, ., by = "avatar_id")
 # write.csv(Global_data, paste0(path, "/Global_data.csv"))
 Global_data <- left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id"))
-
+write_rds(Global_data, path = "Global_data.rds")
 #------------------------------------
 # avatar_no_germline <- Global_data %>% filter(is.na(Global_data$Disease_Status_germline)) %>% 
 #   select("avatar_id")

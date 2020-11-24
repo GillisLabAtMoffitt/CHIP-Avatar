@@ -1,4 +1,5 @@
 ########################################### I ### Create dataframe for all start dates, will use that for timeline ----
+# read_rds(Global_data)
 # Need to separate in 2 df ,do diag separately to make sure it appear before germ or tumor date, date of treatment
 all_dates <- Global_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 

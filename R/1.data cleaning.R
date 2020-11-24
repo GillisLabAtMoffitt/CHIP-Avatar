@@ -580,7 +580,6 @@ legend("bottomright", legend = c("version1", "version2", "version4"),
 #######################################################################################  II  ## Align duplicated ID
 # Demographic ----
 Demo_HRI <- full_join(Demo_linkage, Demo_HRI, by= "MRN") %>% 
-  select(-MRN) %>% 
   distinct(.)
 Demo_HRI$Date_of_Birth <- as.POSIXct(strptime(Demo_HRI$Date_of_Birth, 
                                                   format = "%m/%d/%Y", tz = "UTC"))
@@ -730,25 +729,39 @@ uid <- paste(unique(Qcd_Treatment$avatar_id), collapse = '|')
 Treatment <- Treatment[(!grepl(uid, Treatment$avatar_id)),]
 uid <- paste(unique(Qcd_TreatmentV2$avatar_id), collapse = '|')
 TreatmentV2 <- TreatmentV2[(!grepl(uid, TreatmentV2$avatar_id)),]
-# Bind QC'd and Treatment for each version then remove duplicated raws
-# For even more tidy data
+# Bind QC'd and Treatment for each version
+# Need to pivot longer Treatment from V1 (and V2) because not same formatting
+# Having one drug per row will help to remove duplicate in drugs after binding all version together
 Treatment <- bind_rows(Qcd_Treatment, Treatment, .id = "Treatment") %>% 
-  mutate_at(("drug_name_"), ~ str_replace_all(., ",", ";"))
-TreatmentV2 <- bind_rows(Qcd_TreatmentV2, TreatmentV2, .id = "Treatment")
-
-# Need to pivot longer Treatment from V1 because not same formatting
-# Having one drug per row will help to remove duplicate in drugs after binding the 3 version together
-Treatment <- separate(Treatment, drug_name_, paste("drug_name_", 1:7, sep=""), sep = "; |;", extra = "warn",
-                       fill = "right") %>% 
+  # mutate_at(("drug_name_"), ~ str_replace_all(., ",", ";")) %>% 
+  separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "; |;", extra = "warn", 
+           fill = "right") %>% 
   purrr::keep(~!all(is.na(.))) %>%
-  pivot_longer(cols = drug_name_1:ncol(.),
-               names_to = "line", values_to = "drug_name_", values_drop_na = TRUE)
+  pivot_longer(cols = starts_with("drug_name_"),
+               names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
+TreatmentV2 <- bind_rows(Qcd_TreatmentV2, TreatmentV2, .id = "Treatment") %>% 
+  separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "; |;", extra = "warn", 
+           fill = "right") %>% 
+  purrr::keep(~!all(is.na(.))) %>%
+  pivot_longer(cols = starts_with("drug_name_"),
+               names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
 
 # ready to bind
 treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, TreatmentV4.1, .id = "versionTreat") %>% 
   select(avatar_id, drug_start_date, drug_stop_date, drug_name_) %>% 
+  mutate(drug_name_ = tolower(drug_name_)) %>% 
+  mutate(drug_name_ = case_when(
+    drug_name_ == "cafilzomib"                ~ "carfilzomib",
+    drug_name_ == "daratumuab"                ~ "daratumumab",
+    str_detect(drug_name_, "^dex")            ~ "dexamethasone",
+    str_detect(drug_name_, "^lena")           ~ "lenalidomide",
+    str_detect(drug_name_, "^mel")            ~ "melphalan",
+    drug_name_ == "vinicristine"              ~ "vincristine",
+    TRUE                                      ~ drug_name_
+  )) %>% 
   distinct(.) %>% 
   arrange(drug_start_date, drug_stop_date)
+
 
 # Now can dcast to have line of drug_name_ for each line/regimen
 # 1st for regimen with same start and end date

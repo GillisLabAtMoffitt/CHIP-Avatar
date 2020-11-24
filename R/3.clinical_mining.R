@@ -306,6 +306,9 @@ draw.triple.venn(nrow(germline_patient_data),
 rm(bmtINgerm, drugINgerm, had_GERM_BMT_DRUGS)
 
 ###################################################################################################  I  ## Treatment
+table <- as.data.table(table(treatment$drug_name_))
+write.csv(table, paste0(path, "/list of all drugs in data.csv"))
+
 
 ################### Radiation / BMT
 

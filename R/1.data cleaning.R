@@ -540,8 +540,8 @@ OS_data <- readxl::read_xlsx(paste0(path, "/Raghu MM/Overall Survival/HRI_Last_F
 Staging_ISS <- readxl::read_xlsx(paste0(path, "/Raghu MM/Staging_09142020.xlsx")) %>% 
   select("avatar_id", "collectiondt_germline", "Labs_Result_Date", "Final_Albumin", "Final_Beta2", "Final_LDH", "ISS") %>% 
   distinct()
-CHIP_status <- read_csv(paste0(path, "/PreliminaryCHcalls_11.23.20.csv")) %>% 
-  mutate(CH_status = ifelse(CH_status == "CH", "CHIP", "No CHIP")) %>% 
+CHIP_status <- read_csv(paste0(path, "/Nancy's working files/PreliminaryCHcalls_11.23.20.csv")) %>% 
+  # mutate(CH_status = ifelse(CH_status == "CH", "CHIP", "No CHIP")) %>% 
   mutate(patient_germline_id = str_remove(patient_germline_id, "_normal"))
 
 # Plot data recorded ---------------------------------------------------------------------------------------------

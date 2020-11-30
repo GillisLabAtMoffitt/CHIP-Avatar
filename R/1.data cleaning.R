@@ -757,9 +757,17 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
     str_detect(drug_name_, "^lena")           ~ "lenalidomide",
     str_detect(drug_name_, "^mel")            ~ "melphalan",
     drug_name_ == "vinicristine"              ~ "vincristine",
+    drug_name_ %in% c("anastrozole", "azacitidine", "carmustine", 
+                      "cytarabine", "decitabine", "denosumab", 
+                      "docetaxel", "hydrocortisone", "methotrexate",
+                      "methylprednisolone", "pegfilgrastim", "prednisone", 
+                      "rapamycin", "rituxan", "rituximab", 
+                      "sorafenib tosylate", "tamoxifen citrate", 
+                      "zoledronic acid")      ~ NA_character_,
     TRUE                                      ~ drug_name_
   )) %>% 
-  distinct(.) %>% 
+  filter(!is.na(drug_name_)) %>% 
+  distinct() %>% 
   arrange(drug_start_date, drug_stop_date)
 
 

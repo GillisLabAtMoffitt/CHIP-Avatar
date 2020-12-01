@@ -23,26 +23,26 @@ Demo_linkage <-
 # 1.2.Load Germline with disease status --------------------------------------------------------------------------
 Germ <- 
   readxl::read_xlsx(paste0(path, 
-                           "/Raghu MM/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
+                           "/Raghu MM/Germline data/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
   select(c("avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status"))
 
 Germ2 <-
   readxl::read_xlsx(paste0(path,
-                           "/Raghu MM/Moffitt_Germl_Disease_Classification_2patient_from_2nd_sequencingfile.xlsx")) %>%
+                           "/Raghu MM/Germline data/Moffitt_Germl_Disease_Classification_2patient_from_2nd_sequencingfile.xlsx")) %>%
   select(-moffitt_sample_id)
 
 Germ3 <-
   readxl::read_xlsx(paste0(path,
-                           "/Raghu MM/Germline_MM_Disease_Status_05052020_OUT .xlsx")) %>% 
+                           "/Raghu MM/Germline data/Germline_MM_Disease_Status_05052020_OUT .xlsx")) %>% 
   select(c(avatar_id = "Avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status"))
 
 Germ4 <-
   readxl::read_xlsx(paste0(path,
-                           "/Raghu MM/Moffitt_Germl_v0.4.5_Disease_Classification_OUT_07272020.xlsx")) %>% 
+                           "/Raghu MM/Germline data/Moffitt_Germl_v0.4.5_Disease_Classification_OUT_07272020.xlsx")) %>% 
   select(c("avatar_id", "SLID_germline", "Disease_Status"))
 # 1.3.Load Sequencing data ---------------------------------------------------------------------------------------
 WES_tumor <-
-  readxl::read_xlsx(paste0(path, "/Raghu MM/Moffitt_WES_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
+  readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/Moffitt_WES_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
   select(c("avatar_id", "moffitt_sample_id", "collectiondt")) %>% 
   `colnames<-`(c("avatar_id", "moffitt_sample_id_tumor", "collectiondt_tumor"))
 
@@ -58,7 +58,7 @@ Sequencing <-
 # Sequencing$subject == Sequencing$avatar_id # yes so remove one var
 #---
 Seq_WES_Raghu <- 
-  readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Metadata_WES_V044.xlsx")) %>% 
+  readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/MM_Metadata_WES_V044.xlsx")) %>% 
   select(c(avatar_id = "subject", 
            "SLID_germline", "moffitt_sample_id_germline", "collectiondt_germline", 
            "SLID_tumor" , "moffitt_sample_id_tumor", "collectiondt_tumor", 
@@ -71,7 +71,7 @@ Seq_WES_Raghu <-
 # Seq_WES_R$collectiondt_germline == Seq_WES_R$collectiondt_tumor # No -> That's good
 #---
 Sequencing2 <- # warning message due to a TRUE added in a num var by Raghu (he copy paste an extra patient)
-  readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Metadata_WES_V0441.xlsx")) %>% 
+  readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/MM_Metadata_WES_V0441.xlsx")) %>% 
   select(c(avatar_id = "subject",
            "SLID_germline", moffitt_sample_id_germline = "moffittSampleId_germline",
            "collectiondt_germline",
@@ -79,7 +79,7 @@ Sequencing2 <- # warning message due to a TRUE added in a num var by Raghu (he c
            BaitSet = "baitSet"))
 #---
 Seq_WES_Raghu2 <- 
-  readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Metadata_WES_V045.xlsx")) %>% 
+  readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/MM_Metadata_WES_V045.xlsx")) %>% 
   select(c(avatar_id = "subject", 
            "SLID_germline", moffitt_sample_id_germline = "moffittSampleId_germline", "collectiondt_germline", 
            "SLID_tumor" , moffitt_sample_id_tumor = "moffittSampleId_tumor", "collectiondt_tumor", 
@@ -793,7 +793,28 @@ Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id),
                    value.var = c("drug_start_date", "drug_name_", "drug_stop_date_1", 
                                  "drug_stop_date_2", "drug_stop_date_3"))
 Treatment <- Treatment %>% 
-  purrr::keep(~!all(is.na(.)))
+  purrr::keep(~!all(is.na(.))) %>% 
+  mutate(received_IMIDs = case_when(
+    str_detect(drug_name__1, "lidomide") |
+      str_detect(drug_name__2, "lidomide") |
+      str_detect(drug_name__3, "lidomide") |
+      str_detect(drug_name__4, "lidomide") |
+      str_detect(drug_name__5, "lidomide") |
+      str_detect(drug_name__6, "lidomide") |
+      str_detect(drug_name__7, "lidomide") |
+      str_detect(drug_name__8, "lidomide") |
+      str_detect(drug_name__9, "lidomide") |
+      str_detect(drug_name__10, "lidomide") |
+      str_detect(drug_name__11, "lidomide") |
+      str_detect(drug_name__12, "lidomide") |
+      str_detect(drug_name__13, "lidomide") |
+      str_detect(drug_name__14, "lidomide") |
+      str_detect(drug_name__15, "lidomide") |
+      str_detect(drug_name__16, "lidomide") |
+      str_detect(drug_name__17, "lidomide") |
+      str_detect(drug_name__18, "lidomide")    ~ "IMIDs",
+    TRUE ~ "No IMIDs"
+  ))
 write.csv(Treatment,paste0(path, "/simplified files/Treatment simplify.csv"))
 
 # Progression----

@@ -304,6 +304,8 @@ tab
 
 
 # Request info from Raghu
+# get_info <- as.data.frame(germline_patient_data$avatar_id)
+# write.csv(get_info, paste0(path, "/germline patient ids.csv"))
 # get_info <- germline_patient_data$avatar_id[is.na(germline_patient_data$WES_HUDSON_ALPHA_germline)]
 # write.csv(get_info, paste0(path, "/get_info.csv"))
 # get_info2 <- germline_patient_data$avatar_id[is.na(germline_patient_data$TCC_ID)]

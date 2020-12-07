@@ -1,8 +1,13 @@
 # Here we centered the data on the ones having a germline collection date
 
 ################################################################################# TABLE disease status year ####
-Disease_status_table <- table(germline_patient_data$Disease_Status_germline)
-write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
+# Disease_status_table <- table(germline_patient_data$Disease_Status_germline)
+# write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
+tbl <- germline_patient_data %>%
+  mutate(Whole = "Germline patients") %>% 
+  select(Whole, Disease_Status_germline) %>% 
+  tbl_summary(by = Whole) %>% as_gt()
+gt::gtsave(tbl, paste0(path, "/Disease Status Multiple Myeloma Avatar Patients With Germline Seqeunced.pdf"))
 
 ################################################################################# TABLE Year of germline sample collection ####
 Amyloidosis_Diagnostic <- germline_patient_data %>% 
@@ -98,7 +103,7 @@ disease_status_by_year <- matrix(
     sum(str_count(Walderstrom$collectiondt_germline, "2017")),sum(str_count(Walderstrom$collectiondt_germline, "2018")),
     sum(str_count(Walderstrom$collectiondt_germline, "2019"))), ncol = 13, byrow=TRUE)
 
-write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
+# write.csv(disease_status_by_year,paste0(path, "/Germline Disease status classified by year of collection.csv"))
 
 rm(
   Amyloidosis_Diagnostic,
@@ -138,8 +143,8 @@ germline_compared_dates <-matrix(
     ),
   ncol = 3, byrow=TRUE)
 germline_compared_dates <- as.table(germline_compared_dates)
-germline_compared_dates
-write.csv(germline_compared_dates, paste0(path, "/table compared germline dates and Demographics.csv"))
+# germline_compared_dates
+# write.csv(germline_compared_dates, paste0(path, "/table compared germline dates and Demographics.csv"))
 
 rm(germline_compared_dates)
 

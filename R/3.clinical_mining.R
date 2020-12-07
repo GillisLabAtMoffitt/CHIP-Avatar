@@ -1,10 +1,43 @@
 
-germline_patient_data %>%
+tbl <- germline_patient_data %>%
   mutate(Whole = "Germline patients") %>% 
   select(ISS, Whole) %>% 
   tbl_summary(by = Whole)
+gt::gtsave(tbl, paste0(path, "/ISS staging in germline patients.pdf"))
 
+tbl <- germline_patient_data %>%
+  select(Age_at_diagosis, Gender, Race, Ethnicity, Disease_Status_facet) %>% 
+  tbl_summary(by = Disease_Status_facet, 
+              digits = list(c(Age_at_diagosis, Race) ~ 2)) %>% 
+  as_gt()
+gt::gtsave(tbl, paste0(path, "/Demographics in germline patients.pdf"))
 
+tbl <- 
+  Age_data  %>% 
+    mutate(Whole = "MM Avatar patients") %>% 
+    mutate(Disease_Status_facet = case_when(
+    Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
+      Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
+      Disease_Status_germline == "Early Relapse Multiple Myeloma" |
+      Disease_Status_germline == "Late Relapse Multiple Myeloma"                      ~ "MM",
+    Disease_Status_germline == "Mgus"                                                 ~ "MGUS",
+    Disease_Status_germline == "Smoldering Multiple Myeloma"                          ~ "Smoldering"
+  )) %>%
+    mutate(Disease_Status_facet = forcats::fct_explicit_na(Disease_Status_facet)) %>% 
+  select(Age_at_diagnosis, Gender, Race, Ethnicity, Disease_Status_facet) %>% 
+  tbl_summary(by = Disease_Status_facet, 
+              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
+  as_gt()
+gt::gtsave(tbl, paste0(path, "/Demographics in MM Avatar patients by Disease Status.pdf"))
+
+tbl <- 
+  Age_data  %>% 
+  mutate(Whole = "MM Avatar patients") %>% 
+  select(Age_at_diagnosis, Gender, Race, Ethnicity, Whole) %>% 
+  tbl_summary(by = Whole, 
+              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
+  as_gt()
+gt::gtsave(tbl, paste0(path, "/Demographics in MM Avatar patients.pdf"))
 
 # We have 512 unique patient IDs in Sequencing, does they match the treatment
 # Treatment$avatar_id == Germline$avatar_id # No

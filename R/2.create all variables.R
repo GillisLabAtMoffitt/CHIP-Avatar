@@ -139,10 +139,10 @@ Age_data$Age <- interval(start= Global_data$Date_of_Birth, end= enddate)/
 Age_data$Age <- round(Age_data$Age, 3)
 # summary(Age_data$Age)
 
-Age_data$Age_at_diagosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_diagnosis)/                      
+Age_data$Age_at_diagnosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_diagnosis)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_diagosis <- round(Age_data$Age_at_diagosis, 3)
-# summary(Age_data$Age_at_diagosis, na.rm = TRUE)
+Age_data$Age_at_diagnosis <- round(Age_data$Age_at_diagnosis, 3)
+# summary(Age_data$Age_at_diagnosis, na.rm = TRUE)
 
 Age_data$Age_at_death <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_death)/                      
   duration(n=1, unit="years")

@@ -14,7 +14,7 @@ tbl <- germline_patient_data %>%
   mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
   tbl_summary(by = Disease_Status_facet, 
               sort = list(everything() ~ "frequency"),
-              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
+              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% add_p() %>% 
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics in germline patients.pdf"))
 
@@ -26,7 +26,7 @@ tbl <- germline_patient_data %>%
   mutate(Race = str_replace(Race, "Asian|More than one race|AM INDIAN", "Others")) %>% 
   tbl_summary(by = Disease_Status_facet, 
               sort = list(everything() ~ "frequency"),
-              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
+              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% add_p() %>% 
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics simplified race in germline patients.pdf"))
 
@@ -38,7 +38,7 @@ tbl <-
   mutate(Race = str_replace(Race, "Asian|More than one race|AM INDIAN", "Others")) %>% 
   tbl_summary(by = CH_status, 
               sort = list(everything() ~ "frequency"),
-              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
+              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% add_p() %>% 
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics CHIP simplified race in germline patients.pdf"))
 
@@ -61,7 +61,7 @@ tbl <-
   mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
   tbl_summary(by = Disease_Status_facet, 
               sort = list(everything() ~ "frequency"),
-              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
+              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% add_p() %>% 
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics in MM Avatar patients by Disease Status.pdf"))
 
@@ -526,7 +526,7 @@ tbl <- germline_patient_data %>%
   )) %>% 
   select(Drugs, drugs_first_regimen, Disease_Status_germline, Radiation, HCT, No_Treatment) %>% 
   tbl_summary(by = Disease_Status_germline,
-              sort = list(everything() ~ "frequency")) %>% as_gt()
+              sort = list(everything() ~ "frequency")) %>% add_p() %>% as_gt()
 gt::gtsave(tbl, paste0(path, "/Treatment of MM germline patients with WES.pdf"))
 
 Pre_Treat <- germline_patient_data %>% 

@@ -1,11 +1,13 @@
 
 tbl <- germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(ISS, Whole) %>% 
   tbl_summary(by = Whole) %>% as_gt()
 gt::gtsave(tbl, paste0(path, "/ISS staging in germline patients.pdf"))
 
 tbl <- germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
   select(Age_at_diagnosis, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
   mutate(Disease_Status_facet = factor(Disease_Status_facet, levels = c("MM", "Smoldering", "MGUS"))) %>% 
   mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
@@ -16,9 +18,34 @@ tbl <- germline_patient_data %>%
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics in germline patients.pdf"))
 
+tbl <- germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(Age_at_diagnosis, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
+  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels = c("MM", "Smoldering", "MGUS"))) %>% 
+  mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
+  mutate(Race = str_replace(Race, "Asian|More than one race|AM INDIAN", "Others")) %>% 
+  tbl_summary(by = Disease_Status_facet, 
+              sort = list(everything() ~ "frequency"),
+              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
+  as_gt()
+gt::gtsave(tbl, paste0(path, "/Demographics simplified race in germline patients.pdf"))
+
+tbl <- 
+  germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(Age_at_diagnosis, Gender, Race, Ethnicity, CH_status, ISS) %>% 
+  mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
+  mutate(Race = str_replace(Race, "Asian|More than one race|AM INDIAN", "Others")) %>% 
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency"),
+              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
+  as_gt()
+gt::gtsave(tbl, paste0(path, "/Demographics CHIP simplified race in germline patients.pdf"))
+
 tbl <- 
   Age_data  %>% 
-    mutate(Whole = "MM Avatar patients") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "MM Avatar patients") %>% 
     mutate(Disease_Status_facet = case_when(
     Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
       Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
@@ -40,6 +67,7 @@ gt::gtsave(tbl, paste0(path, "/Demographics in MM Avatar patients by Disease Sta
 
 tbl <- 
   Age_data  %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "MM Avatar patients") %>% 
   select(Age_at_diagnosis, Gender, Race, Ethnicity, Whole, ISS) %>%
   mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
@@ -48,12 +76,6 @@ tbl <-
               digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics in MM Avatar patients.pdf"))
-
-
-
-
-
-
 
 
 # We have 512 unique patient IDs in Sequencing, does they match the treatment
@@ -441,7 +463,7 @@ germ_before_treatment <- matrix(
   
   ncol = 4, byrow = FALSE)
 germ_before_treatment <- as.table(germ_before_treatment)
-write.csv(germ_before_treatment, paste0(path, "/germ_before_treatment when treatment happened.csv"))
+# write.csv(germ_before_treatment, paste0(path, "/germ_before_treatment when treatment happened.csv"))
 
 
 # How many time patients had KRd, VRd, Rd, DRd, Len, Len+dex by disease status?
@@ -480,19 +502,20 @@ germline_patient_data <- germline_patient_data %>%
       str_detect(drug_name__1, "dex")                  ~ "VRd"
   )) %>% 
   unite("drugs_first_regimen", starts_with("drugs_first_regimen_"), sep = ", ", remove = FALSE, na.rm = TRUE) %>% 
-  mutate(drugs_first_regimen = na_if(drugs_first_regimen, ""))
-
-table(germline_patient_data$drugs_first_regimen)
-# Do another for kdr
+  mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Other Regimen", "no Regimen")) %>%
+  mutate(drugs_first_regimen = na_if(drugs_first_regimen, "")) %>% 
+  mutate(drugs_first_regimen = coalesce(drugs_first_regimen, Drugs))
 
 tbl <- germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
   filter(!str_detect(Disease_Status_germline, "Amyl|MYELO|Normal|Refrac|Solit|WALD")) %>%
   mutate(Disease_Status_germline = 
            factor(Disease_Status_germline, levels = c("Pre Treatment Newly Diagnosed Multiple Myeloma",
                                                       "Post Treatment Newly Diagnosed Multiple Myeloma", 
                                                       "Early Relapse Multiple Myeloma", 
                                                       "Late Relapse Multiple Myeloma", 
-                                                      "Mgus", "Smoldering Multiple Myeloma"))) %>% 
+                                                      "Smoldering Multiple Myeloma", "Mgus"))) %>%
+  mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Drugs", "no Drugs")) %>%
   mutate(Radiation = ifelse(!is.na(rad_start_date_1), "radiation", "no radiation")) %>% 
   mutate(HCT = ifelse(!is.na(date_of_bmt_1), "bmt", "no bmt")) %>% 
   mutate(No_Treatment = case_when(
@@ -501,9 +524,10 @@ tbl <- germline_patient_data %>%
       is.na(date_of_bmt_1) ~ "No Treatment",
     TRUE                   ~ "Treatment Given"
   )) %>% 
-  select(drugs_first_regimen, Disease_Status_germline, Radiation, HCT, No_Treatment) %>% 
-  tbl_summary(by = Disease_Status_germline) %>% as_gt()
-gt::gtsave(tbl, paste0(path, "/Treatment of MM patients with WES.pdf"))
+  select(Drugs, drugs_first_regimen, Disease_Status_germline, Radiation, HCT, No_Treatment) %>% 
+  tbl_summary(by = Disease_Status_germline,
+              sort = list(everything() ~ "frequency")) %>% as_gt()
+gt::gtsave(tbl, paste0(path, "/Treatment of MM germline patients with WES.pdf"))
 
 Pre_Treat <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma")
@@ -607,7 +631,7 @@ Pre_Treat_ <- merge.data.frame(Pre_Treat_, regimen1, all.x = TRUE, all.y = FALSE
   distinct(avatar_id, drug_name_, .keep_all = TRUE)
 drug_table_1 <- as.data.table(table(Pre_Treat_$drug_name_)) %>% 
   arrange(desc(N))
-write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as pre-treat in first regimen.csv"))
+# write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as pre-treat in first regimen.csv"))
 
 Post_Treat_ <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma") %>% 
@@ -618,7 +642,7 @@ Post_Treat_ <- merge.data.frame(Post_Treat_, regimen1, all.x = TRUE, all.y = FAL
   distinct(avatar_id, drug_name_, .keep_all = TRUE)
 drug_table_1 <- as.data.table(table(Post_Treat_$drug_name_)) %>% 
   arrange(desc(N))
-write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as post-treat in first regimen.csv"))
+# write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as post-treat in first regimen.csv"))
 
 Early_Relapse_ <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Early Relapse Multiple Myeloma") %>% 
@@ -629,7 +653,7 @@ Early_Relapse_ <- merge.data.frame(Early_Relapse_, regimen1, all.x = TRUE, all.y
   distinct(avatar_id, drug_name_, .keep_all = TRUE)
 drug_table_1 <- as.data.table(table(Early_Relapse_$drug_name_)) %>% 
   arrange(desc(N))
-write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as early relapse in first regimen.csv"))
+# write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as early relapse in first regimen.csv"))
 
 Late_Relapse_ <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Late Relapse Multiple Myeloma") %>% 
@@ -640,7 +664,7 @@ Late_Relapse_ <- merge.data.frame(Late_Relapse_, regimen1, all.x = TRUE, all.y =
   distinct(avatar_id, drug_name_, .keep_all = TRUE)
 drug_table_1 <- as.data.table(table(Late_Relapse$drug_name_)) %>% 
   arrange(desc(N))
-write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as late relapse in first regimen.csv"))
+# write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as late relapse in first regimen.csv"))
 
 Smoldering_ <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Smoldering Multiple Myeloma") %>% 
@@ -651,7 +675,7 @@ Smoldering_ <- merge.data.frame(Smoldering_, regimen1, all.x = TRUE, all.y = FAL
   distinct(avatar_id, drug_name_, .keep_all = TRUE)
 drug_table_1 <- as.data.table(table(Smoldering_$drug_name_)) %>% 
   arrange(desc(N))
-write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as smoldering in first regimen.csv"))
+# write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as smoldering in first regimen.csv"))
 
 Mgus_ <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Mgus") %>% 
@@ -662,7 +686,7 @@ Mgus_ <- merge.data.frame(Mgus_, regimen1, all.x = TRUE, all.y = FALSE) %>%
   distinct(avatar_id, drug_name_, .keep_all = TRUE)
 drug_table_1 <- as.data.table(table(Mgus_$drug_name_)) %>% 
   arrange(desc(N))
-write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as mgus in first regimen.csv"))
+# write.csv(drug_table_1, paste0(path, "/table drugs single used per patient classified as mgus in first regimen.csv"))
 
 
 regimen1 <- regimen1 %>% 
@@ -671,7 +695,7 @@ regimen1 <- regimen1 %>%
   distinct(avatar_id, drug_name_, .keep_all = TRUE)
 drug_table_4 <- as.data.table(table(regimen1$drug_name_)) %>% 
   arrange(desc(N))
-write.csv(drug_table_4, paste0(path, "/table drugs single used per patient in first regimen.csv"))
+# write.csv(drug_table_4, paste0(path, "/table drugs single used per patient in first regimen.csv"))
 
 
 

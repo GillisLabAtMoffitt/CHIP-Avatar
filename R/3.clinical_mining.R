@@ -2,13 +2,17 @@
 tbl <- germline_patient_data %>%
   mutate(Whole = "Germline patients") %>% 
   select(ISS, Whole) %>% 
-  tbl_summary(by = Whole)
+  tbl_summary(by = Whole) %>% as_gt()
 gt::gtsave(tbl, paste0(path, "/ISS staging in germline patients.pdf"))
 
 tbl <- germline_patient_data %>%
-  select(Age_at_diagosis, Gender, Race, Ethnicity, Disease_Status_facet) %>% 
+  select(Age_at_diagnosis, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
+  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels = c("MM", "Smoldering", "MGUS"))) %>% 
+  mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
+  mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
   tbl_summary(by = Disease_Status_facet, 
-              digits = list(c(Age_at_diagosis, Race) ~ 2)) %>% 
+              sort = list(everything() ~ "frequency"),
+              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics in germline patients.pdf"))
 
@@ -23,9 +27,13 @@ tbl <-
     Disease_Status_germline == "Mgus"                                                 ~ "MGUS",
     Disease_Status_germline == "Smoldering Multiple Myeloma"                          ~ "Smoldering"
   )) %>%
-    mutate(Disease_Status_facet = forcats::fct_explicit_na(Disease_Status_facet)) %>% 
-  select(Age_at_diagnosis, Gender, Race, Ethnicity, Disease_Status_facet) %>% 
+  select(Age_at_diagnosis, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
+  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels = c("MM", "Smoldering", "MGUS"))) %>% 
+  mutate(Disease_Status_facet = forcats::fct_explicit_na(Disease_Status_facet)) %>% 
+  mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
+  mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
   tbl_summary(by = Disease_Status_facet, 
+              sort = list(everything() ~ "frequency"),
               digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics in MM Avatar patients by Disease Status.pdf"))
@@ -33,11 +41,20 @@ gt::gtsave(tbl, paste0(path, "/Demographics in MM Avatar patients by Disease Sta
 tbl <- 
   Age_data  %>% 
   mutate(Whole = "MM Avatar patients") %>% 
-  select(Age_at_diagnosis, Gender, Race, Ethnicity, Whole) %>% 
+  select(Age_at_diagnosis, Gender, Race, Ethnicity, Whole, ISS) %>%
+  mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
   tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency"),
               digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics in MM Avatar patients.pdf"))
+
+
+
+
+
+
+
 
 # We have 512 unique patient IDs in Sequencing, does they match the treatment
 # Treatment$avatar_id == Germline$avatar_id # No

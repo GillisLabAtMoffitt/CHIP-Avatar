@@ -593,6 +593,7 @@ Demo_RedCap_V4ish <- Demo_RedCap_V4ish %>%
     Race %in% c("More Than One Race")                         ~ "More than one race",
     Race %in% c("Other Asian including Asian and Oriental")   ~ "Asian",
     Race %in% c("PT Not Present")                             ~ "Unknown",
+    Race %in% c("AM INDIAN")                                  ~ "Am Indian",
     TRUE                                                      ~ Race
   )) %>% 
   mutate(Ethnicity = case_when(

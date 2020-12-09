@@ -21,25 +21,31 @@ Demo_linkage <-
   readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Demographics_HRI_Export.xlsx"),
                     sheet = "Sheet1")
 # 1.2.Load Germline with disease status --------------------------------------------------------------------------
-Germ <- 
-  readxl::read_xlsx(paste0(path, 
-                           "/Raghu MM/Germline data/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
-  select(c("avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status"))
-
-Germ2 <-
-  readxl::read_xlsx(paste0(path,
-                           "/Raghu MM/Germline data/Moffitt_Germl_Disease_Classification_2patient_from_2nd_sequencingfile.xlsx")) %>%
-  select(-moffitt_sample_id)
-
-Germ3 <-
-  readxl::read_xlsx(paste0(path,
-                           "/Raghu MM/Germline data/Germline_MM_Disease_Status_05052020_OUT .xlsx")) %>% 
-  select(c(avatar_id = "Avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status"))
-
-Germ4 <-
-  readxl::read_xlsx(paste0(path,
-                           "/Raghu MM/Germline data/Moffitt_Germl_v0.4.5_Disease_Classification_OUT_07272020.xlsx")) %>% 
-  select(c("avatar_id", "SLID_germline", "Disease_Status"))
+Germline <- readxl::read_xlsx(paste0(path, 
+                                     "/Raghu MM/Germline data/Moffitt_Germl_v0.4.5_Disease_Classification_12082020.xlsx")) %>% 
+  select(c("avatar_id", "SLID_germline", "collectiondt_germline", 
+           "moffittSampleId_germline", Disease_Status_germline = "Disease_Status"))
+# uid <- paste(unique(Germline$avatar_id), collapse = '|')
+# Germ <- 
+#   readxl::read_xlsx(paste0(path, 
+#                            "/Raghu MM/Germline data/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
+#   select(c("avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status"))
+# Germ <- Germ[(!grepl(uid, Germ$avatar_id)),]
+# Germ2 <-
+#   readxl::read_xlsx(paste0(path,
+#                            "/Raghu MM/Germline data/Moffitt_Germl_Disease_Classification_2patient_from_2nd_sequencingfile.xlsx")) %>%
+#   select(-moffitt_sample_id)
+# Germ2 <- Germ2[(!grepl(uid, Germ2$avatar_id)),]
+# Germ3 <-
+#   readxl::read_xlsx(paste0(path,
+#                            "/Raghu MM/Germline data/Germline_MM_Disease_Status_05052020_OUT .xlsx")) %>% 
+#   select(c(avatar_id = "Avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status"))
+# Germ3 <- Germ3[(!grepl(uid, Germ3$avatar_id)),]
+# Germ4 <-
+#   readxl::read_xlsx(paste0(path,
+#                            "/Raghu MM/Germline data/Moffitt_Germl_v0.4.5_Disease_Classification_OUT_07272020.xlsx")) %>% 
+#   select(c("avatar_id", "SLID_germline", "Disease_Status"))
+# Germ4 <- Germ4[(!grepl(uid, Germ4$avatar_id)),]
 # 1.3.Load Sequencing data ---------------------------------------------------------------------------------------
 WES_tumor <-
   readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/Moffitt_WES_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
@@ -86,7 +92,7 @@ Seq_WES_Raghu2 <-
            "BaitSet"))
 
 # 1.4.Load Clinical data------------------------------------------------------------------------------------------
-# V1 and V2 verified in V4 format ----
+# V1 and V2 verified in V4 format
 ClinicalCap_V12 <-
   fs::path(
     "",
@@ -103,7 +109,7 @@ Vitals_V12 <-
   readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Vitals") %>%
   select(c("avatar_id","vital_status","date_death", date_last_follow_up = "date_of_last_contact"))
-# Remove IDs from new CIOX V1V2 in the initial V! and V2 version ----
+# Remove IDs from new CIOX V1V2 in the initial V! and V2 version
 uid_V <- paste(unique(Vitals_V12$avatar_id), collapse = '|')
 
 Alc_Smo_V12 <-
@@ -458,34 +464,34 @@ BiopsyV4 <-
   select(c("avatar_id", biopsy_date = "date_bonemarrow_biopsy_results"))
 
 # V4.august2020 ----
-#---
+#
 VitalsV4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
                     sheet = "Vitals") %>%
   select(c("avatar_id","vital_status","date_death", date_last_follow_up = "date_of_last_contact"))
-#---
+#
 MM_historyV4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
                     sheet = "Myeloma_Disease_History") %>%
   select(c("avatar_id", "date_of_diagnosis"))
-#---
+#
 Alc_SmoV4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
                     sheet = "Comorbidities") %>%
   select(c("avatar_id","smoking_status", "alcohol_use"))
-#---
+#
 TreatmentV4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
                     sheet = "Treatment") %>%
   select(c("avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
            "drug_name_other_")) %>%  # didn't take "treatment_line_"
   unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = FALSE)
-#---
+#
 Progression_V4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
                     sheet = "Treatment_Outcomes") %>%
   select(c("avatar_id", progression_date = "initial_1_pd_date_1"))
-#---
+#
 SCTV4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
                     sheet = "SCT") %>%
@@ -493,47 +499,47 @@ SCTV4.1 <-
   drop_na("date_of_bmt")
 # SCTV4.1 <- dcast(setDT(SCTV4), avatar_id ~ rowid(avatar_id), value.var = c("date_of_bmt")) %>% 
 #   rename("date_of_first_bmt" = "1", "date_of_second_bmt" = "2")
-#---
+#
 RadiationV4.1 <- 
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
                     sheet = "Radiation") %>%
   select(c("avatar_id", "rad_start_date", "rad_stop_date"))
-#---
+#
 LabsV4.1 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
                     sheet = "Labs") %>%
   select(c("avatar_id", lab_date = "lab_initial_date_1"))
-#---
+#
 MetastasisV4.1 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
                     sheet = "Metastatic_Disease") %>%
   select(c("avatar_id", metastasis_date = "mets_verify_date"))
-#---
+#
 StagingV4.1 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
                     sheet = "Staging") %>%
   select(c("avatar_id", "date_staging_results"))
-#---
+#
 ImagingV4.1 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
                     sheet = "Imaging") %>%
   select(c("avatar_id", "imaging_date"))
-#---
+#
 PerformanceV4.1 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
                     sheet = "Performance") %>%
   select(c("avatar_id", "date_perf_status_dx"))
-#---
+#
 TumorMarkerV4.1 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
                     sheet = "Tumor_marker_flow") %>%
   select(c("avatar_id", "tumor_marker_date"))
-#---
+#
 BiopsyV4.1 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
                     sheet = "Biopsy") %>%
   select(c("avatar_id", biopsy_date = "date_bonemarrow_biopsy_results"))
-#----
+#
 OS_data <- readxl::read_xlsx(paste0(path, "/Raghu MM/Overall Survival/HRI_Last_Followupdata.xlsx")) %>% 
   select(avatar_id = "germline_patient_data_avatar_id", "final_vitals", "Vital_Status_Date") %>% 
   distinct()
@@ -785,7 +791,8 @@ Treatment <- dcast(setDT(Treatment), avatar_id+drug_start_date ~ rowid(avatar_id
   unite(drug_name_, starts_with("drug_name_"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
   unite(drug_stop_date, starts_with("drug_stop_date"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
   separate(drug_stop_date, paste("drug_stop_date", 1:3, sep="_"), sep = "; ",
-           extra = "warn", fill = "right")
+           extra = "warn", fill = "right") %>% 
+  arrange(drug_start_date)
 Treatment$drug_stop_date_1 <- as.POSIXct(Treatment$drug_stop_date_1, format = "%Y-%m-%d")
 Treatment$drug_stop_date_2 <- as.POSIXct(Treatment$drug_stop_date_2, format = "%Y-%m-%d")
 Treatment$drug_stop_date_3 <- as.POSIXct(Treatment$drug_stop_date_3, format = "%Y-%m-%d")
@@ -986,11 +993,11 @@ barplot(
 #######################################################################################  III  # Merge WES and Sequencing----
 #######################################################################################  III  # For 1st sequencing file
 ### Bind Germline
-Germline <- bind_rows(Germ, Germ2, Germ3, Germ4) %>% 
-  `colnames<-`(c("avatar_id", "collectiondt_germline", 
-                 "WES_HUDSON_ALPHA_germline", "Disease_Status_germline", "SLID_germline")) %>% 
-  arrange(SLID_germline) %>% 
-  distinct(avatar_id, Disease_Status_germline, .keep_all = TRUE)
+# Germline <- bind_rows(Germ, Germ2, Germ3, Germ4) %>% 
+#   `colnames<-`(c("avatar_id", "collectiondt_germline", 
+#                  "WES_HUDSON_ALPHA_germline", "Disease_Status_germline", "SLID_germline")) %>% 
+#   arrange(SLID_germline) %>% 
+#   distinct(avatar_id, Disease_Status_germline, .keep_all = TRUE)
 
 # One of the sequencing data is in 2 part so merge that first
 # Are moffitt_sample_id are equal in WES and Sequencing ?
@@ -1096,14 +1103,14 @@ Germline <- left_join(WES_seq, Germline, by = "avatar_id") %>%
 
 
 # Cleaning
-rm(Sequencing, Sequencing2, WES_tumor, WES_seq, Seq_WES_Raghu, Seq_WES, Seq_WES_Raghu2, Germ, Germ2, Germ3, Germ4)
+rm(Sequencing, Sequencing2, WES_tumor, WES_seq, Seq_WES_Raghu, Seq_WES, Seq_WES_Raghu2)
 
 
 ##################################################################################################  IV  ## Merge----
 Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_germline", "SLID_germline",
                              "collectiondt_germline", "Disease_Status_germline", 
-                             starts_with("SLID_tumor"), starts_with("collectiondt_tumor_"),
-                             "WES_HUDSON_ALPHA_germline")),
+                             starts_with("SLID_tumor"), starts_with("collectiondt_tumor_", 
+                             starts_with("moffitt_sample_id_tumor")))),
                MM_history, by = "avatar_id") %>% 
   full_join(., Vitals, by = "avatar_id") %>% 
   full_join(., SCT, by = "avatar_id") %>% 
@@ -1114,7 +1121,7 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., Last_labs_dates %>% select(c("avatar_id", "labs_last_date")), by = "avatar_id") %>% 
   full_join(., OS_data, by = "avatar_id") %>% 
   full_join(., Staging_ISS, by = c("avatar_id", "collectiondt_germline")) %>% 
-  right_join(Demo_RedCap_V4ish, ., by = "avatar_id")
+  full_join(Demo_RedCap_V4ish, ., by = "avatar_id")
 # write.csv(Global_data, paste0(path, "/Global_data.csv"))
 Global_data <- left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id"))
 write_rds(Global_data, path = "Global_data.rds")

@@ -31,7 +31,7 @@ dev.off()
 
 pdf(paste0(path, "/Age repartition by gender facet Disease status in MM Avatar.pdf"), height = 6, width = 9)
 p <- ggplot(germline_patient_data %>%
-              mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>%
+              # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>%
               filter(!is.na(Age_at_diagnosis), !is.na(Gender), !is.na(Disease_Status_facet)),
             aes(x=Gender, y=Age_at_diagnosis), fill=Gender) + 
   geom_boxplot(color= rep(c("purple3", "royalblue2"), 3)) +
@@ -57,9 +57,9 @@ dev.off()
 
 # Ethnicity
 pdf(paste0(path, "/Age repartition per ethnicity in MM Avatar.pdf"), height = 6, width = 9)
-p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagnosis)), # , (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic") 
+p <- ggplot(Age_data %>% filter(!is.na(Age_at_diagnosis), (Ethnicity == "Hispanic" | Ethnicity == "Non-Hispanic") ),
             aes(x=Ethnicity, y=Age_at_diagnosis), fill=Ethnicity) + 
-  geom_boxplot(color = c("darkred", "darkgreen", "grey")) +
+  geom_boxplot(color = c("darkred", "darkgreen")) +
   theme_minimal() +
   labs(x="Ethnicity", y="Age at Diagnosis", title="Age repartition per ethnicity in Avatar")
 p + geom_jitter(shape=16, position=position_jitter(0.2))+
@@ -68,11 +68,11 @@ dev.off()
 
 pdf(paste0(path, "/Age repartition by ethnicity facet Disease status in MM Avatar.pdf"), height = 6, width = 9)
 p <- ggplot(germline_patient_data %>% 
-              mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>%
+              # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>%
               filter(!is.na(Age_at_diagnosis),
-                     !is.na(Disease_Status_facet)),
+                     !is.na(Disease_Status_facet), (Ethnicity == "Hispanic" | Ethnicity == "Non-Hispanic") ),
             aes(x=Ethnicity, y=Age_at_diagnosis), fill=Ethnicity) + 
-  geom_boxplot(color = c("darkred", "darkgreen", "grey", "darkred", "darkgreen", "darkred", "darkgreen")) + # color = rep(c("darkred", "darkgrey"),3)
+  geom_boxplot(color = c("darkred", "darkgreen", "darkred", "darkgreen", "darkred", "darkgreen")) + 
   theme_minimal() +
   labs(x="Ethnicity", y="Age at Diagnosis", title="Age repartition per ethnicity in Avatar")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
@@ -93,19 +93,44 @@ p <- Age_data %>% filter(!is.na(Race)) %>%
   scale_fill_brewer(palette="BuPu") +
   labs(x="Race", y="Age at Diagnosis", title="Age repartition per race in Avatar")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
-  theme(strip.background = element_rect(colour="grey", fill="white",
-                                        size=1.5, linetype="solid")) +
   stat_compare_means()
 dev.off()
+pdf(paste0(path, "/Age repartition per race simplifies.pdf"), height = 6, width = 9)
+p <- Age_data %>% 
+  # mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>%
+  mutate(Race = factor(Race, levels=c("White", "Black"))) %>% filter(!is.na(Race)) %>% 
+  ggplot(aes(x=Race, y=Age_at_diagnosis), fill=Race) + 
+  geom_boxplot(color= c("#A92E5EFF", "#E65D2FFF")) + # color= c("#60136EFF", "#A92E5EFF", "#E65D2FFF")
+  theme_minimal() +
+  labs(x="Race", y="Age at Diagnosis", title="Age repartition per race in Avatar")
+p + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  stat_compare_means()
+dev.off()
+
 pdf(paste0(path, "/Age repartition by race facet Disease status in MM Avatar.pdf"), height = 6, width = 9)
 p <- germline_patient_data %>% filter(!is.na(Race),!is.na(Disease_Status_facet)) %>% 
   # mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
   mutate(Race = factor(Race, levels=c("White", "Black", "Am Indian", "Asian", "More than one race", "Others", "Unknown"))) %>% 
-  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>% 
+  # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>% 
   ggplot(aes(x=Race, y=Age_at_diagnosis), fill=Race) + 
   geom_boxplot() +
   theme_minimal() +
   scale_fill_brewer(palette="BuPu") +
+  labs(x="Race", y="Age at Diagnosis", title="Age repartition per race in Avatar")
+p + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  theme(strip.background = element_rect(colour="grey", fill="white",
+                                        size=1.5, linetype="solid")) +
+  facet_grid(. ~ Disease_Status_facet) +
+  stat_compare_means()
+dev.off()
+pdf(paste0(path, "/Age repartition by race simplified facet Disease status in MM Avatar.pdf"), height = 6, width = 9)
+p <- germline_patient_data %>% 
+  # mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black"))) %>% filter(!is.na(Race),!is.na(Disease_Status_facet)) %>% 
+  # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>% 
+  ggplot(aes(x=Race, y=Age_at_diagnosis), fill=Race) + 
+  geom_boxplot(color= c(rep(c("#A92E5EFF", "#E65D2FFF"),3))) +
+  theme_minimal() +
   labs(x="Race", y="Age at Diagnosis", title="Age repartition per race in Avatar")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
   theme(strip.background = element_rect(colour="grey", fill="white",
@@ -195,9 +220,9 @@ dev.off()
 
 # Ethnicity
 pdf(paste0(path, "/Germline patients Age repartition per ethnicity.pdf"), height = 6, width = 9)
-p <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagnosis)), # , (Ethnicity == "Hispanic" | Ethnicity == "Non- Hispanic"))
+p <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagnosis), (Ethnicity == "Hispanic" | Ethnicity == "Non-Hispanic") ), 
             aes(x=Ethnicity, y=Age_at_diagnosis), fill=Ethnicity) + 
-  geom_boxplot(color = c("darkred", "darkgreen", "grey")) + 
+  geom_boxplot(color = c("darkred", "darkgreen")) + 
   theme_minimal() +
   labs(x="Ethnicity", y="Age at Diagnosis", title="Age repartition per ethnicity in germline")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
@@ -217,6 +242,22 @@ p <- germline_patient_data %>% filter(!is.na(Race)) %>%
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
   stat_compare_means()
 dev.off()
+pdf(paste0(path, "/Germline patients Age repartition per race fected by Disease.pdf"), height = 6, width = 9)
+p <- germline_patient_data %>% 
+  # mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black", "Others"))) %>% filter(!is.na(Race), !is.na(Disease_Status_facet)) %>% 
+  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>% 
+  ggplot(aes(x=Race, y=Age_at_diagnosis), fill=Race) + 
+  geom_boxplot(color= c("#A92E5EFF", "#E65D2FFF", "grey", "#A92E5EFF", "#E65D2FFF", "#A92E5EFF", "#E65D2FFF", "grey")) + # c(rep(c("#A92E5EFF", "#E65D2FFF", "grey"),3))
+  theme_minimal() +
+  labs(x="Race", y="Age at Diagnosis", title="Age repartition per race in germline")
+p + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  facet_grid(. ~ Disease_Status_facet) +
+  theme(strip.background = element_rect(colour="grey", fill="white",
+                                        size=1.5, linetype="solid")) +
+  stat_compare_means()
+dev.off()
+
 
 ########################################################################## Stats
 # For germline patients

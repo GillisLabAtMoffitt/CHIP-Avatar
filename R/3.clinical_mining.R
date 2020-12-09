@@ -467,7 +467,7 @@ germ_before_treatment <- as.table(germ_before_treatment)
 
 
 # How many time patients had KRd, VRd, Rd, DRd, Len, Len+dex by disease status?
-germline_patient_data <- germline_patient_data %>% 
+germline_patient_treatment <- germline_patient_data %>% 
   mutate(drugs_first_regimen_Rdlen = case_when(
     str_detect(drug_name__1, "car") &
       str_detect(drug_name__1, "lena") &
@@ -502,11 +502,11 @@ germline_patient_data <- germline_patient_data %>%
       str_detect(drug_name__1, "dex")                  ~ "VRd"
   )) %>% 
   unite("drugs_first_regimen", starts_with("drugs_first_regimen_"), sep = ", ", remove = FALSE, na.rm = TRUE) %>% 
-  mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Other Regimen", "no Regimen")) %>%
+  mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Other Regimen", "No Regimen")) %>%
   mutate(drugs_first_regimen = na_if(drugs_first_regimen, "")) %>% 
   mutate(drugs_first_regimen = coalesce(drugs_first_regimen, Drugs))
 
-tbl <- germline_patient_data %>%
+tbl <- germline_patient_treatment %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   filter(!str_detect(Disease_Status_germline, "Amyl|MYELO|Normal|Refrac|Solit|WALD")) %>%
   mutate(Disease_Status_germline = 
@@ -515,9 +515,9 @@ tbl <- germline_patient_data %>%
                                                       "Early Relapse Multiple Myeloma", 
                                                       "Late Relapse Multiple Myeloma", 
                                                       "Smoldering Multiple Myeloma", "Mgus"))) %>%
-  mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Drugs", "no Drugs")) %>%
-  mutate(Radiation = ifelse(!is.na(rad_start_date_1), "radiation", "no radiation")) %>% 
-  mutate(HCT = ifelse(!is.na(date_of_bmt_1), "bmt", "no bmt")) %>% 
+  mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Drugs", "No Drugs")) %>%
+  mutate(Radiation = ifelse(!is.na(rad_start_date_1), "Radiation", "No Radiation")) %>% 
+  mutate(HCT = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT")) %>% 
   mutate(No_Treatment = case_when(
     is.na(drug_start_date_1) &
       is.na(rad_start_date_1) &
@@ -528,6 +528,14 @@ tbl <- germline_patient_data %>%
   tbl_summary(by = Disease_Status_germline,
               sort = list(everything() ~ "frequency")) %>% add_p() %>% as_gt()
 gt::gtsave(tbl, paste0(path, "/Treatment of MM germline patients with WES.pdf"))
+
+# What are the "other regimen"
+
+tbl <- germline_patient_treatment %>% filter(drugs_first_regimen == "Other Regimen", drug_name__1 != "") %>% select(`Drug name` = "drug_name__1") %>% 
+  mutate(Whole = "Other drugs than most known regimen") %>% 
+  tbl_summary(by = Whole) %>% as_gt()
+gt::gtsave(tbl, paste0(path, "/Other drugs than most known regimen.pdf"))
+
 
 Pre_Treat <- germline_patient_data %>% 
   filter(Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma")

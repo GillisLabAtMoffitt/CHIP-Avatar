@@ -216,7 +216,8 @@ germline_patient_data <- germline_patient_data %>%
       Disease_Status_germline == "Late Relapse Multiple Myeloma"                      ~ "MM",
     Disease_Status_germline == "Mgus"                                                 ~ "MGUS",
     Disease_Status_germline == "Smoldering Multiple Myeloma"                          ~ "Smoldering"
-  ))
+  )) %>% 
+  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS")))
 
 write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
 

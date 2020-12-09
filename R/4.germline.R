@@ -4,6 +4,7 @@
 # Disease_status_table <- table(germline_patient_data$Disease_Status_germline)
 # write.csv(Disease_status_table, paste0(path, "/Table germline disease status.csv"))
 tbl <- germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(Whole, Disease_Status_germline) %>% 
   tbl_summary(by = Whole) %>% as_gt()

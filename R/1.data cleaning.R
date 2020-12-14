@@ -242,7 +242,7 @@ Qcd_Treatment <-
   `colnames<-`(c("avatar_id","drug_start_date", "drug_stop_date", "drug_name_"))
 Treatment <- Treatment[(!grepl(uid_T, Treatment$avatar_id)),]
 Qcd_Treatment <- Qcd_Treatment[(!grepl(uid_T, Qcd_Treatment$avatar_id)),]
-#----
+#---
 Progression <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
                     sheet = "Treatment") %>%
@@ -328,7 +328,7 @@ Qcd_TreatmentV2 <-
   select(c("avatar_id", "drug_start_date" , "drug_name_", "drug_stop_date"))
 TreatmentV2 <- TreatmentV2[(!grepl(uid_T, TreatmentV2$avatar_id)),]
 Qcd_TreatmentV2 <- Qcd_TreatmentV2[(!grepl(uid_T, Qcd_TreatmentV2$avatar_id)),]
-#----
+#---
 ProgressionV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "Treatment") %>%
@@ -546,7 +546,7 @@ OS_data <- readxl::read_xlsx(paste0(path, "/Raghu MM/Overall Survival/HRI_Last_F
 Staging_ISS <- readxl::read_xlsx(paste0(path, "/Raghu MM/Staging_09142020.xlsx")) %>% 
   select("avatar_id", "collectiondt_germline", "Labs_Result_Date", "Final_Albumin", "Final_Beta2", "Final_LDH", "ISS") %>% 
   distinct()
-CHIP_status <- read_csv(paste0(path, "/Nancy's working files/PreliminaryCHcalls_11.23.20.csv")) %>% 
+CHIP_status <- read_csv(paste0(path, "/Nancy's working files/CHcalls_12.10.20.csv")) %>% 
   # mutate(CH_status = ifelse(CH_status == "CH", "CHIP", "No CHIP")) %>% 
   mutate(patient_germline_id = str_remove(patient_germline_id, "_normal"))
 
@@ -602,6 +602,7 @@ Demo_RedCap_V4ish <- Demo_RedCap_V4ish %>%
     Race %in% c("AM INDIAN")                                  ~ "Am Indian",
     TRUE                                                      ~ Race
   )) %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black", "Am Indian", "Asian", "More than one race", "Others", "Unknown"))) %>% 
   mutate(Ethnicity = case_when(
     Ethnicity %in% c("Spanish; Hispanic")                                   ~ "Hispanic",
     Ethnicity %in% c("Non- Hispanic", "Non-Spanish; non-Hispanic")          ~ "Non-Hispanic",
@@ -610,12 +611,9 @@ Demo_RedCap_V4ish <- Demo_RedCap_V4ish %>%
   ))
 
 # Patient history ----
-# MM_historyV4 <- bind_rows(MM_historyV4, MM_historyV4.1) %>% 
-#   drop_na("date_of_diagnosis") %>% 
-#   distinct(.)
 mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, MM_historyV4.1, .id = "versionMM") %>%
   drop_na("date_of_diagnosis") %>% 
-  arrange(disease_stage) %>% 
+  # arrange(disease_stage) %>% 
   distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
   arrange(date_of_diagnosis)
 MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), 
@@ -630,8 +628,9 @@ MM_history <- MM_history %>%
     disease_stage_3 == "active"          ~ date_of_diagnosis_3,
     disease_stage_4 == "active"          ~ date_of_diagnosis_4,
   )) %>% 
+  mutate(date_of_MMdiagnosis = date_of_diagnosis) %>% 
   mutate(date_of_diagnosis = coalesce(date_of_diagnosis, date_of_diagnosis_1)) %>% 
-  select(c("avatar_id", "date_of_diagnosis", everything()))
+  select(c("avatar_id", "date_of_diagnosis", "date_of_MMdiagnosis", everything()))
 write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
 
 # Vitals ----
@@ -774,7 +773,7 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
     TRUE                                      ~ drug_name_
   )) %>% 
   filter(!is.na(drug_name_)) %>% 
-  distinct() %>% 
+  distinct() %>%
   arrange(drug_start_date, drug_stop_date)
 
 
@@ -993,7 +992,9 @@ barplot(
 #######################################################################################  III  # Merge WES and Sequencing----
 #######################################################################################  III  # For 1st sequencing file
 ### Bind Germline
-# Germline <- bind_rows(Germ, Germ2, Germ3, Germ4) %>% 
+Germline <- Germline %>% 
+  distinct() %>% 
+  filter(!str_detect(avatar_id, "A000428|A000456"))
 #   `colnames<-`(c("avatar_id", "collectiondt_germline", 
 #                  "WES_HUDSON_ALPHA_germline", "Disease_Status_germline", "SLID_germline")) %>% 
 #   arrange(SLID_germline) %>% 

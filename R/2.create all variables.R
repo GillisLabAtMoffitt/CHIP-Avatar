@@ -207,7 +207,7 @@ rm(a,b,d)
 
 ################################################################################################## III ## Germline ----
 # Create dataframe for only the patients who had germline sequenced
-germline_patient_data <- Age_data[!is.na(Age_data$moffitt_sample_id_germline),]
+germline_patient_data <- Age_data[!is.na(Age_data$Disease_Status_germline),]
 germline_patient_data <- germline_patient_data %>% 
   mutate(Disease_Status_facet = case_when(
     Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |

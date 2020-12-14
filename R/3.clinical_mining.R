@@ -8,7 +8,7 @@ gt::gtsave(tbl, paste0(path, "/ISS staging in germline patients.pdf"))
 
 tbl <- germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  select(Age_at_diagnosis, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
+  select(#Age_at_diagnosis_1, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
   mutate(Disease_Status_facet = factor(Disease_Status_facet, levels = c("MM", "Smoldering", "MGUS"))) %>% 
   mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
   mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
@@ -34,7 +34,9 @@ tbl <-
   germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   select(Age_at_diagnosis, Gender, Race, Ethnicity, CH_status, ISS) %>% 
-  mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
+  mutate(ISS = str_replace(ISS, "NA", NA_character_)) %>%
+  mutate(Race = str_replace(Race, "Unknown", NA_character_)) %>%
+  mutate(Ethnicity = str_replace(Ethnicity, "Unknown", NA_character_)) %>%
   mutate(Race = str_replace(Race, "Asian|More than one race|AM INDIAN", "Others")) %>% 
   tbl_summary(by = CH_status, 
               sort = list(everything() ~ "frequency"),

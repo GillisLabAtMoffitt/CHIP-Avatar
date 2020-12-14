@@ -85,7 +85,6 @@ dev.off()
 # Race
 pdf(paste0(path, "/Age repartition per race.pdf"), height = 6, width = 9)
 p <- Age_data %>% filter(!is.na(Race)) %>% 
-  # mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>%
   # mutate(Race = factor(Race, levels=c("White", "Black", "Am Indian", "Asian", "More than one race", "Others", "Unknown"))) %>%
   ggplot(aes(x=Race, y=Age_at_diagnosis, fill=Race)) + 
   geom_boxplot(alpha = 0.5) + # color= c("#60136EFF", "#A92E5EFF", "#E65D2FFF")
@@ -97,7 +96,6 @@ p + geom_jitter(shape=16, position=position_jitter(0.2)) +
 dev.off()
 pdf(paste0(path, "/Age repartition per race simplifies.pdf"), height = 6, width = 9)
 p <- Age_data %>% 
-  # mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>%
   mutate(Race = factor(Race, levels=c("White", "Black",  "Others"))) %>% filter(!is.na(Race)) %>% 
   ggplot(aes(x=Race, y=Age_at_diagnosis), fill=Race) + 
   geom_boxplot(color= c("#A92E5EFF", "#E65D2FFF", "grey")) + # color= c("#60136EFF", "#A92E5EFF", "#E65D2FFF")
@@ -109,7 +107,6 @@ dev.off()
 
 pdf(paste0(path, "/Age repartition by race facet Disease status in MM Avatar.pdf"), height = 6, width = 9)
 p <- germline_patient_data %>% filter(!is.na(Race),!is.na(Disease_Status_facet)) %>% 
-  # mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
   # mutate(Race = factor(Race, levels=c("White", "Black", "Am Indian", "Asian", "More than one race", "Others", "Unknown"))) %>% 
   # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>% 
   ggplot(aes(x=Race, y=Age_at_diagnosis), fill=Race) + 
@@ -125,7 +122,6 @@ p + geom_jitter(shape=16, position=position_jitter(0.2)) +
 dev.off()
 pdf(paste0(path, "/Age repartition by race simplified facet Disease status in MM Avatar.pdf"), height = 6, width = 9)
 p <- germline_patient_data %>% 
-  # mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
   mutate(Race = factor(Race, levels=c("White", "Black"))) %>% filter(!is.na(Race),!is.na(Disease_Status_facet)) %>% 
   # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>% 
   ggplot(aes(x=Race, y=Age_at_diagnosis), fill=Race) + 
@@ -232,7 +228,6 @@ dev.off()
 # Race
 pdf(paste0(path, "/Germline patients Age repartition per race.pdf"), height = 6, width = 9)
 p <- germline_patient_data %>% filter(!is.na(Race)) %>% 
-  # mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
   # mutate(Race = factor(Race, levels=c("White", "Black", "Am Indian", "Asian", "More than one race", "Others", "Unknown"))) %>% 
   ggplot(aes(x=Race, y=Age_at_diagnosis, fill=Race)) + 
   geom_boxplot(alpha = 0.5) +
@@ -244,7 +239,6 @@ p + geom_jitter(shape=16, position=position_jitter(0.2)) +
 dev.off()
 pdf(paste0(path, "/Germline patients Age repartition per race fected by Disease.pdf"), height = 6, width = 9)
 p <- germline_patient_data %>% 
-  # mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
   mutate(Race = factor(Race, levels=c("White", "Black", "Others"))) %>% filter(!is.na(Race), !is.na(Disease_Status_facet)) %>% 
   mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>% 
   ggplot(aes(x=Race, y=Age_at_diagnosis), fill=Race) + 

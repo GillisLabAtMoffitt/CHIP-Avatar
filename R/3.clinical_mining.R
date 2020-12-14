@@ -8,7 +8,8 @@ gt::gtsave(tbl, paste0(path, "/ISS staging in germline patients.pdf"))
 
 tbl <- germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  select(#Age_at_diagnosis_1, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
+  select(#Age_at_diagnosis_1, Gender, Race, Ethnicity, Disease_Status_facet, ISS
+    ) %>% 
   mutate(Disease_Status_facet = factor(Disease_Status_facet, levels = c("MM", "Smoldering", "MGUS"))) %>% 
   mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
   mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
@@ -380,9 +381,6 @@ draw.triple.venn(nrow(germline_patient_data),
 rm(bmtINgerm, drugINgerm, had_GERM_BMT_DRUGS)
 
 ###################################################################################################  I  ## Treatment
-table <- as.data.table(table(treatment$drug_name_))
-write.csv(table, paste0(path, "/list of all drugs in data.csv"))
-
 
 ################### Radiation / BMT
 
@@ -467,10 +465,13 @@ germ_before_treatment <- matrix(
 germ_before_treatment <- as.table(germ_before_treatment)
 # write.csv(germ_before_treatment, paste0(path, "/germ_before_treatment when treatment happened.csv"))
 
+################### Drugs
 
-# How many time patients had KRd, VRd, Rd, DRd, Len, Len+dex by disease status?
-germline_patient_treatment <- germline_patient_data %>% 
-  mutate(drugs_first_regimen_Rdlen = case_when(
+# How many time patients had KRd, VRd, Rd, DRd, Len, Len+dex in the first regimen by disease status?
+germline_patient_treatment <- germline_patient_data %>%
+  mutate(drug_name__1 = 
+           str_remove_all(drug_name__1, "given with investigational therapy: |clinical trial: |investigational agent: clinical trial|investigational agent: | -|-|; $| sulfate|liposomal ")) %>% 
+  mutate(drugs_first_regimen_ = case_when(
     str_detect(drug_name__1, "car") &
       str_detect(drug_name__1, "lena") &
       str_detect(drug_name__1, "dex")                  ~ NA_character_,
@@ -482,11 +483,38 @@ germline_patient_treatment <- germline_patient_data %>%
     str_detect(drug_name__1, "bortezomib") &
       str_detect(drug_name__1, "lena") &
       str_detect(drug_name__1, "dex")                  ~ NA_character_,
+    str_detect(drug_name__1, "vincristine") &
+      str_detect(drug_name__1, "cyclophos") &
+      str_detect(drug_name__1, "doxo") &
+      str_detect(drug_name__1, "dex")                  ~ "ViCDd",
+    str_detect(drug_name__1, "vincristine") &
+      str_detect(drug_name__1, "doxo") &
+      str_detect(drug_name__1, "dex")                  ~ "ViDd",
 
+    str_detect(drug_name__1, "bortezomib") &
+      str_detect(drug_name__1, "lena") &
+      str_detect(drug_name__1, "dex")                  ~ NA_character_,
     str_detect(drug_name__1, "lena") &
       str_detect(drug_name__1, "dex")                  ~ "Rd",
-
-    str_detect(drug_name__1, "lenalidomide")           ~ "Len"
+    str_detect(drug_name__1, "lenalidomide")           ~ "Len",
+    
+    str_detect(drug_name__1, "bortezomib") &
+      str_detect(drug_name__1, "cyclophos") &
+      str_detect(drug_name__1, "dex")                  ~ NA_character_,
+    str_detect(drug_name__1, "bortezomib") &
+      str_detect(drug_name__1, "doxo") &
+      str_detect(drug_name__1, "dex")                  ~ NA_character_,
+    str_detect(drug_name__1, "bortezomib") &
+      str_detect(drug_name__1, "thal") &
+      str_detect(drug_name__1, "dex")                  ~ "Vtd",
+    str_detect(drug_name__1, "bortezomib") &
+        str_detect(drug_name__1, "dex")                ~ "Vd",
+    str_detect(drug_name__1, "thal") &
+        str_detect(drug_name__1, "dex")                ~ "Td",
+    str_detect(drug_name__1, "dex")                    ~ "Dex",
+    str_detect(drug_name__1, "bortezomib") &
+      str_detect(drug_name__1, "melph")                ~ "Vm",
+    str_detect(drug_name__1, "bortezomib")             ~ "V"
   )) %>% 
   mutate(drugs_first_regimen_KRd = case_when(
     str_detect(drug_name__1, "car") &
@@ -503,11 +531,39 @@ germline_patient_treatment <- germline_patient_data %>%
       str_detect(drug_name__1, "lena") &
       str_detect(drug_name__1, "dex")                  ~ "VRd"
   )) %>% 
+  mutate(drugs_first_regimen_VCd = case_when(
+    str_detect(drug_name__1, "bortezomib") &
+      str_detect(drug_name__1, "cyclophos") &
+      str_detect(drug_name__1, "dex")                  ~ "VCd"
+  )) %>%
+  mutate(drugs_first_regimen_VCd = case_when(
+    str_detect(drug_name__1, "bortezomib") &
+      str_detect(drug_name__1, "doxo") &
+      str_detect(drug_name__1, "dex")                  ~ "VDd"
+  )) %>% 
+  
   unite("drugs_first_regimen", starts_with("drugs_first_regimen_"), sep = ", ", remove = FALSE, na.rm = TRUE) %>% 
   mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Other Regimen", "No Regimen")) %>%
   mutate(drugs_first_regimen = na_if(drugs_first_regimen, "")) %>% 
   mutate(drugs_first_regimen = coalesce(drugs_first_regimen, Drugs))
 
+# What are the drugs in the first regimen?
+tbl <- germline_patient_treatment %>% select(`Drug name` = "drug_name__1") %>% 
+  mutate(Whole = "All drugs in 1st regimen") %>% 
+  tbl_summary(by = Whole,
+              sort = list(everything() ~ "frequency")) %>% as_gt()
+gt::gtsave(tbl, paste0(path, "/Drugs in 1st regimen germline population.pdf"))
+
+# table <- as.data.table(table(treatment$drug_name_))
+# write.csv(table, paste0(path, "/list of all drugs in data.csv"))
+tbl <- germline_patient_treatment %>%
+  mutate(Whole = "All regimen in 1st regimen") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(drugs_first_regimen, Whole) %>% 
+  tbl_summary(by = Whole) %>% as_gt()
+gt::gtsave(tbl, paste0(path, "/Regimen 1st germline patients.pdf"))
+
+# What are the drugs in the first regimen by disease ststus (+BMT, radiadtion)?
 tbl <- germline_patient_treatment %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   filter(!str_detect(Disease_Status_germline, "Amyl|MYELO|Normal|Refrac|Solit|WALD")) %>%
@@ -535,7 +591,8 @@ gt::gtsave(tbl, paste0(path, "/Treatment of MM germline patients with WES.pdf"))
 
 tbl <- germline_patient_treatment %>% filter(drugs_first_regimen == "Other Regimen", drug_name__1 != "") %>% select(`Drug name` = "drug_name__1") %>% 
   mutate(Whole = "Other drugs than most known regimen") %>% 
-  tbl_summary(by = Whole) %>% as_gt()
+  tbl_summary(by = Whole,
+              sort = list(everything() ~ "frequency")) %>% as_gt()
 gt::gtsave(tbl, paste0(path, "/Other drugs than most known regimen.pdf"))
 
 

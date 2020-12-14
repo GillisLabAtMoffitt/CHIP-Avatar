@@ -129,7 +129,8 @@ Treatment_V12 <-
                     sheet = "Treatment") %>%
   select(c("avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
            "drug_name_other_")) %>%  # didn't take "treatment_line_"
-  unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = FALSE)
+  unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = FALSE) %>% 
+  rename(drug_other = "drug_name_other_")
 uid_T <- paste(unique(Treatment_V12$avatar_id), collapse = '|')
 #---
 Progression_V12 <-
@@ -321,7 +322,8 @@ TreatmentV2 <-
                     sheet = "Treatment") %>%
   select(c("avatar_id", "drug_start_date" , "drug_name_", "drug_stop_date",
            "drug_name_other")) %>%  # didn't take "treatment_line_"
-  unite(drug_name_, c(drug_name_,drug_name_other), sep = ": ", na.rm = TRUE, remove = FALSE)
+  unite(drug_name_, c(drug_name_,drug_name_other), sep = ": ", na.rm = TRUE, remove = FALSE) %>% 
+  rename(drug_other = "drug_name_other")
 Qcd_TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "QC'd Treatment") %>%
@@ -408,7 +410,8 @@ TreatmentV4 <-
                     sheet = "Treatment") %>%
   select(c("avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
            "drug_name_other")) %>%  # didn't take "treatment_line_"
-  unite(drug_name_, c(drug_name_,drug_name_other), sep = ": ", na.rm = TRUE, remove = FALSE)
+  unite(drug_name_, c(drug_name_,drug_name_other), sep = ": ", na.rm = TRUE, remove = FALSE) %>% 
+  rename(drug_other = "drug_name_other")
 #---
 Progression_V4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
@@ -485,7 +488,8 @@ TreatmentV4.1 <-
                     sheet = "Treatment") %>%
   select(c("avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
            "drug_name_other_")) %>%  # didn't take "treatment_line_"
-  unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = FALSE)
+  unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = FALSE) %>% 
+  rename(drug_other = "drug_name_other_")
 #
 Progression_V4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
@@ -726,6 +730,7 @@ SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id),
              value.var = "date_of_bmt") %>% 
   `colnames<-`(c("avatar_id", "date_of_bmt_1", "date_of_bmt_2", "date_of_bmt_3"))
 write.csv(SCT,paste0(path, "/simplified files/SCT simplify.csv"))
+
 # Treatment ----
 # remove NA row in QC'd data
 Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
@@ -747,6 +752,13 @@ Treatment <- bind_rows(Qcd_Treatment, Treatment, .id = "Treatment") %>%
                names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
 TreatmentV2 <- bind_rows(Qcd_TreatmentV2, TreatmentV2, .id = "Treatment") %>% 
   separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "; |;", extra = "warn", 
+           fill = "right") %>% 
+  purrr::keep(~!all(is.na(.))) %>%
+  pivot_longer(cols = starts_with("drug_name_"),
+               names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
+
+Treatment_V12 <- Treatment_V12 %>% 
+  separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "\\+", extra = "warn", 
            fill = "right") %>% 
   purrr::keep(~!all(is.na(.))) %>%
   pivot_longer(cols = starts_with("drug_name_"),
@@ -774,6 +786,9 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
   )) %>% 
   filter(!is.na(drug_name_)) %>% 
   distinct() %>%
+  group_by(avatar_id, drug_start_date) %>%
+  arrange(drug_name_) %>%
+  ungroup() %>%
   arrange(drug_start_date, drug_stop_date)
 
 

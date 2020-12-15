@@ -626,15 +626,14 @@ MM_history <- MM_history %>%
   # Create var = first date of Dx for MM diagnostic aka "active" (not for mgus or smoldering)
   # Then when not "active" take the first date of Dx available (mgus or smoldering or NA without regarding order- 
   # usually mgus before smoldering)
-  mutate(date_of_diagnosis = case_when(
+  mutate(date_of_MMonly_diagnosis = case_when(
     disease_stage_1 == "active"          ~ date_of_diagnosis_1,
     disease_stage_2 == "active"          ~ date_of_diagnosis_2,
     disease_stage_3 == "active"          ~ date_of_diagnosis_3,
     disease_stage_4 == "active"          ~ date_of_diagnosis_4,
   )) %>% 
-  mutate(date_of_MMdiagnosis = date_of_diagnosis) %>% 
-  mutate(date_of_diagnosis = coalesce(date_of_diagnosis, date_of_diagnosis_1)) %>% 
-  select(c("avatar_id", "date_of_diagnosis", "date_of_MMdiagnosis", everything()))
+  mutate(date_of_MMSMMGUSdiagnosis = coalesce(date_of_MMonly_diagnosis, date_of_diagnosis_1)) %>% 
+  select(c("avatar_id", "date_of_MMonly_diagnosis", "date_of_MMSMMGUSdiagnosis", everything()))
 write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
 
 # Vitals ----
@@ -855,11 +854,12 @@ Progression <-
   bind_rows(Progr_V12, Progression_V12, 
             Progression, ProgressionV2, Progression_V4, Progression_V4.1) %>%
   distinct() %>% drop_na(progression_date) %>% 
-  # Taking only the dates of progression after date_of_diagnosis (official as not MGUS or SM)
-  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
+  # Taking the dates of progression after the first date_of_diagnosis_1 => For OS
+  # (either if are MM and progressed or if are MGUS/SM and progressed to MM)
+  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis_1")), by = "avatar_id") %>% 
   mutate(prog_after_diag = case_when(
-    progression_date <= date_of_diagnosis         ~ "removed", # 7 are removed as they become MM
-    progression_date > date_of_diagnosis          ~ "good" # No NA in date of Dx
+    progression_date <= date_of_diagnosis_1         ~ "removed", # 7 are removed as they become MM
+    progression_date > date_of_diagnosis_1          ~ "good" # No NA in date of Dx
   )) %>% 
   filter(prog_after_diag == "good") %>% 
   select(1:2) %>% 
@@ -874,7 +874,7 @@ Progression <-
   select(1:2)
 Progression_drugs <- Progression # Create 2 df for dates from Dx or drug (will not have the same clean up)
 
-Progression <- Progression %>% # Keep earliest progression_date
+Progression <- Progression %>% # Keep earliest progression_date => For OS
   arrange(progression_date) %>% 
   distinct(avatar_id, .keep_all = TRUE)
 write.csv(Progression, paste0(path, "/simplified files/Progression simplify.csv"))
@@ -958,11 +958,11 @@ Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performanc
   filter(!str_detect(labs_last_date, "9999|2816|2077")) %>% # Remove mistakes and missing dates
   # remove if its <= to date_of_diagnosis (before MM diagnosis)
   # remove if its => to date_contact_lost 
-  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis")), by = "avatar_id") %>% 
+  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis_1")), by = "avatar_id") %>% 
   # left_join(., Contact_lost %>% select(c("avatar_id", "date_contact_lost")), by = "avatar_id") %>% 
   left_join(., Vitals %>% select(c("avatar_id", "date_contact_lost", "date_last_follow_up")), by = "avatar_id") %>% 
   mutate(labs_before_diag = case_when(
-    labs_last_date <= date_of_diagnosis               ~ "removed",
+    labs_last_date <= date_of_diagnosis_1             ~ "removed",
     labs_last_date >= date_contact_lost               ~ "removed",
     labs_last_date >= date_last_follow_up             ~ "removed"
   )) %>% 

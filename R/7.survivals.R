@@ -618,6 +618,42 @@ ggsurvplot(myplot, data = germline_patient_data,
            censor = TRUE
 )
 dev.off()
+
+mysurv <- Surv(time = germline_patient_data$month_at_progression_drug, event = germline_patient_data$progression_drug_surv)
+myplot <- survfit(mysurv~Radiation+CH_status, data = germline_patient_data)
+jpeg(paste0(path, "/Output Survivals/PFS CHIP Radiation from drugs date.jpeg"), width = 1500, height = 900)
+ggsurvplot(myplot, data = germline_patient_data,
+           title = "PFS Radiation",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(15, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "Radiation",
+           # legend.labs = c("No Radiation", "Radiation"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)
+dev.off()
 # OS
 mysurv <- Surv(time = germline_patient_data$month_at_os, event = germline_patient_data$os_surv_cor)
 myplot <- survfit(mysurv~Radiation, data = germline_patient_data)
@@ -653,6 +689,42 @@ ggsurvplot(myplot, data = germline_patient_data,
            censor = TRUE
 )
 dev.off()
+
+mysurv <- Surv(time = germline_patient_data$month_at_os, event = germline_patient_data$os_surv_cor)
+myplot <- survfit(mysurv~Radiation+CH_status, data = germline_patient_data)
+jpeg(paste0(path, "/Output Survivals/OS CHIP Radiation from drugs date.jpeg"), width = 1500, height = 900)
+ggsurvplot(myplot, data = germline_patient_data,
+           title = "OS Radiation from date of diagnosis",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(15, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "Radiation",
+           # legend.labs = c("No Radiation", "Radiation"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)
+dev.off()
+
 ################################################################################### VI ### Overall Survival from date of diagnosis----
 mysurv <- Surv(time = germline_patient_data_simp$month_at_os, event = germline_patient_data_simp$os_surv_cor)
 myplot <- survfit(mysurv~Disease_Status_germline, data = germline_patient_data_simp)

@@ -590,7 +590,8 @@ legend("bottomright", legend = c("version1", "version2", "version4"),
 #######################################################################################  II  ## Align duplicated ID
 # Demographic ----
 Demo_HRI <- full_join(Demo_linkage, Demo_HRI, by= "MRN") %>% 
-  distinct(.)
+  distinct(.) %>% 
+  mutate(MRN = as.character(MRN))
 Demo_HRI$Date_of_Birth <- as.POSIXct(strptime(Demo_HRI$Date_of_Birth, 
                                                   format = "%m/%d/%Y", tz = "UTC"))
 uid <- paste(unique(Demo_RedCap_V4ish$avatar_id), collapse = '|')
@@ -780,7 +781,7 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
                       "methylprednisolone", "pegfilgrastim", "prednisone", 
                       "rapamycin", "rituxan", "rituximab", 
                       "sorafenib tosylate", "tamoxifen citrate", 
-                      "zoledronic acid")      ~ NA_character_,
+                      "zoledronic acid", "prevnar")      ~ "Non-MM drugs",
     TRUE                                      ~ drug_name_
   )) %>% 
   filter(!is.na(drug_name_)) %>% 

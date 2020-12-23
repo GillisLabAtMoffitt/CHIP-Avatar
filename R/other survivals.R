@@ -72,8 +72,8 @@ ggsurvplot(myplot, data = germline_patient_data,
 dev.off()
 
 ################################################################################### V ### PFS/OS drug date by Drugs----
-germline_patient_data <- germline_patient_data %>% 
-  mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Drugs", "No Drugs"))
+germline_patient_treatment <- germline_patient_treatment %>% 
+  mutate(Drugs = ifelse(!is.na(regimen_name), "Drugs", "No Drugs"))
 
 # OS
 mysurv <- Surv(time = germline_patient_data$month_at_os, event = germline_patient_data$os_surv_cor)

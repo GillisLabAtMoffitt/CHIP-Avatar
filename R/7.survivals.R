@@ -225,7 +225,7 @@ ggsurvplot(myplot, data = germline_patient_data_simp,
            xlab = "Time in months", 
            legend = "top",
            legend.title = "Disease Status",
-           legend.labs = c("MGUS", "MM", "SM"),
+           legend.labs = c("MM", "SM", "MGUS"),
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -283,10 +283,14 @@ write.csv(a, paste0(path, "/summary PFS CHIP status from drug date.csv"))
 
 ################################################################################### IV ### PFS/OS drug date by demo----
 # PFS
-mysurv <- Surv(time = germline_patient_data$month_at_progression_drug, event = germline_patient_data$progression_drug_surv)
-myplot <- survfit(mysurv~Ethnicity, data = germline_patient_data)
+germline_demo <- germline_patient_data %>% 
+  mutate(Ethnicity = factor(Ethnicity, levels= c("Hispanic", "Non-Hispanic"))) %>% filter(!is.na(Ethnicity)) %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black"))) %>% filter(!is.na(Race))
+# Ethnicity
+mysurv <- Surv(time = germline_demo$month_at_progression_drug, event = germline_demo$progression_drug_surv)
+myplot <- survfit(mysurv~Ethnicity, data = germline_demo)
 jpeg(paste0(path, "/Output Survivals/PFS Ethnicity from drugs date.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_data,
+ggsurvplot(myplot, data = germline_demo,
            title = "PFS Ethnicity",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -298,8 +302,8 @@ ggsurvplot(myplot, data = germline_patient_data,
            xlab = "Time in months", 
            legend = "top",
            legend.title = "Ethnicity",
-           legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
-           palette = c("darkred", "darkgreen", "grey"),
+           # legend.labs = c("Hipanic", "Non-Hispanic"),
+           # palette = c("darkred", "darkgreen"),
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -319,13 +323,11 @@ ggsurvplot(myplot, data = germline_patient_data,
 )
 dev.off()
 
-germline_race <- germline_patient_data %>% 
-  mutate(Race = factor(Race, levels=c("White", "Black",  "Others"))) %>% filter(!is.na(Race))
-
-mysurv <- Surv(time = germline_race$month_at_progression_drug, event = germline_race$progression_drug_surv)
-myplot <- survfit(mysurv~Race, data = germline_race)
+# Race
+mysurv <- Surv(time = germline_demo$month_at_progression_drug, event = germline_demo$progression_drug_surv)
+myplot <- survfit(mysurv~Race, data = germline_demo)
 jpeg(paste0(path, "/Output Survivals/PFS Race from drugs date.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_race,
+ggsurvplot(myplot, data = germline_demo,
            title = "PFS Race",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -337,8 +339,8 @@ ggsurvplot(myplot, data = germline_race,
            xlab = "Time in months", 
            legend = "top",
            legend.title = "Race",
-           legend.labs = c("White", "Black", "Unknown"),
-           palette = c("#A92E5EFF", "#E65D2FFF", "grey"),
+           legend.labs = c("White", "Black"),
+           palette = c("#A92E5EFF", "#E65D2FFF"),
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -358,10 +360,10 @@ ggsurvplot(myplot, data = germline_race,
 )
 dev.off()
 # OS
-mysurv <- Surv(time = germline_patient_data$month_at_os, event = germline_patient_data$os_surv_cor)
-myplot <- survfit(mysurv~Ethnicity, data = germline_patient_data)
+mysurv <- Surv(time = germline_demo$month_at_os, event = germline_demo$os_surv_cor)
+myplot <- survfit(mysurv~Ethnicity, data = germline_demo)
 jpeg(paste0(path, "/Output Survivals/OS Ethnicity from drugs date.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_data,
+ggsurvplot(myplot, data = germline_demo,
            title = "OS from date of diagnosis",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -373,8 +375,8 @@ ggsurvplot(myplot, data = germline_patient_data,
            xlab = "Time in months", 
            legend = "top",
            legend.title = "Ethnicity",
-           legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
-           palette = c("darkred", "darkgreen", "grey"),
+           legend.labs = c("Hipanic", "Non-Hispanic"),
+           palette = c("darkred", "darkgreen"),
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -393,13 +395,12 @@ ggsurvplot(myplot, data = germline_patient_data,
 )
 dev.off()
 
-germline_race <- germline_patient_data %>% 
-  mutate(Race = factor(Race, levels=c("White", "Black"))) %>% filter(!is.na(Race))
 
-mysurv <- Surv(time = germline_race$month_at_os, event = germline_race$os_surv_cor)
-myplot <- survfit(mysurv~Race, data = germline_race)
+# Race
+mysurv <- Surv(time = germline_demo$month_at_os, event = germline_demo$os_surv_cor)
+myplot <- survfit(mysurv~Race, data = germline_demo)
 jpeg(paste0(path, "/Output Survivals/OS Race from drugs date.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_race,
+ggsurvplot(myplot, data = germline_demo,
            title = "OS from date of diagnosis",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -433,8 +434,13 @@ dev.off()
 
 ################################################################################### V ### PFS/OS drug date by regimen----
 # PFS
+germline_patient_treatment <- germline_patient_treatment %>% 
+  mutate(regimen_name = factor(regimen_name, levels = c("VRd", NA, "Bor-Dex", "CyBorD or VCd", "Rd", "Dex",
+                                                        "Len", "Td", "KRd", "V", "D-RVd or dara-RVd", "NonMM drugs"))) %>% 
+  filter(!is.na(regimen_name))
+
 mysurv <- Surv(time = germline_patient_treatment$month_at_progression_drug, event = germline_patient_treatment$progression_drug_surv)
-myplot <- survfit(mysurv~drugs_first_regimen, data = germline_patient_treatment)
+myplot <- survfit(mysurv~regimen_name, data = germline_patient_treatment)
 jpeg(paste0(path, "/Output Survivals/PFS Regimen from drugs date.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_treatment,
            title = "PFS drugs_first_regimen",
@@ -447,7 +453,7 @@ ggsurvplot(myplot, data = germline_patient_treatment,
            
            xlab = "Time in months", 
            legend = "top",
-           legend.title = "drugs_first_regimen",
+           legend.title = "regimen_name",
            # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
            # palette = c("darkred", "darkgreen", "grey"),
            pval = TRUE,
@@ -470,7 +476,7 @@ ggsurvplot(myplot, data = germline_patient_treatment,
 dev.off()
 # OS
 mysurv <- Surv(time = germline_patient_treatment$month_at_os, event = germline_patient_treatment$os_surv_cor)
-myplot <- survfit(mysurv~drugs_first_regimen, data = germline_patient_treatment)
+myplot <- survfit(mysurv~regimen_name, data = germline_patient_treatment)
 jpeg(paste0(path, "/Output Survivals/OS Regimen from drugs date.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_treatment,
            title = "OS drugs_first_regimen from date of diagnosis",
@@ -483,7 +489,7 @@ ggsurvplot(myplot, data = germline_patient_treatment,
            
            xlab = "Time in months", 
            legend = "top",
-           legend.title = "drugs_first_regimen",
+           legend.title = "regimen_name",
            # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
            # palette = c("darkred", "darkgreen", "grey"),
            pval = TRUE,
@@ -581,6 +587,7 @@ dev.off()
 
 ################################################################################### V ### PFS/OS drug date by Radiation----
 germline_patient_data <- germline_patient_data %>% 
+  
   mutate(Radiation = ifelse(!is.na(rad_start_date_1), "Radiation", "No Radiation"))
 # PFS
 mysurv <- Surv(time = germline_patient_data$month_at_progression_drug, event = germline_patient_data$progression_drug_surv)
@@ -598,7 +605,7 @@ ggsurvplot(myplot, data = germline_patient_data,
            xlab = "Time in months", 
            legend = "top",
            legend.title = "Radiation",
-           legend.labs = c("No Radiation", "Radiation"),
+           # legend.labs = c("No Radiation", "Radiation"),
            # palette = c("darkred", "darkgreen", "grey"),
            pval = TRUE,
            conf.int = FALSE,

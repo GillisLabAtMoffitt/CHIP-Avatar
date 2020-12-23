@@ -484,90 +484,90 @@ germline_patient_treatment <- germline_patient_data %>%
       str_detect(drug_name_1_for_MM, "cisplatin") &
       str_detect(drug_name_1_for_MM, "etoposide") &
       str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "doxo")             ~ "VDT-PACE",
+      str_detect(drug_name_1_for_MM, "doxo")                ~ "VDT-PACE",
     drug_count == 4 &
       str_detect(drug_name_1_for_MM, "bortezomib") &
       str_detect(drug_name_1_for_MM, "cyclophos") &
       str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "doxil")             ~ "ABCD",
+      str_detect(drug_name_1_for_MM, "doxil")               ~ "ABCD",
     drug_count == 4 &
       str_detect(drug_name_1_for_MM, "daratumumab") &
       str_detect(drug_name_1_for_MM, "lena") &
       str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "carfilzomib")             ~ "Dara-KRd",
+      str_detect(drug_name_1_for_MM, "carfilzomib")         ~ "Dara-KRd",
     drug_count == 4 &
       str_detect(drug_name_1_for_MM, "vincristine") &
       str_detect(drug_name_1_for_MM, "cyclophos") &
       str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "doxo")             ~ "C-VAD",
+      str_detect(drug_name_1_for_MM, "doxo")                ~ "C-VAD",
     drug_count == 4 &
       str_detect(drug_name_1_for_MM, "thalidomide") &
       str_detect(drug_name_1_for_MM, "vincristine") &
       str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "doxil")             ~ "T-VAD doxil",
+      str_detect(drug_name_1_for_MM, "doxil")               ~ "T-VAD doxil",
     drug_count == 4 &
       str_detect(drug_name_1_for_MM, "bortezomib") &
       str_detect(drug_name_1_for_MM, "daratumumab") &
       str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "lena")             ~ "D-RVd or dara-RVd",
+      str_detect(drug_name_1_for_MM, "lena")                ~ "D-RVd or dara-RVd",
     drug_count == 4 &
       str_detect(drug_name_1_for_MM, "bortezomib") &
       str_detect(drug_name_1_for_MM, "cyclophosphamide") &
       str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "doxo")             ~ "D-RVd or dara-RVd",
+      str_detect(drug_name_1_for_MM, "doxo")                ~ "D-RVd or dara-RVd",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "bortezomib") &
       str_detect(drug_name_1_for_MM, "busulfan") &
-      str_detect(drug_name_1_for_MM, "melphalan")         ~ "BuMelVel",
+      str_detect(drug_name_1_for_MM, "melphalan")           ~ "BuMelVel",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "cyclophos") &
       str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "lena")             ~ "CRd",
+      str_detect(drug_name_1_for_MM, "lena")                ~ "CRd",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "cyclophos") &
       str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "bort")             ~ "CyBorD or VCd",
+      str_detect(drug_name_1_for_MM, "bort")                ~ "CyBorD or VCd",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "doxil") &
       str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "lena")             ~ "Dd-R",
+      str_detect(drug_name_1_for_MM, "lena")                ~ "Dd-R",
     (drug_count == 3 &
       str_detect(drug_name_1_for_MM, "daratu") &
       str_detect(drug_name_1_for_MM, "lena") &
       str_detect(drug_name_1_for_MM, "dex")) |
-      str_detect(drug_name_1_for_MM, "ddr")               ~ "DRd",
+      str_detect(drug_name_1_for_MM, "ddr")                 ~ "DRd",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "vincristine") &
       str_detect(drug_name_1_for_MM, "doxil") &
-      str_detect(drug_name_1_for_MM, "dex")                  ~ "DVd",
+      str_detect(drug_name_1_for_MM, "dex")                 ~ "DVd",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "ixazomib") &
       str_detect(drug_name_1_for_MM, "lena") &
-      str_detect(drug_name_1_for_MM, "dex")                  ~ "IRd",
+      str_detect(drug_name_1_for_MM, "dex")                 ~ "IRd",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "cyclophosphamide") &
       str_detect(drug_name_1_for_MM, "carfilzomib") &
-      str_detect(drug_name_1_for_MM, "dex")                  ~ "KCd",
+      str_detect(drug_name_1_for_MM, "dex")                 ~ "KCd",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "lena") &
       str_detect(drug_name_1_for_MM, "carfilzomib") &
-      str_detect(drug_name_1_for_MM, "dex")                  ~ "KRd",
+      str_detect(drug_name_1_for_MM, "dex")                 ~ "KRd",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "lena") &
       str_detect(drug_name_1_for_MM, "oprozomib") &
-      str_detect(drug_name_1_for_MM, "dex")                  ~ "ORd",
+      str_detect(drug_name_1_for_MM, "dex")                 ~ "ORd",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "bortezomib") &
       str_detect(drug_name_1_for_MM, "doxil") &
-      str_detect(drug_name_1_for_MM, "dex")                  ~ "PDd",
+      str_detect(drug_name_1_for_MM, "dex")                 ~ "PDd",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "bortezomib") &
       str_detect(drug_name_1_for_MM, "doxo") &
-      str_detect(drug_name_1_for_MM, "dex")                  ~ "PAd",
+      str_detect(drug_name_1_for_MM, "dex")                 ~ "PAd",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "lena") &
       str_detect(drug_name_1_for_MM, "doxo") &
-      str_detect(drug_name_1_for_MM, "dex")                  ~ "RAd",
+      str_detect(drug_name_1_for_MM, "dex")                 ~ "RAd",
     (drug_count == 3 &
       str_detect(drug_name_1_for_MM, "bortezomib") &
       str_detect(drug_name_1_for_MM, "lena") &
@@ -576,50 +576,50 @@ germline_patient_treatment <- germline_patient_data %>%
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "vincristine") &
       str_detect(drug_name_1_for_MM, "doxo") &
-      str_detect(drug_name_1_for_MM, "dex")                  ~ "ViXd",
+      str_detect(drug_name_1_for_MM, "dex")                 ~ "VAd",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "bortezomib") &
       str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "melph")                ~ "VMd",
+      str_detect(drug_name_1_for_MM, "melph")               ~ "VMd",
     drug_count == 3 &
       str_detect(drug_name_1_for_MM, "bortezomib") &
       str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "thalidomide")                ~ "VTd",
+      str_detect(drug_name_1_for_MM, "thalidomide")         ~ "VTd",
     drug_count == 2 &
      str_detect(drug_name_1_for_MM, "carfilzomib") &
      str_detect(drug_name_1_for_MM, "dex")                  ~ "Kd",
     drug_count == 2 &
      str_detect(drug_name_1_for_MM, "thal") &
-     str_detect(drug_name_1_for_MM, "dex")                ~ "Td",
+     str_detect(drug_name_1_for_MM, "dex")                  ~ "Td",
     drug_count == 2 &
       str_detect(drug_name_1_for_MM, "lena") &
-      str_detect(drug_name_1_for_MM, "dex")                  ~ "Rd",
+      str_detect(drug_name_1_for_MM, "dex")                 ~ "Rd",
     drug_count == 2 &
       str_detect(drug_name_1_for_MM, "bortezomib") &
-      str_detect(drug_name_1_for_MM, "dex")              ~ "Bor-Dex",
+      str_detect(drug_name_1_for_MM, "dex")                 ~ "Bor-Dex",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "lenalidomide")           ~ "Len",
+      str_detect(drug_name_1_for_MM, "lenalidomide")        ~ "Len",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "dex")                    ~ "Dex",
+      str_detect(drug_name_1_for_MM, "dex")                 ~ "Dex",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "doxo")                    ~ "Dox",
+      str_detect(drug_name_1_for_MM, "doxo")                ~ "Dox",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "doxil")                    ~ "Doxil",
+      str_detect(drug_name_1_for_MM, "doxil")               ~ "Doxil",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "bortezomib")             ~ "V",
+      str_detect(drug_name_1_for_MM, "bortezomib")          ~ "V",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "melph")                  ~ "M",
+      str_detect(drug_name_1_for_MM, "melph")               ~ "M",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "carfilzomib")                  ~ "Car",
+      str_detect(drug_name_1_for_MM, "carfilzomib")         ~ "Car",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "cyclo")                  ~ "Cy",
+      str_detect(drug_name_1_for_MM, "cyclo")               ~ "Cy",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "thalidomide")                  ~ "T",
+      str_detect(drug_name_1_for_MM, "thalidomide")         ~ "T",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "vincristine")                  ~ "Vinc",
-    TRUE                                               ~ drug_name_1_for_MM
-  )) %>% 
-  select(avatar_id, drug_start_date_1, drug_name__1, drug_name_1_for_MM, drug_count, regimen_name)
+      str_detect(drug_name_1_for_MM, "vincristine")         ~ "Vinc",
+    TRUE                                                    ~ drug_name_1_for_MM
+  )) # %>% 
+  # select(avatar_id, drug_start_date_1, drug_name__1, drug_name_1_for_MM, drug_count, regimen_name)
 
 write_csv(germline_patient_treatment, paste0(path, "/germline_patient_treatment.csv"))
 

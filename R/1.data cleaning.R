@@ -585,6 +585,124 @@ legend("bottomright", legend = c("version1", "version2", "version4"),
        bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(0.05, 0.05)) # horiz, vert
 # dev.off()
 
+#######################################################################################  III  # Merge WES and Sequencing----
+#######################################################################################  III  # For 1st sequencing file
+### Bind Germline
+Germline <- Germline %>% 
+  distinct() %>% 
+  filter(!str_detect(avatar_id, "A000428|A000456"))
+#   `colnames<-`(c("avatar_id", "collectiondt_germline", 
+#                  "WES_HUDSON_ALPHA_germline", "Disease_Status_germline", "SLID_germline")) %>% 
+#   arrange(SLID_germline) %>% 
+#   distinct(avatar_id, Disease_Status_germline, .keep_all = TRUE)
+
+# One of the sequencing data is in 2 part so merge that first
+# Are moffitt_sample_id are equal in WES and Sequencing ?
+# Sequencing <- Sequencing[order(Sequencing$moffitt_sample_id),]
+# WES <- WES[order(WES$moffitt_sample_id),]
+# Sequencing$moffitt_sample_id == WES$moffitt_sample_id # =>>>>>>> YES
+Sequencing <-
+  full_join(
+    Sequencing,
+    WES_tumor,
+    by = "moffitt_sample_id_tumor")
+# Bind Sequencing
+Seq_WES <- bind_rows(Seq_WES_Raghu, Sequencing2, Seq_WES_Raghu2, Sequencing, .id = "vers") %>% 
+  arrange(collectiondt_germline) %>% 
+  distinct(SLID_tumor, moffitt_sample_id_tumor, SLID_germline, .keep_all = TRUE)
+
+# duplicated(WES_seq$moffitt_sample_id_tumor) # No duplicate
+# duplicated(WES_seq$avatar_id) # has duplicate so
+# Reshape to have duplicate ID on same row (per date) but
+# Really important to order by dates otherwise cannot find the duplicated lines
+Seq_WES <- Seq_WES[order(Seq_WES$collectiondt_tumor), ]
+# pivot wider
+WES_seq <-
+  dcast(setDT(Seq_WES), avatar_id+SLID_germline+moffitt_sample_id_germline+collectiondt_germline ~ rowid(avatar_id),
+        value.var = c(
+          "SLID_tumor",
+          "moffitt_sample_id_tumor",
+          "collectiondt_tumor",
+          "BaitSet"
+        )
+  )
+
+# WES_seq  <- WES_seq[order(WES_seq$collectiondt_tumor_1), ] %>%
+#   arrange(collectiondt_tumor_2) %>%
+#   arrange(collectiondt_tumor_3) %>%
+#   arrange(collectiondt_tumor_4) %>%
+#   arrange(collectiondt_tumor_5) %>%
+#   arrange(collectiondt_tumor_6)
+
+
+# # Merge with Germ (date) with WES_seq (sequencing)
+# Combined_data_MM <- merge.data.frame(Germ, WES_seq,
+#                                      by.x = "avatar_id", by.y = "avatar_id", 
+#                                      all.x = TRUE, all.y = TRUE)
+# 
+# # I checked the ID they are all the same no missing nor added
+# 
+# #######################################################################################  III  # For 2nd sequencing file
+# # Really important to order by dates otherwise cannot find the duplicated lines
+# Seq_WES_Raghu <- Seq_WES_Raghu[order(Seq_WES_Raghu$collectiondt_tumor), ]
+# Seq_WES_Raghu <-
+#   dcast(setDT(Seq_WES_Raghu), avatar_id+SLID_germline+moffitt_sample_id_germline ~ rowid(avatar_id),
+#         value.var = c(
+#           "SLID_tumor",
+#           "moffitt_sample_id_tumor",
+#           "collectiondt_tumor",
+#           "BaitSet"
+#         )
+#   ) 
+# 
+# Seq_WES_Raghu <- merge.data.frame(Germ2, Seq_WES_Raghu, 
+#                           by.x = "avatar_id", by.y = "avatar_id",
+#                           all.x = TRUE, all.y = TRUE) 
+# #######################################################################################  III  # For 3rd sequencing file
+# Sequencing2 <- merge.data.frame(Germ3, Sequencing2, 
+#                                by.x = "avatar_id", by.y = "avatar_id",
+#                                all.x = TRUE, all.y = TRUE) %>% 
+#   arrange(collectiondt_germline)
+# #######################################################################################  III  # For 4th sequencing file
+# # Really important to order by dates otherwise cannot find the duplicated lines
+# Seq_WES_Raghu2 <- Seq_WES_Raghu2[order(Seq_WES_Raghu2$collectiondt_tumor), ]
+# Seq_WES_Raghu2 <-
+#   dcast(setDT(Seq_WES_Raghu2), avatar_id+SLID_germline+moffitt_sample_id_germline+collectiondt_germline ~ rowid(avatar_id),
+#         value.var = c(
+#           "SLID_tumor",
+#           "moffitt_sample_id_tumor",
+#           "collectiondt_tumor",
+#           "BaitSet"
+#         )
+#   )
+# Seq_WES_Raghu2 <- full_join(Germ4, Seq_WES_Raghu2, by = "SLID_germline") %>% 
+#   select(avatar_id = "avatar_id.x", everything(), -avatar_id.y)
+# ########### Binds
+# 
+# # Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu,Sequencing2, .id = "vers")
+# # Germline <- Germline %>% distinct(avatar_id,
+# #                              SLID_germline , .keep_all = TRUE) 
+# Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu, Sequencing2, Seq_WES_Raghu2, .id = "vers")
+# Germline <- Germline %>% distinct(avatar_id,
+#                                   SLID_germline , .keep_all = TRUE) 
+# write.csv(Germline, paste0(path, "/Combined germline_seq data.csv"))
+
+
+# Merge all
+
+Germline <- left_join(WES_seq, Germline, by = "avatar_id") %>% 
+  filter(SLID_germline.x == SLID_germline.y | is.na(SLID_germline.x == SLID_germline.y)) %>% 
+  rename(SLID_germline = "SLID_germline.x", collectiondt_germline = "collectiondt_germline.x") %>% 
+  # distinct(avatar_id, SLID_germline, .keep_all = TRUE) %>% 
+  mutate(collectiondt_germline = coalesce(collectiondt_germline, collectiondt_germline.y)) %>% 
+  select(-SLID_germline.y, -collectiondt_germline.y)
+
+
+
+# Cleaning
+rm(Sequencing, Sequencing2, WES_tumor, WES_seq, Seq_WES_Raghu, Seq_WES, Seq_WES_Raghu2)
+
+
 #######################################################################################  II  ## Bind Version----
 #######################################################################################  II  ## Align duplicated ID
 # Demographic ----
@@ -616,13 +734,35 @@ Demo_RedCap_V4ish <- Demo_RedCap_V4ish %>%
 
 # Patient history ----
 mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, MM_historyV4.1, .id = "versionMM") %>%
-  drop_na("date_of_diagnosis") %>% 
-  # arrange(disease_stage) %>% 
+  drop_na("date_of_diagnosis") %>%
+  distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
+  # Create date of diagnosis closest to germline date
+  left_join(., Germline %>% select("avatar_id", "collectiondt_germline"), by = "avatar_id") %>% 
+  mutate(interval = (interval(start= .$collectiondt_germline, end= .$date_of_diagnosis)/duration(n=1, unit="days"))) %>% 
+  mutate(interval1 = if_else(interval>100, NA_real_, interval)) %>% 
+  mutate(interval1 = abs(interval1)) %>% 
+  arrange(interval1) %>% 
+  group_by(avatar_id, collectiondt_germline) %>% mutate(id = 1:n()) %>% ungroup() %>% # important group for patient 180
+  mutate(Dx_date_closest_germline = if_else(id == 1, date_of_diagnosis, NA_POSIXct_)) %>% 
   distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
   arrange(date_of_diagnosis)
-MM_history <- dcast(setDT(mm_history), avatar_id ~ rowid(avatar_id), 
-                    value.var = c("date_of_diagnosis", "disease_stage", "versionMM"))
-MM_history <- MM_history %>% 
+
+# diagn_data <- Global_data %>%
+#   # distinct(avatar_id, .keep_all = TRUE) %>% 
+#   # select("avatar_id", starts_with("disease_stage_"), "Disease_Status_germline", collectiondt_germline, starts_with("date_of_diagnosis_")) %>% 
+#   # pivot_longer(cols = date_of_diagnosis_1:ncol(.), names_to = "event", values_to = "date") %>%
+#   # drop_na(date) %>% 
+#   
+#   
+#   distinct(avatar_id, .keep_all = TRUE) %>% 
+#   select("avatar_id", Dx_date_closest_germline = "date")
+# write.csv(diagn_data, paste0(path, "/diagnosis data with germline and interval.csv"))
+
+MM_history <- dcast(setDT(mm_history), avatar_id+collectiondt_germline ~ rowid(avatar_id), 
+                    value.var = c("Dx_date_closest_germline", "date_of_diagnosis", "disease_stage")) %>% 
+  unite(Dx_date_closest_germline, starts_with("Dx_date_closest_germline"), na.rm = TRUE, remove = TRUE) %>% 
+  mutate(Dx_date_closest_germline = as.POSIXct(.$Dx_date_closest_germline, format = "%Y-%m-%d")) %>% 
+  select(-collectiondt_germline) %>% 
   # Create var = first date of Dx for MM diagnostic aka "active" (not for mgus or smoldering)
   # Then when not "active" take the first date of Dx available (mgus or smoldering or NA without regarding order- 
   # usually mgus before smoldering)
@@ -634,6 +774,7 @@ MM_history <- MM_history %>%
   )) %>% 
   mutate(date_of_MMSMMGUSdiagnosis = coalesce(date_of_MMonly_diagnosis, date_of_diagnosis_1)) %>% 
   select(c("avatar_id", "date_of_MMonly_diagnosis", "date_of_MMSMMGUSdiagnosis", everything()))
+
 write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
 
 # Vitals ----
@@ -854,12 +995,12 @@ Progression <-
   bind_rows(Progr_V12, Progression_V12, 
             Progression, ProgressionV2, Progression_V4, Progression_V4.1) %>%
   distinct() %>% drop_na(progression_date) %>% 
-  # Taking the dates of progression after the first date_of_diagnosis_1 => For OS
+  # Taking the dates of progression after the first Dx_date_closest_germline => For OS
   # (either if are MM and progressed or if are MGUS/SM and progressed to MM)
-  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis_1")), by = "avatar_id") %>% 
+  left_join(., MM_history %>% select(c("avatar_id", "Dx_date_closest_germline")), by = "avatar_id") %>% 
   mutate(prog_after_diag = case_when(
-    progression_date <= date_of_diagnosis_1         ~ "removed", # 7 are removed as they become MM
-    progression_date > date_of_diagnosis_1          ~ "good" # No NA in date of Dx
+    progression_date <= Dx_date_closest_germline         ~ "removed", # 7 are removed as they become MM
+    progression_date > Dx_date_closest_germline          ~ "good" # No NA in date of Dx
   )) %>% 
   filter(prog_after_diag == "good") %>% 
   select(1:2) %>% 
@@ -894,7 +1035,7 @@ Progression_drugs <- Progression_drugs %>% # Remove progression < drug and keep 
 write.csv(Progression_drugs, paste0(path, "/simplified files/Progression used for survivals from drugs date.csv"))
 
 # Radiation ----
-# Radiation V1 does't have a date format
+# Radiation V1 doesn't have a date format
 RadiationV1$rad_start_date <- as.POSIXct(strptime(RadiationV1$rad_start_date, 
                                                format = "%m/%d/%Y", tz = "UTC"))
 RadiationV1$rad_stop_date <- as.POSIXct(strptime(RadiationV1$rad_stop_date, 
@@ -904,10 +1045,13 @@ radiation <- bind_rows(Radiation_V12, RadiationV1, RadiationV2, RadiationV4, Rad
   drop_na("rad_start_date") %>% 
   filter(!str_detect(rad_start_date, "3013")) %>% 
   filter(!str_detect(rad_stop_date, "2300")) %>% 
-  arrange(rad_start_date) %>% 
-  distinct(avatar_id, rad_start_date, rad_stop_date, .keep_all = TRUE)
+  left_join(., Germline %>% select(c("avatar_id", "collectiondt_germline")), by = "avatar_id") %>% 
+  mutate(rad_bf_germline = if_else(rad_start_date < collectiondt_germline, "Radiation before Germline", "No")) %>% 
+  distinct(avatar_id, rad_start_date, rad_stop_date, collectiondt_germline, .keep_all = TRUE) %>% 
+  select(-collectiondt_germline) %>% 
+  arrange(rad_start_date)
 Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
-                     c("rad_start_date", "rad_stop_date"))
+                     c("rad_start_date", "rad_stop_date", "rad_bf_germline"))
 write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
 
 # Cleaning
@@ -958,11 +1102,11 @@ Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performanc
   filter(!str_detect(labs_last_date, "9999|2816|2077")) %>% # Remove mistakes and missing dates
   # remove if its <= to date_of_diagnosis (before MM diagnosis)
   # remove if its => to date_contact_lost 
-  left_join(., MM_history %>% select(c("avatar_id", "date_of_diagnosis_1")), by = "avatar_id") %>% 
+  left_join(., MM_history %>% select(c("avatar_id", "Dx_date_closest_germline")), by = "avatar_id") %>% 
   # left_join(., Contact_lost %>% select(c("avatar_id", "date_contact_lost")), by = "avatar_id") %>% 
   left_join(., Vitals %>% select(c("avatar_id", "date_contact_lost", "date_last_follow_up")), by = "avatar_id") %>% 
   mutate(labs_before_diag = case_when(
-    labs_last_date <= date_of_diagnosis_1             ~ "removed",
+    labs_last_date <= Dx_date_closest_germline             ~ "removed",
     labs_last_date >= date_contact_lost               ~ "removed",
     labs_last_date >= date_last_follow_up             ~ "removed"
   )) %>% 
@@ -1004,122 +1148,7 @@ barplot(
 )
 # dev.off()
 
-#######################################################################################  III  # Merge WES and Sequencing----
-#######################################################################################  III  # For 1st sequencing file
-### Bind Germline
-Germline <- Germline %>% 
-  distinct() %>% 
-  filter(!str_detect(avatar_id, "A000428|A000456"))
-#   `colnames<-`(c("avatar_id", "collectiondt_germline", 
-#                  "WES_HUDSON_ALPHA_germline", "Disease_Status_germline", "SLID_germline")) %>% 
-#   arrange(SLID_germline) %>% 
-#   distinct(avatar_id, Disease_Status_germline, .keep_all = TRUE)
 
-# One of the sequencing data is in 2 part so merge that first
-# Are moffitt_sample_id are equal in WES and Sequencing ?
-# Sequencing <- Sequencing[order(Sequencing$moffitt_sample_id),]
-# WES <- WES[order(WES$moffitt_sample_id),]
-# Sequencing$moffitt_sample_id == WES$moffitt_sample_id # =>>>>>>> YES
-Sequencing <-
-  full_join(
-    Sequencing,
-    WES_tumor,
-    by = "moffitt_sample_id_tumor")
-# Bind Sequencing
-Seq_WES <- bind_rows(Seq_WES_Raghu, Sequencing2, Seq_WES_Raghu2, Sequencing, .id = "vers") %>% 
-  arrange(collectiondt_germline) %>% 
-  distinct(SLID_tumor, moffitt_sample_id_tumor, SLID_germline, .keep_all = TRUE)
-
-# duplicated(WES_seq$moffitt_sample_id_tumor) # No duplicate
-# duplicated(WES_seq$avatar_id) # has duplicate so
-# Reshape to have duplicate ID on same row (per date) but
-# Really important to order by dates otherwise cannot find the duplicated lines
-Seq_WES <- Seq_WES[order(Seq_WES$collectiondt_tumor), ]
-# pivot wider
-WES_seq <-
-  dcast(setDT(Seq_WES), avatar_id+SLID_germline+moffitt_sample_id_germline+collectiondt_germline ~ rowid(avatar_id),
-        value.var = c(
-          "SLID_tumor",
-          "moffitt_sample_id_tumor",
-          "collectiondt_tumor",
-          "BaitSet"
-        )
-  )
-
-# WES_seq  <- WES_seq[order(WES_seq$collectiondt_tumor_1), ] %>%
-#   arrange(collectiondt_tumor_2) %>%
-#   arrange(collectiondt_tumor_3) %>%
-#   arrange(collectiondt_tumor_4) %>%
-#   arrange(collectiondt_tumor_5) %>%
-#   arrange(collectiondt_tumor_6)
-
-
-# # Merge with Germ (date) with WES_seq (sequencing)
-# Combined_data_MM <- merge.data.frame(Germ, WES_seq,
-#                                      by.x = "avatar_id", by.y = "avatar_id", 
-#                                      all.x = TRUE, all.y = TRUE)
-# 
-# # I checked the ID they are all the same no missing nor added
-# 
-# #######################################################################################  III  # For 2nd sequencing file
-# # Really important to order by dates otherwise cannot find the duplicated lines
-# Seq_WES_Raghu <- Seq_WES_Raghu[order(Seq_WES_Raghu$collectiondt_tumor), ]
-# Seq_WES_Raghu <-
-#   dcast(setDT(Seq_WES_Raghu), avatar_id+SLID_germline+moffitt_sample_id_germline ~ rowid(avatar_id),
-#         value.var = c(
-#           "SLID_tumor",
-#           "moffitt_sample_id_tumor",
-#           "collectiondt_tumor",
-#           "BaitSet"
-#         )
-#   ) 
-# 
-# Seq_WES_Raghu <- merge.data.frame(Germ2, Seq_WES_Raghu, 
-#                           by.x = "avatar_id", by.y = "avatar_id",
-#                           all.x = TRUE, all.y = TRUE) 
-# #######################################################################################  III  # For 3rd sequencing file
-# Sequencing2 <- merge.data.frame(Germ3, Sequencing2, 
-#                                by.x = "avatar_id", by.y = "avatar_id",
-#                                all.x = TRUE, all.y = TRUE) %>% 
-#   arrange(collectiondt_germline)
-# #######################################################################################  III  # For 4th sequencing file
-# # Really important to order by dates otherwise cannot find the duplicated lines
-# Seq_WES_Raghu2 <- Seq_WES_Raghu2[order(Seq_WES_Raghu2$collectiondt_tumor), ]
-# Seq_WES_Raghu2 <-
-#   dcast(setDT(Seq_WES_Raghu2), avatar_id+SLID_germline+moffitt_sample_id_germline+collectiondt_germline ~ rowid(avatar_id),
-#         value.var = c(
-#           "SLID_tumor",
-#           "moffitt_sample_id_tumor",
-#           "collectiondt_tumor",
-#           "BaitSet"
-#         )
-#   )
-# Seq_WES_Raghu2 <- full_join(Germ4, Seq_WES_Raghu2, by = "SLID_germline") %>% 
-#   select(avatar_id = "avatar_id.x", everything(), -avatar_id.y)
-# ########### Binds
-# 
-# # Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu,Sequencing2, .id = "vers")
-# # Germline <- Germline %>% distinct(avatar_id,
-# #                              SLID_germline , .keep_all = TRUE) 
-# Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu, Sequencing2, Seq_WES_Raghu2, .id = "vers")
-# Germline <- Germline %>% distinct(avatar_id,
-#                                   SLID_germline , .keep_all = TRUE) 
-# write.csv(Germline, paste0(path, "/Combined germline_seq data.csv"))
-
-
-# Merge all
-
-Germline <- left_join(WES_seq, Germline, by = "avatar_id") %>% 
-  filter(SLID_germline.x == SLID_germline.y | is.na(SLID_germline.x == SLID_germline.y)) %>% 
-  rename(SLID_germline = "SLID_germline.x", collectiondt_germline = "collectiondt_germline.x") %>% 
-  # distinct(avatar_id, SLID_germline, .keep_all = TRUE) %>% 
-  mutate(collectiondt_germline = coalesce(collectiondt_germline, collectiondt_germline.y)) %>% 
-  select(-SLID_germline.y, -collectiondt_germline.y)
-
-
-
-# Cleaning
-rm(Sequencing, Sequencing2, WES_tumor, WES_seq, Seq_WES_Raghu, Seq_WES, Seq_WES_Raghu2)
 
 
 ##################################################################################################  IV  ## Merge----

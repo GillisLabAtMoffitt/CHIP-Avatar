@@ -1,18 +1,6 @@
 ########################################### I ### Create dataframe for all start dates, will use that for timeline ----
 # readRDS(Global_data)
 
-# Create date of diagnosis closest to germline date
-diagn_data <- Global_data %>%
-  distinct(avatar_id, .keep_all = TRUE) %>% 
-  select("avatar_id", starts_with("disease_stage_"), "Disease_Status_germline", collectiondt_germline, starts_with("date_of_diagnosis_")) %>% 
-  pivot_longer(cols = date_of_diagnosis_1:ncol(.), names_to = "event", values_to = "date") %>%
-  drop_na(date) %>% 
-  mutate(interval = (interval(start= .$collectiondt_germline, end= .$date)/duration(n=1, unit="days"))) %>% 
-  arrange(interval) %>% 
-  distinct(avatar_id, .keep_all = TRUE) %>% 
-  select("avatar_id", date_Dx_closest_germline = "date")
-write.csv(diagn_data, paste0(path, "/diagnosis data with germline and interval.csv"))
-
 # Need to separate in 2 df ,do diag separately to make sure it appear before germ or tumor date, date of treatment
 all_dates <- Global_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
@@ -25,9 +13,8 @@ all_dates <- Global_data %>%
          starts_with("rad_start_date_"), starts_with("rad_stop_date_"), "progression_date", "progression_drug_date",
          "labs_last_date", "date_last_follow_up", "date_contact_lost", "date_death")
 all_dates1 <- Global_data %>% 
-  full_join(., diagn_data, by = "avatar_id") %>% 
   distinct(avatar_id, .keep_all = TRUE) %>%
-  select("avatar_id", "Date_of_Birth", "date_Dx_closest_germline", "date_of_MMonly_diagnosis", "date_of_MMSMMGUSdiagnosis")
+  select("avatar_id", "Date_of_Birth", "Dx_date_closest_germline", "date_of_MMonly_diagnosis", "date_of_MMSMMGUSdiagnosis")
 # pivot both
 all_dates <- all_dates %>% 
   pivot_longer(cols = 2:ncol(.), names_to = "event", values_to = "date") %>% 
@@ -87,7 +74,6 @@ write.csv(last_event, paste0(path, "/last_event.csv"))
 
 
 Global_data <- Global_data %>% # Add date_death as progression_date when no previous progression_date
-  full_join(., diagn_data, by = "avatar_id") %>% 
   # mutate(prog_before_last = case_when(
   #   progression_date > date_last_follow_up                 ~ NA_POSIXct_,
   #   progression_date <= date_last_follow_up |
@@ -136,7 +122,7 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
 # Global_data[, c("avatar_id", "pfs_progression_date", "progression_surv", "pfs_progression_date", "last_date_available", "last_event_available")]
 
 # d <- Global_data[which(!is.na(Global_data$date_contact_lost)), 
-#                  c("date_Dx_closest_germline", "date_last_follow_up", "date_contact_lost", "date_death", "last_date_available")]
+#                  c("Dx_date_closest_germline", "date_last_follow_up", "date_contact_lost", "date_death", "last_date_available")]
 
 
 write.csv(Global_data, paste0(path, "/Global_data updated.csv"))
@@ -151,7 +137,7 @@ Age_data$Age <- interval(start= Global_data$Date_of_Birth, end= enddate)/
 Age_data$Age <- round(Age_data$Age, 3)
 # summary(Age_data$Age)
 
-Age_data$Age_at_diagnosis_closest_germline <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_Dx_closest_germline)/                      
+Age_data$Age_at_diagnosis_closest_germline <- interval(start= Global_data$Date_of_Birth, end= Global_data$Dx_date_closest_germline)/                      
   duration(n=1, unit="years")
 Age_data$Age_at_diagnosis_closest_germline <- round(Age_data$Age_at_diagnosis_closest_germline, 3)
 # summary(Age_data$Age_at_diagnosis, na.rm = TRUE)
@@ -220,7 +206,7 @@ Age_data$month_at_os <- round(Age_data$month_at_os, 3)
 b <- Age_data[,c("avatar_id", "month_at_os", "date_death", "date_of_diagnosis_1", "os_date_surv", "os_surv", "last_date_available"
                  )]
 
-rm(b,d, diagn_data)
+rm(b)
 
 
 ################################################################################################## III ## Germline ----

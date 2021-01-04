@@ -120,7 +120,16 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
   mutate(ISS = case_when(
     is.na(Disease_Status_germline)     ~ NA_character_,
     !is.na(Disease_Status_germline)    ~ ISS
-  ))
+  )) %>% 
+  mutate(Disease_Status_facet = case_when(
+    Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
+      Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
+      Disease_Status_germline == "Early Relapse Multiple Myeloma" |
+      Disease_Status_germline == "Late Relapse Multiple Myeloma"                      ~ "MM",
+    Disease_Status_germline == "Mgus"                                                 ~ "MGUS",
+    Disease_Status_germline == "Smoldering Multiple Myeloma"                          ~ "Smoldering"
+  )) %>% 
+  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS")))
 
 
 # Global_data[, c("avatar_id", "pfs_progression_date", "progression_surv", "pfs_progression_date", "last_date_available", "last_event_available")]
@@ -216,16 +225,16 @@ rm(b)
 ################################################################################################## III ## Germline ----
 # Create dataframe for only the patients who had germline sequenced
 germline_patient_data <- Age_data[!is.na(Age_data$Disease_Status_germline),]
-germline_patient_data <- germline_patient_data %>% 
-  mutate(Disease_Status_facet = case_when(
-    Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
-      Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
-      Disease_Status_germline == "Early Relapse Multiple Myeloma" |
-      Disease_Status_germline == "Late Relapse Multiple Myeloma"                      ~ "MM",
-    Disease_Status_germline == "Mgus"                                                 ~ "MGUS",
-    Disease_Status_germline == "Smoldering Multiple Myeloma"                          ~ "Smoldering"
-  )) %>% 
-  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS")))
+# germline_patient_data <- germline_patient_data %>% 
+#   mutate(Disease_Status_facet = case_when(
+#     Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
+#       Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
+#       Disease_Status_germline == "Early Relapse Multiple Myeloma" |
+#       Disease_Status_germline == "Late Relapse Multiple Myeloma"                      ~ "MM",
+#     Disease_Status_germline == "Mgus"                                                 ~ "MGUS",
+#     Disease_Status_germline == "Smoldering Multiple Myeloma"                          ~ "Smoldering"
+#   )) %>% 
+#   mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS")))
 
 write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
 

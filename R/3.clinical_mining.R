@@ -8,40 +8,41 @@ gt::gtsave(tbl, paste0(path, "/ISS staging in germline patients.pdf"))
 
 tbl <- germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  select(#Age_at_diagnosis_1, Gender, Race, Ethnicity, Disease_Status_facet, ISS
+  select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Disease_Status_facet, ISS
     ) %>% 
-  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels = c("MM", "Smoldering", "MGUS"))) %>% 
-  mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
+  # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels = c("MM", "Smoldering", "MGUS"))) %>% 
+  # mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
   mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
   tbl_summary(by = Disease_Status_facet, 
               sort = list(everything() ~ "frequency"),
-              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% add_p() %>% 
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% 
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics in germline patients.pdf"))
 
 tbl <- germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  select(Age_at_diagnosis, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
-  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels = c("MM", "Smoldering", "MGUS"))) %>% 
-  mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
+  select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
+  # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels = c("MM", "Smoldering", "MGUS"))) %>% 
+  # mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
+  mutate(Disease_Status_facet = forcats::fct_explicit_na(Disease_Status_facet)) %>% 
   mutate(Race = str_replace(Race, "Asian|More than one race|AM INDIAN", "Others")) %>% 
   tbl_summary(by = Disease_Status_facet, 
               sort = list(everything() ~ "frequency"),
-              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% add_p() %>% 
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% 
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics simplified race in germline patients.pdf"))
 
 tbl <- 
   germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  select(Age_at_diagnosis, Gender, Race, Ethnicity, CH_status, ISS) %>% 
-  mutate(ISS = str_replace(ISS, "NA", NA_character_)) %>%
+  select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, CH_status, ISS) %>% 
+  # mutate(ISS = str_replace(ISS, "NA", NA_character_)) %>%
   mutate(Race = str_replace(Race, "Unknown", NA_character_)) %>%
   mutate(Ethnicity = str_replace(Ethnicity, "Unknown", NA_character_)) %>%
   mutate(Race = str_replace(Race, "Asian|More than one race|AM INDIAN", "Others")) %>% 
   tbl_summary(by = CH_status, 
               sort = list(everything() ~ "frequency"),
-              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% add_p() %>% 
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% 
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics CHIP simplified race in germline patients.pdf"))
 
@@ -49,22 +50,22 @@ tbl <-
   Age_data  %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "MM Avatar patients") %>% 
-    mutate(Disease_Status_facet = case_when(
-    Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
-      Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
-      Disease_Status_germline == "Early Relapse Multiple Myeloma" |
-      Disease_Status_germline == "Late Relapse Multiple Myeloma"                      ~ "MM",
-    Disease_Status_germline == "Mgus"                                                 ~ "MGUS",
-    Disease_Status_germline == "Smoldering Multiple Myeloma"                          ~ "Smoldering"
-  )) %>%
-  select(Age_at_diagnosis, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
-  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels = c("MM", "Smoldering", "MGUS"))) %>% 
+    # mutate(Disease_Status_facet = case_when(
+    # Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
+    #   Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
+    #   Disease_Status_germline == "Early Relapse Multiple Myeloma" |
+    #   Disease_Status_germline == "Late Relapse Multiple Myeloma"                      ~ "MM",
+    # Disease_Status_germline == "Mgus"                                                 ~ "MGUS",
+    # Disease_Status_germline == "Smoldering Multiple Myeloma"                          ~ "Smoldering"
+  # )) %>%
+  select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
+  # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels = c("MM", "Smoldering", "MGUS"))) %>% 
   mutate(Disease_Status_facet = forcats::fct_explicit_na(Disease_Status_facet)) %>% 
-  mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
+  # mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
   mutate(Race = str_replace(Race, "AM INDIAN", "Am Indian")) %>% 
   tbl_summary(by = Disease_Status_facet, 
               sort = list(everything() ~ "frequency"),
-              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% add_p() %>% 
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% 
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics in MM Avatar patients by Disease Status.pdf"))
 
@@ -72,11 +73,11 @@ tbl <-
   Age_data  %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "MM Avatar patients") %>% 
-  select(Age_at_diagnosis, Gender, Race, Ethnicity, Whole, ISS) %>%
-  mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
+  select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Whole, ISS) %>%
+  # mutate(ISS = str_replace(ISS, "NA", "Unknown")) %>%
   tbl_summary(by = Whole, 
               sort = list(everything() ~ "frequency"),
-              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% 
   as_gt()
 gt::gtsave(tbl, paste0(path, "/Demographics in MM Avatar patients.pdf"))
 

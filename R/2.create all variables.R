@@ -116,7 +116,11 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
   mutate(os_surv =  case_when(
     final_vitals == "Dead"            ~ 1,
     final_vitals != "Dead"            ~ 0
-    ))
+    )) %>% 
+  mutate(ISS = case_when(
+    is.na(Disease_Status_germline)     ~ NA_character_,
+    !is.na(Disease_Status_germline)    ~ ISS
+  ))
 
 
 # Global_data[, c("avatar_id", "pfs_progression_date", "progression_surv", "pfs_progression_date", "last_date_available", "last_event_available")]

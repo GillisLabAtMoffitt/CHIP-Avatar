@@ -546,9 +546,13 @@ BiopsyV4.1 <-
 OS_data <- readxl::read_xlsx(paste0(path, "/Raghu MM/Overall Survival/HRI_Last_Followupdata.xlsx")) %>% 
   select(avatar_id = "germline_patient_data_avatar_id", "final_vitals", "Vital_Status_Date") %>% 
   distinct()
+#
 Staging_ISS <- readxl::read_xlsx(paste0(path, "/Raghu MM/Staging_09142020.xlsx")) %>% 
   select("avatar_id", "collectiondt_germline", "Labs_Result_Date", "Final_Albumin", "Final_Beta2", "Final_LDH", "ISS") %>% 
-  distinct()
+  mutate(ISS = str_replace(ISS, pattern = "NA", replacement = NA_character_)) %>% 
+  arrange(collectiondt_germline) %>% 
+  distinct(avatar_id, .keep_all = TRUE) # remove the duplicate of patient 180
+#
 CHIP_status <- read_csv(paste0(path, "/Nancy's working files/CHcalls_12.10.20.csv")) %>% 
   # mutate(CH_status = ifelse(CH_status == "CH", "CHIP", "No CHIP")) %>% 
   mutate(patient_germline_id = str_remove(patient_germline_id, "_normal"))
@@ -589,8 +593,8 @@ legend("bottomright", legend = c("version1", "version2", "version4"),
 #######################################################################################  III  # For 1st sequencing file
 ### Bind Germline
 Germline <- Germline %>% 
-  distinct() %>% 
-  filter(!str_detect(avatar_id, "A000428|A000456"))
+  distinct()# %>% 
+  # filter(!str_detect(avatar_id, "A000428|A000456"))
 #   `colnames<-`(c("avatar_id", "collectiondt_germline", 
 #                  "WES_HUDSON_ALPHA_germline", "Disease_Status_germline", "SLID_germline")) %>% 
 #   arrange(SLID_germline) %>% 
@@ -737,12 +741,13 @@ mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, 
   drop_na("date_of_diagnosis") %>%
   distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
   # Create date of diagnosis closest to germline date
-  left_join(., Germline %>% select("avatar_id", "collectiondt_germline"), by = "avatar_id") %>% 
+  left_join(., Germline %>% distinct(avatar_id, .keep_all = TRUE) %>% select("avatar_id", "collectiondt_germline"), # For only 1 date of Dx when multiple germline collection
+            by = "avatar_id") %>% 
   mutate(interval = (interval(start= .$collectiondt_germline, end= .$date_of_diagnosis)/duration(n=1, unit="days"))) %>% 
   mutate(interval1 = if_else(interval>100, NA_real_, interval)) %>% 
   mutate(interval1 = abs(interval1)) %>% 
   arrange(interval1) %>% 
-  group_by(avatar_id, collectiondt_germline) %>% mutate(id = 1:n()) %>% ungroup() %>% # important group for patient 180
+  group_by(avatar_id) %>% mutate(id = 1:n()) %>% ungroup() %>%
   mutate(Dx_date_closest_germline = if_else(id == 1, date_of_diagnosis, NA_POSIXct_)) %>% 
   distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
   arrange(date_of_diagnosis)
@@ -1168,7 +1173,8 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., Staging_ISS, by = c("avatar_id", "collectiondt_germline")) %>% 
   full_join(Demo_RedCap_V4ish, ., by = "avatar_id")
 # write.csv(Global_data, paste0(path, "/Global_data.csv"))
-Global_data <- left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id"))
+Global_data <- left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id")) %>% 
+  filter(!str_detect(avatar_id, "A000428|A000456"))
 write_rds(Global_data, path = "Global_data.rds")
 #------------------------------------
 # avatar_no_germline <- Global_data %>% filter(is.na(Global_data$Disease_Status_germline)) %>% 

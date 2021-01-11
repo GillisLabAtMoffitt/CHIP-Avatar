@@ -143,9 +143,9 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
   
   mutate(Radiation = ifelse(!is.na(rad_start_date_1), "Radiation", "No Radiation")) %>% 
   mutate(Radiation_event = case_when(
-    rad_start_date_1 < collectiondt_germline          ~ "Upfront Radiation",
-    rad_start_date_1 >= collectiondt_germline         ~ "Upfront Germline",
-    is.na(rad_start_date_1)                           ~ "Germline with No Radiation"
+    rad_start_date_1 < collectiondt_germline          ~ "Yes",
+    rad_start_date_1 >= collectiondt_germline |
+      is.na(rad_start_date_1)                         ~ "No"
   )) %>% 
   mutate(HCT = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT"))
 

@@ -10,7 +10,8 @@ all_dates <- Global_data %>%
          "collectiondt_germline", starts_with("collectiondt_tumor_"),
          starts_with("date_of_bmt_"),
          starts_with("drug_start_date_"), starts_with("drug_stop_date_"),
-         starts_with("rad_start_date_"), starts_with("rad_stop_date_"), "progression_date", "progression_drug_date",
+         starts_with("rad_start_date_"), starts_with("rad_stop_date_"), 
+         starts_with("progression_"),
          "labs_last_date", "date_last_follow_up", "date_contact_lost", "date_death")
 all_dates1 <- Global_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>%
@@ -74,20 +75,15 @@ write.csv(last_event, paste0(path, "/last_event.csv"))
 
 
 Global_data <- Global_data %>% # Add date_death as progression_date when no previous progression_date
-  # mutate(prog_before_last = case_when(
-  #   progression_date > date_last_follow_up                 ~ NA_POSIXct_,
-  #   progression_date <= date_last_follow_up |
-  #     is.na (date_last_follow_up)                          ~ progression_date # Keep all because really close
-  # )) %>% 
   mutate(pfs_date_death= case_when(
     date_death > date_last_follow_up |
       is.na(date_death)                          ~ NA_POSIXct_,
     date_death <= date_last_follow_up |
         is.na(date_last_follow_up)               ~ date_death # remove 36 dates
     )) %>%
-  
   # PFS FROM Dx DATE
   mutate(pfs_progression_date = coalesce(progression_date, pfs_date_death)) %>% 
+  
   mutate(progression_surv = case_when(
     !is.na(pfs_progression_date)      ~ 1,
     is.na(pfs_progression_date)       ~ 0
@@ -109,6 +105,34 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
   mutate(pfs_drug_start_date = case_when(
     drug_start_date_1 >= last_date_available        ~ NA_POSIXct_,
     TRUE                                           ~ drug_start_date_1
+  )) %>% 
+  
+  # PFS FROM RAD DATE
+  mutate(pfs_rad_progression_date = coalesce(progression_rad_date, pfs_date_death)) %>% 
+  mutate(progression_rad_surv = case_when(
+    !is.na(pfs_rad_progression_date)      ~ 1,
+    is.na(pfs_rad_progression_date)       ~ 0
+  )) %>% 
+  # Add last_date_available
+  mutate(pfs_rad_progression_date = coalesce(pfs_rad_progression_date, last_date_available)) %>% 
+  # Remove the rad dates after last date available
+  mutate(pfs_rad_start_date = case_when(
+    rad_start_date_1 >= last_date_available        ~ NA_POSIXct_,
+    TRUE                                           ~ rad_start_date_1
+  )) %>% 
+  
+  # PFS FROM HCT DATE
+  mutate(pfs_hct_progression_date = coalesce(progression_hct_date, pfs_date_death)) %>% 
+  mutate(progression_hct_surv = case_when(
+    !is.na(pfs_hct_progression_date)      ~ 1,
+    is.na(pfs_hct_progression_date)       ~ 0
+  )) %>% 
+  # Add last_date_available
+  mutate(pfs_hct_progression_date = coalesce(pfs_hct_progression_date, last_date_available)) %>% 
+  # Remove the hct dates after last date available
+  mutate(pfs_hct_start_date = case_when(
+    date_of_bmt_1 >= last_date_available        ~ NA_POSIXct_,
+    TRUE                                           ~ date_of_bmt_1
   )) %>% 
   
   # OS FROM Dx DATE
@@ -147,7 +171,13 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
     rad_start_date_1 >= collectiondt_germline |
       is.na(rad_start_date_1)                         ~ "No"
   )) %>% 
-  mutate(HCT = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT"))
+  mutate(HCT = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT")) %>% 
+  mutate(pfs_Radiation_event = case_when(
+    pfs_rad_start_date < collectiondt_germline          ~ "Yes",
+    pfs_rad_start_date >= collectiondt_germline |
+      is.na(pfs_rad_start_date)                         ~ "No"
+  )) %>% 
+  mutate(pfs_HCT = ifelse(!is.na(pfs_hct_start_date), "HCT", "No HCT"))
 
 
 # Global_data[, c("avatar_id", "pfs_progression_date", "progression_surv", "pfs_progression_date", "last_date_available", "last_event_available")]
@@ -231,6 +261,15 @@ Age_data$month_at_progression_drug <- round(Age_data$month_at_progression_drug, 
 b <- Age_data[,c("avatar_id", "month_at_progression_drug", "pfs_drug_start_date", "pfs_drug_progression_date", "last_date_available", "progression_date", 
                  "last_event_available")]
 
+
+Age_data$month_at_progression_rad <- interval(start= Global_data$pfs_rad_start_date, end= Global_data$pfs_rad_progression_date)/                      
+  duration(n=1, unit="months")
+Age_data$month_at_progression_rad <- round(Age_data$month_at_progression_rad, 3)
+
+Age_data$month_at_progression_hct <- interval(start= Global_data$pfs_hct_start_date, end= Global_data$pfs_hct_progression_date)/                      
+  duration(n=1, unit="months")
+Age_data$month_at_progression_hct <- round(Age_data$month_at_progression_hct, 3)
+
 Age_data$month_at_os <- interval(start= Global_data$date_of_diagnosis_1, end= Global_data$os_date_surv)/                      
   duration(n=1, unit="months")
 Age_data$month_at_os <- round(Age_data$month_at_os, 3)
@@ -311,6 +350,18 @@ germline_patient_data <- germline_patient_data %>%
       pfs_drug_progression_date > date_contact_lost ~ 0,
     TRUE ~ progression_drug_surv
   )) %>% # remove censored patient when date_death > date_contact_lost (just in case)
+  
+  mutate(progression_rad_surv = case_when( 
+    progression_rad_surv == 1 & 
+      pfs_rad_progression_date > date_contact_lost ~ 0,
+    TRUE ~ progression_rad_surv
+  )) %>% 
+  mutate(progression_hct_surv = case_when( 
+    progression_hct_surv == 1 & 
+      pfs_hct_progression_date > date_contact_lost ~ 0,
+    TRUE ~ progression_hct_surv
+  )) %>% 
+  
   mutate(os_surv_cor = case_when( 
     os_surv == 1 & 
       date_death > date_contact_lost ~ 0,

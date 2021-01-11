@@ -984,6 +984,26 @@ Treatment <- Treatment %>%
   ))
 write.csv(Treatment,paste0(path, "/simplified files/Treatment simplify.csv"))
 
+# Radiation ----
+# Radiation V1 doesn't have a date format
+RadiationV1$rad_start_date <- as.POSIXct(strptime(RadiationV1$rad_start_date, 
+                                                  format = "%m/%d/%Y", tz = "UTC"))
+RadiationV1$rad_stop_date <- as.POSIXct(strptime(RadiationV1$rad_stop_date, 
+                                                 format = "%m/%d/%Y", tz = "UTC"))
+
+radiation <- bind_rows(Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1, .id = "versionRad") %>% 
+  drop_na("rad_start_date") %>% 
+  filter(!str_detect(rad_start_date, "3013")) %>% 
+  filter(!str_detect(rad_stop_date, "2300")) %>% 
+  left_join(., Germline %>% select(c("avatar_id", "collectiondt_germline")), by = "avatar_id") %>% 
+  mutate(rad_bf_germline = if_else(rad_start_date < collectiondt_germline, "Radiation before Germline", "No")) %>% 
+  distinct(avatar_id, rad_start_date, rad_stop_date, collectiondt_germline, .keep_all = TRUE) %>% 
+  select(-collectiondt_germline) %>% 
+  arrange(rad_start_date)
+Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
+                     c("rad_start_date", "rad_stop_date", "rad_bf_germline"))
+write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
+
 # Progression----
 Progr_V12 <- Progr_V12 %>% 
   filter(QC == "Yes") %>% 
@@ -1019,6 +1039,8 @@ Progression <-
   filter(prog_before_death == "good") %>% 
   select(1:2)
 Progression_drugs <- Progression # Create 2 df for dates from Dx or drug (will not have the same clean up)
+Progression_rad <- Progression
+Progression_hct <- Progression
 
 Progression <- Progression %>% # Keep earliest progression_date => For OS
   arrange(progression_date) %>% 
@@ -1028,9 +1050,9 @@ write.csv(Progression, paste0(path, "/simplified files/Progression simplify.csv"
 Progression_drugs <- Progression_drugs %>% # Remove progression < drug and keep earliest progression_drug_date
   left_join(., Treatment %>% select(c("avatar_id", "drug_start_date_1")), by = "avatar_id") %>% 
   mutate(prog_before_drug = case_when(
-    progression_date < drug_start_date_1                 ~ "removed", # 0 patient removed :)
+    progression_date <= drug_start_date_1               ~ "removed", # 0 patient removed :)
     progression_date > drug_start_date_1 |
-      is.na (drug_start_date_1)                          ~ "good" # progression have to be strictly > drug
+      is.na(drug_start_date_1)                          ~ "good" # progression have to be strictly > drug
   )) %>%
   filter(prog_before_drug == "good") %>% 
   select(1:2) %>% 
@@ -1039,25 +1061,32 @@ Progression_drugs <- Progression_drugs %>% # Remove progression < drug and keep 
   rename(progression_drug_date = "progression_date")
 write.csv(Progression_drugs, paste0(path, "/simplified files/Progression used for survivals from drugs date.csv"))
 
-# Radiation ----
-# Radiation V1 doesn't have a date format
-RadiationV1$rad_start_date <- as.POSIXct(strptime(RadiationV1$rad_start_date, 
-                                               format = "%m/%d/%Y", tz = "UTC"))
-RadiationV1$rad_stop_date <- as.POSIXct(strptime(RadiationV1$rad_stop_date, 
-                                              format = "%m/%d/%Y", tz = "UTC"))
+Progression_rad <- Progression_rad %>% # Remove progression < rad and keep earliest progression_rad_date
+  left_join(., Radiation %>% select(c("avatar_id", "rad_start_date_1")), by = "avatar_id") %>% 
+  mutate(prog_before_rad = case_when(
+    progression_date <= rad_start_date_1                ~ "removed", # 93 dates removed
+    progression_date > rad_start_date_1 |
+      is.na(rad_start_date_1)                           ~ "good" # progression have to be strictly > rad
+  )) %>%
+  filter(prog_before_rad == "good") %>% 
+  select(1:2) %>% 
+  arrange(progression_date) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  rename(progression_rad_date = "progression_date")
 
-radiation <- bind_rows(Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1, .id = "versionRad") %>% 
-  drop_na("rad_start_date") %>% 
-  filter(!str_detect(rad_start_date, "3013")) %>% 
-  filter(!str_detect(rad_stop_date, "2300")) %>% 
-  left_join(., Germline %>% select(c("avatar_id", "collectiondt_germline")), by = "avatar_id") %>% 
-  mutate(rad_bf_germline = if_else(rad_start_date < collectiondt_germline, "Radiation before Germline", "No")) %>% 
-  distinct(avatar_id, rad_start_date, rad_stop_date, collectiondt_germline, .keep_all = TRUE) %>% 
-  select(-collectiondt_germline) %>% 
-  arrange(rad_start_date)
-Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
-                     c("rad_start_date", "rad_stop_date", "rad_bf_germline"))
-write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
+Progression_hct <- Progression_hct %>% # Remove progression < hct and keep earliest progression_hct_date
+  left_join(., SCT %>% select(c("avatar_id", "date_of_bmt_1")), by = "avatar_id") %>% 
+  mutate(prog_before_hct = case_when(
+    progression_date <= date_of_bmt_1                  ~ "removed", # 75 dates removed
+    progression_date > date_of_bmt_1 |
+      is.na(date_of_bmt_1)                             ~ "good" # progression have to be strictly > hct
+  )) %>%
+  filter(prog_before_hct == "good") %>% 
+  select(1:2) %>% 
+  arrange(progression_date) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  rename(progression_hct_date = "progression_date")
+
 
 # Cleaning
 rm(Demo_HRI, Demo_linkage, MM_history_V12, MM_historyV2, MM_historyV4, MM_historyV4.1,
@@ -1168,6 +1197,8 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., Radiation, by = "avatar_id") %>% 
   full_join(., Progression, by= "avatar_id") %>% 
   full_join(., Progression_drugs, by= "avatar_id") %>% 
+  full_join(., Progression_rad, by= "avatar_id") %>% 
+  full_join(., Progression_hct, by= "avatar_id") %>% 
   full_join(., Last_labs_dates %>% select(c("avatar_id", "labs_last_date")), by = "avatar_id") %>% 
   full_join(., OS_data, by = "avatar_id") %>% 
   full_join(., Staging_ISS, by = c("avatar_id", "collectiondt_germline")) %>% 

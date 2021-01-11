@@ -12,7 +12,7 @@ tbl <-
   mutate(Whole = "MM Avatar patients") %>% 
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Whole, ISS) %>%
   tbl_summary(by = Whole, 
-              sort = list(everything() ~ "frequency"),
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% 
   as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in MM Avatar patients.pdf"))
@@ -24,7 +24,7 @@ tbl <-
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
   mutate(Disease_Status_facet = forcats::fct_explicit_na(Disease_Status_facet)) %>% 
   tbl_summary(by = Disease_Status_facet, 
-              sort = list(everything() ~ "frequency"),
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% 
   as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in MM Avatar patients by DS with missing.pdf"))
@@ -35,7 +35,7 @@ tbl <-
   mutate(Whole = "Germline patients") %>% 
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Whole, ISS) %>%
   tbl_summary(by = Whole, 
-              sort = list(everything() ~ "frequency"),
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% 
   as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in germline patients.pdf"))
@@ -45,7 +45,7 @@ tbl <- germline_patient_data %>%
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Disease_Status_facet, ISS
     ) %>% 
   tbl_summary(by = Disease_Status_facet, 
-              sort = list(everything() ~ "frequency"),
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% 
   as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in germline patients by DS no missing.pdf"))
@@ -56,7 +56,7 @@ tbl <- germline_patient_data %>%
   mutate(Disease_Status_facet = forcats::fct_explicit_na(Disease_Status_facet)) %>% 
   mutate(Race = str_replace(Race, "Asian|More than one race|Am Indian", "Others")) %>% 
   tbl_summary(by = Disease_Status_facet, 
-              sort = list(everything() ~ "frequency"),
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% 
   as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics race simplified in germline patients by DS with missing.pdf"))
@@ -69,7 +69,7 @@ tbl <-
   mutate(Ethnicity = str_replace(Ethnicity, "Unknown", NA_character_)) %>%
   mutate(Race = str_replace(Race, "Asian|More than one race|Am Indian", "Others")) %>% 
   tbl_summary(by = CH_status, 
-              sort = list(everything() ~ "frequency"),
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% 
   as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics by CH simplified race in germline patients.pdf"))

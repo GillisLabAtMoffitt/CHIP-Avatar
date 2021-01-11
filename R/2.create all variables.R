@@ -118,15 +118,19 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
     final_vitals != "Dead"            ~ 0
     )) %>% 
   mutate(ISS = case_when(
-    is.na(Disease_Status_germline)     ~ NA_character_,
-    !is.na(Disease_Status_germline)    ~ ISS
+    Disease_Status_germline %in% c("Pre Treatment Newly Diagnosed Multiple Myeloma",
+                                   "Post Treatment Newly Diagnosed Multiple Myeloma",
+                                   "Early Relapse Multiple Myeloma",
+                                   "Late Relapse Multiple Myeloma")                    ~ ISS,
+    !is.na(Disease_Status_germline)                                                    ~ "not assessed"
+    # is.na(Disease_Status_germline)                                                     ~ NA_character_
   )) %>% 
   mutate(Disease_Status_germline =
            factor(Disease_Status_germline, levels = c("Pre Treatment Newly Diagnosed Multiple Myeloma",
                                                       "Post Treatment Newly Diagnosed Multiple Myeloma",
                                                       "Early Relapse Multiple Myeloma",
                                                       "Late Relapse Multiple Myeloma",
-                                                      "Smoldering Multiple Myeloma", "Mgus"))) %>%
+                                                      "Smoldering Multiple Myeloma", "Mgus"))) %>% 
   mutate(Disease_Status_facet = case_when(
     Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
       Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
@@ -139,9 +143,9 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
   
   mutate(Radiation = ifelse(!is.na(rad_start_date_1), "Radiation", "No Radiation")) %>% 
   mutate(Radiation_event = case_when(
-    rad_start_date_1 < collectiondt_germline          ~ "Radiation first",
-    rad_start_date_1 >= collectiondt_germline         ~ "Germline first",
-    is.na(rad_start_date_1)                           ~ "No Radiation"
+    rad_start_date_1 < collectiondt_germline          ~ "Upfront Radiation",
+    rad_start_date_1 >= collectiondt_germline         ~ "Upfront Germline",
+    is.na(rad_start_date_1)                           ~ "Germline with No Radiation"
   )) %>% 
   mutate(HCT = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT"))
 

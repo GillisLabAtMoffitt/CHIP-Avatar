@@ -914,22 +914,22 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
   select(avatar_id, drug_start_date, drug_stop_date, drug_name_) %>% 
   mutate(drug_name_ = tolower(drug_name_)) %>% 
   mutate(drug_name_ = case_when(
-    drug_name_ == "cafilzomib"                ~ "carfilzomib",
-    drug_name_ == "daratumuab"                ~ "daratumumab",
-    str_detect(drug_name_, "^dex")            ~ "dexamethasone",
-    str_detect(drug_name_, "^lena")           ~ "lenalidomide",
-    str_detect(drug_name_, "^mel")            ~ "melphalan",
-    drug_name_ == "vinicristine"              ~ "vincristine",
+    drug_name_ == "cafilzomib"                                             ~ "carfilzomib",
+    drug_name_ == "daratumuab"                                             ~ "daratumumab",
+    str_detect(drug_name_, "^dex")                                         ~ "dexamethasone",
+    str_detect(drug_name_, "^lena")                                        ~ "lenalidomide",
+    str_detect(drug_name_, "^mel")                                         ~ "melphalan",
+    drug_name_ == "vinicristine"                                           ~ "vincristine",
     drug_name_ %in% c("anastrozole", "azacitidine", "carmustine", 
                       "cytarabine", "decitabine", "denosumab", 
                       "docetaxel", "hydrocortisone", "methotrexate",
                       "methylprednisolone", "pegfilgrastim", "prednisone", 
                       "rapamycin", "rituxan", "rituximab", 
                       "sorafenib tosylate", "tamoxifen citrate", 
-                      "zoledronic acid", "prevnar")      ~ "Non-MM drugs",
-    TRUE                                      ~ drug_name_
+                      "zoledronic acid", "prevnar")                        ~ "Non-MM drugs",
+    TRUE                                                                   ~ drug_name_
   )) %>% 
-  filter(!is.na(drug_name_)) %>% 
+  filter(!is.na(avatar_id) & drug_name_ != "Non-MM drugs") %>% 
   distinct() %>%
   group_by(avatar_id, drug_start_date) %>%
   arrange(drug_name_) %>%

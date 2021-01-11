@@ -467,7 +467,7 @@ germ_before_treatment <- as.table(germ_before_treatment)
 germline_patient_data <- germline_patient_data %>%
   mutate(drug_name_1_for_MM = 
            str_remove_all(drug_name__1, "given with investigational therapy: |clinical trial: |investigational agent: clinical trial|investigational agent: | -|-|; $| sulfate|clinical trial/")) %>% 
-  mutate(drug_name_1_for_MM = str_remove_all(drug_name_1_for_MM, "; NonMM drugs|NonMM drugs; ")) %>% 
+  # mutate(drug_name_1_for_MM = str_remove_all(drug_name_1_for_MM, "; NonMM drugs|NonMM drugs; ")) %>% 
   mutate(drug_count = sapply(strsplit(drug_name_1_for_MM, ";"), length)) %>% 
   mutate(drug_name_1_for_MM = str_replace_all(drug_name_1_for_MM, "liposomal doxorubicin", "doxil")) %>% 
   mutate(first_regimen_name_MM = case_when(
@@ -592,25 +592,25 @@ germline_patient_data <- germline_patient_data %>%
       str_detect(drug_name_1_for_MM, "bortezomib") &
       str_detect(drug_name_1_for_MM, "dex")                 ~ "Bor-Dex",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "lenalidomide")        ~ "Len",
+      str_detect(drug_name_1_for_MM, "lenalidomide")        ~ "Lenalidomide",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "dex")                 ~ "Dex",
+      str_detect(drug_name_1_for_MM, "dex")                 ~ "Dexamethasone",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "doxo")                ~ "Dox",
+      str_detect(drug_name_1_for_MM, "doxo")                ~ "Doxorubicin",
     drug_count == 1 &
       str_detect(drug_name_1_for_MM, "doxil")               ~ "Doxil",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "bortezomib")          ~ "V",
+      str_detect(drug_name_1_for_MM, "bortezomib")          ~ "Bortezomib",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "melph")               ~ "M",
+      str_detect(drug_name_1_for_MM, "melph")               ~ "Melphalan",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "carfilzomib")         ~ "Car",
+      str_detect(drug_name_1_for_MM, "carfilzomib")         ~ "Carfilzomib",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "cyclo")               ~ "Cy",
+      str_detect(drug_name_1_for_MM, "cyclo")               ~ "Cyclophosphamide",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "thalidomide")         ~ "T",
+      str_detect(drug_name_1_for_MM, "thalidomide")         ~ "Thalidomide",
     drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "vincristine")         ~ "Vinc",
+      str_detect(drug_name_1_for_MM, "vincristine")         ~ "Vincristine",
     TRUE                                                    ~ drug_name_1_for_MM
   ))
 
@@ -621,7 +621,7 @@ write_csv(germline_patient_data %>%
 tbl <- germline_patient_data %>% count(first_regimen_name_MM) %>% arrange(desc(n))
 write_csv(tbl, paste0(path, "/Figures/Treatment/list regimen.csv"))
 
-sum(is.na(germline_patient_treatment$drug_start_date_1))
+sum(is.na(germline_patient_data$drug_start_date_1))
 
 
 
@@ -722,11 +722,13 @@ tbl <- germline_patient_data %>%
   mutate(Whole = "All regimen in 1st regimen") %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(first_regimen_name_MM = str_replace_na(first_regimen_name_MM, replacement = "No Drugs")) %>% 
-  mutate(first_regimen_name_MM = factor(first_regimen_name_MM, levels = c("VRd", "No Drugs", "Bor-Dex", "CyBorD or VCd", "Rd", "Dex",
-                                                                 "Len", "Td", "KRd", "V", "NonMM drugs", "M", "VAd", "ABCD", "IRD",
-                                                                 "D-RVd or dara-RVd"))) %>% 
+  filter(str_detect(first_regimen_name_MM, "VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRD")) %>% 
+  # mutate(first_regimen_name_MM = factor(first_regimen_name_MM, levels = c("VRd", "No Drugs", "Bor-Dex", "CyBorD or VCd", "Rd", "Dex",
+  #                                                                "Len", "Td", "KRd", "V", "NonMM drugs", "M", "VAd", "ABCD", "IRD",
+  #                                                                "D-RVd or dara-RVd"))) %>%
   select(first_regimen_name_MM, Whole) %>% 
-  tbl_summary(by = Whole) %>% as_gt()
+  tbl_summary(by = Whole,
+              sort = list(everything() ~ "frequency")) %>% as_gt()
 gt::gtsave(tbl, zoom = 1,
            paste0(path, "/Figures/Treatment/Regimen 1st germline patients.pdf"))
 
@@ -734,15 +736,13 @@ gt::gtsave(tbl, zoom = 1,
 tbl <- germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   filter(!str_detect(Disease_Status_germline, "Amyl|MYELO|Normal|Refrac|Solit|WALD")) %>%
-  mutate(Disease_Status_germline =
-           factor(Disease_Status_germline, levels = c("Pre Treatment Newly Diagnosed Multiple Myeloma",
-                                                      "Post Treatment Newly Diagnosed Multiple Myeloma",
-                                                      "Early Relapse Multiple Myeloma",
-                                                      "Late Relapse Multiple Myeloma",
-                                                      "Smoldering Multiple Myeloma", "Mgus"))) %>%
   mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Drugs", "No Drugs")) %>%
-  # mutate(Radiation = ifelse(!is.na(rad_start_date_1), "Radiation", "No Radiation")) %>% 
-  # mutate(HCT = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT")) %>% 
+  mutate(first_regimen_name_MM = case_when(
+    !str_detect(first_regimen_name_MM, 
+                "VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRd") 
+                                                     ~ "Other Regimen",
+    TRUE                                             ~ first_regimen_name_MM
+  )) %>% 
   mutate(No_Treatment = case_when(
     is.na(drug_start_date_1) &
       is.na(rad_start_date_1) &
@@ -758,11 +758,14 @@ gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Treatment/Table any treatment i
 tbl <- germline_patient_data %>%
   mutate(Whole = "Other drugs than most used regimen") %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(first_regimen_name_MMb = str_replace_na(first_regimen_name_MM, replacement = "No Drugs")) %>% 
-  mutate(first_regimen_name_MMb = factor(first_regimen_name_MMb, levels = c("VRd", "No Drugs", "Bor-Dex", "CyBorD or VCd", "Rd", "Dex",
-                                                                          "Len", "Td", "KRd", "V", "NonMM drugs", "M", "VAd", "ABCD", "IRD",
-                                                                          "D-RVd or dara-RVd"))) %>% 
-  filter(is.na(first_regimen_name_MMb)) %>% 
+  mutate(first_regimen_name_MM = ifelse(!is.na(drug_start_date_1), first_regimen_name_MM, "No Drugs")) %>% 
+  mutate(first_regimen_name_MMb = case_when(
+    !str_detect(first_regimen_name_MM, 
+                "No Drugs|VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRd") 
+                                                     ~ "Other Regimen",
+    TRUE                                             ~ first_regimen_name_MM
+  )) %>% 
+  filter(first_regimen_name_MMb == "Other Regimen") %>% 
   select(first_regimen_name_MM, Whole) %>% 
   tbl_summary(by = Whole,
               sort = list(everything() ~ "frequency")) %>% as_gt()

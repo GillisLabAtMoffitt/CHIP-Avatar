@@ -148,7 +148,8 @@ Global_data <- Global_data %>%
     drug_count == 1 &
       str_detect(drug_name_1_for_MM, "vincristine")         ~ "Vincristine",
     TRUE                                                    ~ drug_name_1_for_MM
-  ))
+  )) %>% 
+  mutate(first_regimen_name_MM = str_replace_na(first_regimen_name_MM, replacement = "No Drugs")) %>% 
 
 # Need to separate in 2 df ,do diag separately to make sure it appear before germ or tumor date, date of treatment
 all_dates <- Global_data %>% 
@@ -255,7 +256,7 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
     drug_start_date_1 >= last_date_available        ~ NA_POSIXct_, # doesn't remove date
     TRUE                                            ~ drug_start_date_1
   )) %>%
-  mutate(Drug = ifelse(!is.na(drug_start_date_1), "Drug", "No Drug")) %>% 
+  mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Drug", "No Drug")) %>% 
   mutate(pfs_drugs = case_when(
     pfs_drug_start_date <= collectiondt_germline         ~ "Yes",
     pfs_drug_start_date > collectiondt_germline |

@@ -557,7 +557,7 @@ CHIP_status <- read_csv(paste0(path, "/Nancy's working files/CHcalls_12.10.20.cs
   # mutate(CH_status = ifelse(CH_status == "CH", "CHIP", "No CHIP")) %>% 
   mutate(patient_germline_id = str_remove(patient_germline_id, "_normal"))
 
-# Plot data recorded ---------------------------------------------------------------------------------------------
+# Plot data recorded ---
 # jpeg(paste0(path, "/barplot1.jpg"), width = 350, height = 350)
 par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
 par(cex.sub = .7)
@@ -1160,7 +1160,7 @@ rm(ClinicalCap_V12, ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4,
    )
 
 
-#######################################################################################  II  ## Plot----
+#######################################################################################  II  ## Plot---
 # jpeg(paste0(path, "/barplot2.jpg"), width = 350, height = 350)
 par(mar=c(3.5, 7.1, 4.1, 2.1)) # bottom left top right
 par(cex.sub = .7)
@@ -1207,7 +1207,7 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
 Global_data <- left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id")) %>% 
   filter(!str_detect(avatar_id, "A000428|A000456"))
 write_rds(Global_data, path = "Global_data.rds")
-#------------------------------------
+#--
 # avatar_no_germline <- Global_data %>% filter(is.na(Global_data$Disease_Status_germline)) %>% 
 #   select("avatar_id")
 # write.csv(avatar_no_germline, paste0(path, "/patient id with no germline.csv"))

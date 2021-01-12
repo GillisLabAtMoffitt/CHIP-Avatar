@@ -926,7 +926,7 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
                       "methylprednisolone", "pegfilgrastim", "prednisone", 
                       "rapamycin", "rituxan", "rituximab", 
                       "sorafenib tosylate", "tamoxifen citrate", 
-                      "zoledronic acid", "prevnar")                        ~ "Non-MM drugs",
+                      "zoledronic acid", "prevnar", "ruxolitinib")         ~ "Non-MM drugs",
     TRUE                                                                   ~ drug_name_
   )) %>% 
   filter(!is.na(avatar_id) & drug_name_ != "Non-MM drugs") %>% 

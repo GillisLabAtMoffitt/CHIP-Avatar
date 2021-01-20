@@ -439,6 +439,18 @@ germline_patient_surv %>%
   as_gt()
 # gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Radiation by CH.pdf"))
 
+pdf(paste0(path, "/Figures/CHIP/Days repartition interval_radiation_vs_germ.pdf"), height = 6, width = 9)
+p <- germline_patient_data %>% # filter(!is.na(Race)) %>% 
+  # mutate(Race = factor(Race, levels=c("White", "Black", "Am Indian", "Asian", "More than one race", "Others", "Unknown"))) %>%
+  ggplot(aes(y=interval_radiation_vs_germ)) + 
+  geom_boxplot(alpha = 0.5) + # color= c("#60136EFF", "#A92E5EFF", "#E65D2FFF")
+  theme_minimal() +
+  # scale_fill_brewer(palette="BuPu") +
+  labs(y="Days", title="interval_radiation_vs_germ")
+# p + geom_jitter(shape=16, position=position_jitter(0.2)) #+
+  # stat_compare_means()
+dev.off()
+
 ######################################################################################################### By CH
 # Dx
 # mysurv <- Surv(time = germline_patient_surv$month_at_progression_Dx, event = germline_patient_surv$progression_surv)

@@ -209,7 +209,7 @@ ggsurvplot(myplot, data = No_IMIDs,
            ))
 # dev.off()
 
-# In MM
+# In MM----
 IMIDs_MM <- germline_patient_data_seqsimp %>% 
   filter(received_IMIDs == "IMIDs") %>% 
   filter(Disease_Status_facet == "MM")
@@ -861,12 +861,12 @@ ggsurv <- ggsurvplot(myplot, data = germline_patient_data_seqsimp,
                                           font.tickslab = c(19, "bold", "black")
            ))
 ggsurv$plot <- ggsurv$plot+
-  ggplot2::annotate("text", 
+  annotate("text", 
                     x = 220, y = 0.39, # x and y coordinates of the text
                     label = "P imids = 0.77", size = 5) +
   annotate("segment", x = 200, xend = 200, y = 0.32, yend = 0.46,
              size = 2.5, colour = "black")+
-  ggplot2::annotate("text", 
+  annotate("text", 
                     x = 225, y = 0.8, # x and y coordinates of the text
                     label = "P no imids = 0.32", size = 5) +
   annotate("segment", x = 200, xend = 200, y = 0.58, yend = 1.0,
@@ -906,6 +906,18 @@ ggsurv <- ggsurvplot(myplot, data = germline_patient_data_seqsimp,
                                           font.y = c(16, "bold", "transparent"),
                                           font.tickslab = c(19, "bold", "black")
            ))
+ggsurv$plot <- ggsurv$plot+
+  annotate("text", 
+                    x = 100, y = 0.36, # x and y coordinates of the text
+                    label = "P imids = 0.53", size = 5) +
+  annotate("segment", x = 80, xend = 80, y = 0.22, yend = 0.505,
+           size = 2.5, colour = "black")+
+  annotate("text", 
+                    x = 71, y = 0.78, # x and y coordinates of the text
+                    label = "P no imids = 0.43", size = 5) +
+  annotate("segment", x = 48, xend = 48, y = 0.54, yend = 1.0,
+           size = 2.5, colour = "black", linetype=5)
+ggsurv
 ## dev.off()
 ggsave(paste0(path, "/Figures/Survivals/CHIP/IMIDs/PFS CH vs IMIDs from drug.jpeg"), print(ggsurv), width = 12.5, height = 9.4, dpi = 1000)
 
@@ -946,6 +958,18 @@ ggsurv <- ggsurvplot(myplot, data = PreT,
                                           font.y = c(16, "bold", "transparent"),
                                           font.tickslab = c(19, "bold", "black")
            ))
+ggsurv$plot <- ggsurv$plot+
+  annotate("text", 
+                    x = 192, y = 0.45,
+                    label = "P imids = 0.98", size = 5) +
+  annotate("segment", x = 165, xend = 165, y = 0.378, yend = 0.521,
+           size = 2.5, colour = "black")+
+  annotate("text", 
+                    x = 243, y = 0.76,
+                    label = "P no imids = 0.32", size = 5) +
+  annotate("segment", x = 210, xend = 210, y = 0.515, yend = 1.0,
+           size = 2.5, colour = "black", linetype=5)
+ggsurv
 ## dev.off()
 ggsave(paste0(path, "/Figures/Survivals/CHIP/IMIDs/OS CH vs IMIDs in PreT patients.jpeg"), print(ggsurv), width = 12.5, height = 9.4, dpi = 1000)
 
@@ -982,5 +1006,17 @@ ggsurv <- ggsurvplot(myplot, data = PreT,
                                           font.y = c(16, "bold", "transparent"),
                                           font.tickslab = c(19, "bold", "black")
            ))
+ggsurv$plot <- ggsurv$plot+
+  annotate("text", 
+                    x = 52, y = 0.45,
+                    label = "P imids = 0.65", size = 5) +
+  annotate("segment", x = 43, xend = 43, y = 0.37, yend = 0.54,
+           size = 2.5, colour = "black")+
+  annotate("text", 
+                    x = 53, y = 0.89,
+                    label = "P no imids = 0.4", size = 5) +
+  annotate("segment", x = 43, xend = 43, y = 0.77, yend = 1.0,
+           size = 2.5, colour = "black", linetype=5)
+ggsurv
 ## dev.off()
 ggsave(paste0(path, "/Figures/Survivals/CHIP/IMIDs/PFS CH vs IMIDs in PreT patients from drug.jpeg"), print(ggsurv), width = 12.5, height = 9.4, dpi = 1000)

@@ -871,6 +871,7 @@ ggsurv$plot <- ggsurv$plot+
                     label = "P no imids = 0.32", size = 5) +
   annotate("segment", x = 200, xend = 200, y = 0.58, yend = 1.0,
            size = 2.5, colour = "black", linetype=5)
+ggsurv
 ## dev.off()
 ggsave(paste0(path, "/Figures/Survivals/CHIP/IMIDs/OS CH vs IMIDs.jpeg"), print(ggsurv), width = 12.5, height = 9.4, dpi = 1000)
 

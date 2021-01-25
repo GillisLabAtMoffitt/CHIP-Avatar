@@ -542,7 +542,7 @@ BiopsyV4.1 <-
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
                     sheet = "Biopsy") %>%
   select(c("avatar_id", biopsy_date = "date_bonemarrow_biopsy_results"))
-#
+# Others
 OS_data <- readxl::read_xlsx(paste0(path, "/Raghu MM/Overall Survival/HRI_Last_Followupdata.xlsx")) %>% 
   select(avatar_id = "germline_patient_data_avatar_id", "final_vitals", "Vital_Status_Date") %>% 
   distinct()
@@ -556,6 +556,13 @@ Staging_ISS <- readxl::read_xlsx(paste0(path, "/Raghu MM/Staging_09142020.xlsx")
 CHIP_status <- read_csv(paste0(path, "/Nancy's working files/CHcalls_12.10.20.csv")) %>% 
   # mutate(CH_status = ifelse(CH_status == "CH", "CHIP", "No CHIP")) %>% 
   mutate(patient_germline_id = str_remove(patient_germline_id, "_normal"))
+#
+IMIDS_maintenance <- readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Maintainance_Regimen.xlsx")) %>% 
+  select("avatar_id") %>% 
+  distinct(avatar_id)
+#
+migration_patients <- readxl::read_xlsx(paste0(path, "/Raghu MM/Avatar List For Migration.xlsx"))
+
 
 # Plot data recorded ---
 # jpeg(paste0(path, "/barplot1.jpg"), width = 350, height = 350)
@@ -877,6 +884,11 @@ SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id),
 write.csv(SCT,paste0(path, "/simplified files/SCT simplify.csv"))
 
 # Treatment ----
+IMIDS_maintenance <- IMIDS_maintenance %>% 
+  mutate(imids_maintenance = "received IMIDs as maintenance") %>% 
+  full_join(migration_patients, ., by = "avatar_id") %>% 
+  mutate(imids_maintenance = ifelse(is.na(imids_maintenance), "not qc'd", imids_maintenance))
+
 # remove NA row in QC'd data
 Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
 Qcd_TreatmentV2 <- Qcd_TreatmentV2 %>% drop_na("drug_start_date", "drug_name_")
@@ -981,7 +993,13 @@ Treatment <- Treatment %>%
       str_detect(drug_name__17, "lidomide") |
       str_detect(drug_name__18, "lidomide")    ~ "IMIDs",
     TRUE ~ "No IMIDs"
-  ))
+  )) %>% 
+  full_join(., IMIDS_maintenance, by = "avatar_id") %>% 
+  mutate(imids_maintenance = ifelse(is.na(imids_maintenance), "no IMIDs as maintenance", imids_maintenance))
+
+
+rm(migration_patients, IMIDS_maintenance)
+
 write.csv(Treatment,paste0(path, "/simplified files/Treatment simplify.csv"))
 
 # Radiation ----

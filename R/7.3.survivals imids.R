@@ -11,7 +11,7 @@ germline_patient_data_seqsimp <- germline_patient_data_simp[ grepl(id, germline_
 ################################################################################### I ### PFS IMIDS ----
 # In germline 651 patients
 IMIDs <- germline_patient_data_seqsimp %>% 
-  filter(received_IMIDs == "IMIDs")
+  filter(imids_maintenance == "received IMIDs as maintenance")
 # PFS Dx
 mysurv <- Surv(time = IMIDs$month_at_progression_Dx, event = IMIDs$progression_surv)
 myplot <- survfit(mysurv~CH_status, data = IMIDs)
@@ -111,7 +111,7 @@ ggsurvplot(myplot, data = IMIDs,
 
 ################################################################################### I ### PFS No IMIDS ----
 No_IMIDs <- germline_patient_data_seqsimp %>% 
-  filter(received_IMIDs == "No IMIDs")
+  filter(imids_maintenance == "no IMIDs as maintenance")
 # PFS Dx
 mysurv <- Surv(time = No_IMIDs$month_at_progression_Dx, event = No_IMIDs$progression_surv)
 myplot <- survfit(mysurv~CH_status, data = No_IMIDs)
@@ -211,7 +211,7 @@ ggsurvplot(myplot, data = No_IMIDs,
 
 # In MM----
 IMIDs_MM <- germline_patient_data_seqsimp %>% 
-  filter(received_IMIDs == "IMIDs") %>% 
+  filter(imids_maintenance == "received IMIDs as maintenance") %>% 
   filter(Disease_Status_facet == "MM")
 
 mysurv <- Surv(time = IMIDs_MM$month_at_progression_Dx, event = IMIDs_MM$progression_surv)
@@ -312,7 +312,7 @@ ggsurvplot(myplot, data = IMIDs_MM,
 
 
 No_IMIDs_MM <- germline_patient_data_seqsimp %>% 
-  filter(received_IMIDs == "No IMIDs") %>% 
+  filter(imids_maintenance == "no IMIDs as maintenance") %>% 
   filter(Disease_Status_facet == "MM")
 # PFS Dx
 mysurv <- Surv(time = No_IMIDs_MM$month_at_progression_Dx, event = No_IMIDs_MM$progression_surv)
@@ -413,7 +413,7 @@ ggsurvplot(myplot, data = No_IMIDs_MM,
 
 # In Smoldering
 IMIDs_SM <- germline_patient_data_seqsimp %>% 
-  filter(received_IMIDs == "IMIDs") %>% 
+  filter(imids_maintenance == "received IMIDs as maintenance") %>% 
   filter(Disease_Status_facet == "Smoldering")
 # PFS Dx
 mysurv <- Surv(time = IMIDs_SM$month_at_progression_Dx, event = IMIDs_SM$progression_surv)
@@ -514,7 +514,7 @@ ggsurvplot(myplot, data = IMIDs_SM,
 
 
 No_IMIDs_SM <- germline_patient_data_seqsimp %>% 
-  filter(received_IMIDs == "No IMIDs") %>% 
+  filter(imids_maintenance == "no IMIDs as maintenance") %>% 
   filter(Disease_Status_facet == "Smoldering")
 # PFS Dx
 mysurv <- Surv(time = No_IMIDs_SM$month_at_progression_Dx, event = No_IMIDs_SM$progression_surv)
@@ -615,7 +615,7 @@ ggsurvplot(myplot, data = No_IMIDs_SM,
 
 # # In MGUS
 # IMIDs_Mgus <- germline_patient_data_seqsimp %>% 
-#   filter(received_IMIDs == "IMIDs") %>% 
+#   filter(imids_maintenance == "received IMIDs as maintenance") %>% 
 #   filter(Disease_Status_facet == "MGUS")
 # # PFS Dx
 # mysurv <- Surv(time = IMIDs_Mgus$month_at_progression_Dx, event = IMIDs_Mgus$progression_surv)
@@ -716,7 +716,7 @@ ggsurvplot(myplot, data = No_IMIDs_SM,
 # 
 # 
 # No_IMIDs_Mgus <- germline_patient_data_seqsimp %>% 
-#   filter(received_IMIDs == "No IMIDs") %>% 
+#   filter(imids_maintenance == "no IMIDs as maintenance") %>% 
 #   filter(Disease_Status_facet == "MGUS")
 # # PFS Dx
 # mysurv <- Surv(time = No_IMIDs_Mgus$month_at_progression_Dx, event = No_IMIDs_Mgus$progression_surv)

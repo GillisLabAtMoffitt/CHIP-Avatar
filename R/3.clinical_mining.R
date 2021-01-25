@@ -476,20 +476,26 @@ sum(is.na(germline_patient_data$drug_start_date_1))
 # What are the duration between start data of regimen?
 regimen_data <- treatment %>% 
   reshape2::dcast(avatar_id+drug_start_date+drug_stop_date ~ rowid(avatar_id),
-                  value.var = c("drug_name_")) %>% 
-  unite(drug_name_, -avatar_id:-drug_stop_date, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
-  arrange(drug_start_date, drug_stop_date) %>% 
+                  value.var = c("drug_name_")) %>%
+  unite(drug_name_, -avatar_id:-drug_stop_date, sep = "; ", na.rm = TRUE, remove = TRUE) %>%
+  mutate(drug_start_date = as_date(drug_start_date)) %>%
+  # mutate(drug_start_date = as.POSIXct(drug_start_date, format = "%Y-%m-%d")) %>% 
+  arrange(avatar_id, drug_start_date, drug_stop_date) %>% 
   group_by(avatar_id) %>% 
-  mutate(drug_start_interval = drug_start_date - lag(drug_start_date), 
+  mutate(drug_start_interval = (drug_start_date - lag(drug_start_date)), 
          drug_start_interval = ifelse(is.na(drug_start_interval), 0, drug_start_interval)
          ) %>% 
   mutate(regimen_duration = interval(start = drug_start_date, end = drug_stop_date)/
-           duration(num =1 , units = "days")) %>% 
-  arrange(avatar_id, drug_start_date, drug_stop_date) %>% 
-  filter(drug_start_interval<30)
+           duration(n =1 , units = "days"))# %>% 
+  # arrange(avatar_id, drug_start_date, drug_stop_date)# %>% 
+  # filter(drug_start_interval<30)
   
 write_csv(regimen_data, path = paste0(path, "/Figures/Treatment/Duration and Gap of regimen.csv"))
 
+# mrn_regimen <- right_join(mrn, regimen_data, by = "avatar_id") %>% 
+#   filter(drug_start_interval %in% c(1:30)) %>% 
+#   distinct(avatar_id, .keep_all = TRUE)
+# write_csv(mrn_regimen, path = paste0(path, "/Figures/Treatment/Duration and Gap of regimen with mrn.csv"))
 
 # What are the duration between start and stop of each regimen?
 Duration <- dcast(setDT(treatment), avatar_id+drug_start_date ~ rowid(avatar_id), 
@@ -655,14 +661,18 @@ Duration <- dcast(setDT(treatment), avatar_id+drug_start_date ~ rowid(avatar_id)
   select(avatar_id, regimen_name, drug_start_date, drug_stop_date, regimen_duration) 
 stat_data <- full_join(Demo_RedCap_V4ish %>% 
               select(c("avatar_id", "TCC_ID", "Date_of_Birth", "Gender", "Ethnicity", "Race")), 
-            Vitals, by = "avatar_id") %>% 
-  full_join(., Duration, by= "avatar_id") %>% 
-  full_join(., Progression_drugs, by= "avatar_id") %>% 
+              Staging_ISS %>% 
+                select(c("avatar_id", "ISS")), by = "avatar_id") %>% 
   full_join(., MM_history %>% 
-              select(c("avatar_id", date_of_diagnosis = "Dx_date_closest_germline")),
+              select(c("avatar_id", date_of_diagnosis = "Dx_date_closest_germline")) , by = "avatar_id") %>% 
+  full_join(., Vitals,
             by = "avatar_id") %>% 
-  full_join(., Staging_ISS %>% 
-              select(c("avatar_id", "ISS"))  , by = "avatar_id")
+  
+  mutate(date_last_follow_up = coalesce(date_last_follow_up, date_contact_lost)) %>% 
+  select(-c(date_contact_lost, was_contact_lost, TCC_ID)) %>% 
+  mutate(vital_status = ifelse(is.na(date_death), "Alive", "Dead")) %>% 
+  full_join(., Duration, by= "avatar_id") %>% 
+  full_join(., Progression_drugs, by= "avatar_id")
   
 write_csv(stat_data, paste0(path, "/data for stats.csv"))
 

@@ -557,9 +557,7 @@ CHIP_status <- read_csv(paste0(path, "/Nancy's working files/CHcalls_12.10.20.cs
   # mutate(CH_status = ifelse(CH_status == "CH", "CHIP", "No CHIP")) %>% 
   mutate(patient_germline_id = str_remove(patient_germline_id, "_normal"))
 #
-IMIDS_maintenance <- readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Maintainance_Regimen.xlsx")) %>% 
-  select("avatar_id") %>% 
-  distinct(avatar_id)
+IMIDS_maintenance <- readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Maintainance_Regimen.xlsx"))
 #
 migration_patients <- readxl::read_xlsx(paste0(path, "/Raghu MM/Avatar List For Migration.xlsx"))
 
@@ -885,9 +883,16 @@ write.csv(SCT,paste0(path, "/simplified files/SCT simplify.csv"))
 
 # Treatment ----
 IMIDS_maintenance <- IMIDS_maintenance %>% 
-  mutate(imids_maintenance = "received IMIDs as maintenance") %>% 
+  unite(drug_name_, drug_name_:drug_name_other, sep = ": ", remove = FALSE, na.rm = TRUE) %>%
+  mutate(imids_maintenance = case_when(
+    str_detect(drug_name_, "lidomide")    ~ "IMIDs as maintenance",
+    TRUE                                  ~ "no IMIDs as maintenance"
+  )) %>% 
   full_join(migration_patients, ., by = "avatar_id") %>% 
-  mutate(imids_maintenance = ifelse(is.na(imids_maintenance), "not qc'd", imids_maintenance))
+  mutate(imids_maintenance = ifelse(is.na(imids_maintenance), "not qc'd", imids_maintenance)) %>% 
+  arrange(imids_maintenance) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select("avatar_id", "imids_maintenance")
 
 # remove NA row in QC'd data
 Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
@@ -994,12 +999,9 @@ Treatment <- Treatment %>%
       str_detect(drug_name__18, "lidomide")    ~ "IMIDs",
     TRUE ~ "No IMIDs"
   )) %>% 
-  full_join(., IMIDS_maintenance, by = "avatar_id") %>% 
-  mutate(imids_maintenance = ifelse(is.na(imids_maintenance), "no IMIDs as maintenance", imids_maintenance))
-
+  full_join(., IMIDS_maintenance, by = "avatar_id")
 
 rm(migration_patients, IMIDS_maintenance)
-
 write.csv(Treatment,paste0(path, "/simplified files/Treatment simplify.csv"))
 
 # Radiation ----

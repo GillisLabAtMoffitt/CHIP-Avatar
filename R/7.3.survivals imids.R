@@ -11,7 +11,7 @@ germline_patient_data_simp <- germline_patient_surv %>%
 ################################################################################### I ### PFS IMIDS ----
 # In germline 651 patients
 IMIDs <- germline_patient_data_simp %>% 
-  filter(imids_maintenance == "received IMIDs as maintenance")
+  filter(imids_maintenance == "IMIDs as maintenance")
 # PFS Dx
 mysurv <- Surv(time = IMIDs$month_at_progression_Dx, event = IMIDs$progression_surv)
 myplot <- survfit(mysurv~CH_status, data = IMIDs)
@@ -211,7 +211,7 @@ ggsurvplot(myplot, data = No_IMIDs,
 
 # In MM----
 IMIDs_MM <- germline_patient_data_simp %>% 
-  filter(imids_maintenance == "received IMIDs as maintenance") %>% 
+  filter(imids_maintenance == "IMIDs as maintenance") %>% 
   filter(Disease_Status_facet == "MM")
 
 mysurv <- Surv(time = IMIDs_MM$month_at_progression_Dx, event = IMIDs_MM$progression_surv)
@@ -413,7 +413,7 @@ ggsurvplot(myplot, data = No_IMIDs_MM,
 
 # In Smoldering
 # IMIDs_SM <- germline_patient_data_simp %>% 
-#   filter(imids_maintenance == "received IMIDs as maintenance") %>% 
+#   filter(imids_maintenance == "IMIDs as maintenance") %>% 
 #   filter(Disease_Status_facet == "Smoldering")
 # # PFS Dx
 # mysurv <- Surv(time = IMIDs_SM$month_at_progression_Dx, event = IMIDs_SM$progression_surv)
@@ -513,109 +513,109 @@ ggsurvplot(myplot, data = No_IMIDs_MM,
 # # dev.off()
 
 
-No_IMIDs_SM <- germline_patient_data_simp %>% 
-  filter(imids_maintenance == "no IMIDs as maintenance") %>% 
-  filter(Disease_Status_facet == "Smoldering")
-# PFS Dx
-mysurv <- Surv(time = No_IMIDs_SM$month_at_progression_Dx, event = No_IMIDs_SM$progression_surv)
-myplot <- survfit(mysurv~CH_status, data = No_IMIDs_SM)
-# jpeg(paste0(path, "/Figures/Survivals/CHIP/IMIDs/new PFS CH noIMIDs SM patients from Dx.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = No_IMIDs_SM,
-           title = "PFS from diagnosis in IMIDs no patients",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5, # line thickness default = 1
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "", 
-           # # legend.labs = c("CH", "No CH"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.17,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ))
-# dev.off()
-# PFS drug
-mysurv <- Surv(time = No_IMIDs_SM$month_at_progression_drug, event = No_IMIDs_SM$progression_drug_surv)
-myplot <- survfit(mysurv~CH_status, data = No_IMIDs_SM)
-# jpeg(paste0(path, "/Figures/Survivals/CHIP/IMIDs/new PFS CH noIMIDs SM patients from drug.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = No_IMIDs_SM,
-           title = "PFS from drug in IMIDs no patients",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5, # line thickness default = 1
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "", 
-           # # legend.labs = c("CH", "No CH"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.17,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ))
-# dev.off()
-# OS
-mysurv <- Surv(time = No_IMIDs_SM$month_at_os, event = No_IMIDs_SM$os_surv_cor)
-myplot <- survfit(mysurv~CH_status, data = No_IMIDs_SM)
-# jpeg(paste0(path, "/Figures/Survivals/CHIP/IMIDs/new OS  CH noIMIDs SM patients.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = No_IMIDs_SM,
-           title = "OS in IMIDs no patients",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5, # line thickness default = 1
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "", 
-           # # legend.labs = c("CH", "No CH"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.17,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ))
-# dev.off()
+# No_IMIDs_SM <- germline_patient_data_simp %>% 
+#   filter(imids_maintenance == "no IMIDs as maintenance") %>% 
+#   filter(Disease_Status_facet == "Smoldering")
+# # PFS Dx
+# mysurv <- Surv(time = No_IMIDs_SM$month_at_progression_Dx, event = No_IMIDs_SM$progression_surv)
+# myplot <- survfit(mysurv~CH_status, data = No_IMIDs_SM)
+# # jpeg(paste0(path, "/Figures/Survivals/CHIP/IMIDs/new PFS CH noIMIDs SM patients from Dx.jpeg"), width = 1200, height = 900)
+# ggsurvplot(myplot, data = No_IMIDs_SM,
+#            title = "PFS from diagnosis in IMIDs no patients",
+#            font.main = c(24, "bold", "black"),
+#            font.x = c(20, "bold", "black"),
+#            font.y = c(20, "bold", "black"),
+#            font.legend = c(20, "bold", "black"),
+#            font.tickslab = c(18, "bold", "black"),
+#            size = 1.5, # line thickness default = 1
+#            
+#            xlab = "Time in months", 
+#            legend = "top",
+#            legend.title = "", 
+#            # # legend.labs = c("CH", "No CH"),
+#            pval = TRUE,
+#            conf.int = FALSE,
+#            # Add risk table
+#            tables.height = 0.17,
+#            risk.table.title = "Risk table (number(%))",
+#            risk.table = "abs_pct",
+#            risk.table.y.text = FALSE,
+#            risk.table.fontsize = 6,
+#            tables.theme = theme_survminer(base_size = 5,
+#                                           font.main = c(16, "bold", "black"),
+#                                           font.x = c(16, "bold", "black"),
+#                                           font.y = c(16, "bold", "transparent"),
+#                                           font.tickslab = c(19, "bold", "black")
+#            ))
+# # dev.off()
+# # PFS drug
+# mysurv <- Surv(time = No_IMIDs_SM$month_at_progression_drug, event = No_IMIDs_SM$progression_drug_surv)
+# myplot <- survfit(mysurv~CH_status, data = No_IMIDs_SM)
+# # jpeg(paste0(path, "/Figures/Survivals/CHIP/IMIDs/new PFS CH noIMIDs SM patients from drug.jpeg"), width = 1200, height = 900)
+# ggsurvplot(myplot, data = No_IMIDs_SM,
+#            title = "PFS from drug in IMIDs no patients",
+#            font.main = c(24, "bold", "black"),
+#            font.x = c(20, "bold", "black"),
+#            font.y = c(20, "bold", "black"),
+#            font.legend = c(20, "bold", "black"),
+#            font.tickslab = c(18, "bold", "black"),
+#            size = 1.5, # line thickness default = 1
+#            
+#            xlab = "Time in months", 
+#            legend = "top",
+#            legend.title = "", 
+#            # # legend.labs = c("CH", "No CH"),
+#            pval = TRUE,
+#            conf.int = FALSE,
+#            # Add risk table
+#            tables.height = 0.17,
+#            risk.table.title = "Risk table (number(%))",
+#            risk.table = "abs_pct",
+#            risk.table.y.text = FALSE,
+#            risk.table.fontsize = 6,
+#            tables.theme = theme_survminer(base_size = 5,
+#                                           font.main = c(16, "bold", "black"),
+#                                           font.x = c(16, "bold", "black"),
+#                                           font.y = c(16, "bold", "transparent"),
+#                                           font.tickslab = c(19, "bold", "black")
+#            ))
+# # dev.off()
+# # OS
+# mysurv <- Surv(time = No_IMIDs_SM$month_at_os, event = No_IMIDs_SM$os_surv_cor)
+# myplot <- survfit(mysurv~CH_status, data = No_IMIDs_SM)
+# # jpeg(paste0(path, "/Figures/Survivals/CHIP/IMIDs/new OS  CH noIMIDs SM patients.jpeg"), width = 1200, height = 900)
+# ggsurvplot(myplot, data = No_IMIDs_SM,
+#            title = "OS in IMIDs no patients",
+#            font.main = c(24, "bold", "black"),
+#            font.x = c(20, "bold", "black"),
+#            font.y = c(20, "bold", "black"),
+#            font.legend = c(20, "bold", "black"),
+#            font.tickslab = c(18, "bold", "black"),
+#            size = 1.5, # line thickness default = 1
+#            
+#            xlab = "Time in months", 
+#            legend = "top",
+#            legend.title = "", 
+#            # # legend.labs = c("CH", "No CH"),
+#            pval = TRUE,
+#            conf.int = FALSE,
+#            # Add risk table
+#            tables.height = 0.17,
+#            risk.table.title = "Risk table (number(%))",
+#            risk.table = "abs_pct",
+#            risk.table.y.text = FALSE,
+#            risk.table.fontsize = 6,
+#            tables.theme = theme_survminer(base_size = 5,
+#                                           font.main = c(16, "bold", "black"),
+#                                           font.x = c(16, "bold", "black"),
+#                                           font.y = c(16, "bold", "transparent"),
+#                                           font.tickslab = c(19, "bold", "black")
+#            ))
+# # dev.off()
 
 # # In MGUS
 # IMIDs_Mgus <- germline_patient_data_simp %>% 
-#   filter(imids_maintenance == "received IMIDs as maintenance") %>% 
+#   filter(imids_maintenance == "IMIDs as maintenance") %>% 
 #   filter(Disease_Status_facet == "MGUS")
 # # PFS Dx
 # mysurv <- Surv(time = IMIDs_Mgus$month_at_progression_Dx, event = IMIDs_Mgus$progression_surv)

@@ -659,20 +659,19 @@ Duration <- dcast(setDT(treatment), avatar_id+drug_start_date ~ rowid(avatar_id)
   )) %>% 
   mutate(regimen_name = str_replace_na(regimen_name, replacement = "No Drugs")) %>% 
   select(avatar_id, regimen_name, drug_start_date, drug_stop_date, regimen_duration) 
-stat_data <- full_join(Demo_RedCap_V4ish %>% 
-              select(c("avatar_id", "TCC_ID", "Date_of_Birth", "Gender", "Ethnicity", "Race")), 
-              Staging_ISS %>% 
-                select(c("avatar_id", "ISS")), by = "avatar_id") %>% 
-  full_join(., MM_history %>% 
-              select(c("avatar_id", date_of_diagnosis = "Dx_date_closest_germline")) , by = "avatar_id") %>% 
-  full_join(., Vitals,
-            by = "avatar_id") %>% 
-  
+
+stat_data <- left_join(germline_patient_data %>% 
+                         select(c("avatar_id", "Date_of_Birth", "Gender", "Ethnicity", "Race", "ISS",
+                                  "Disease_Status_germline", 
+                                  date_of_diagnosis = "Dx_date_closest_germline", Age_at_diagnosis = "Age_at_diagnosis_closest_germline",
+                                  "date_death", "Age_at_death",
+                                  "date_last_follow_up", "date_contact_lost", 
+                                  "progression_drug_surv", "pfs_drug_progression_date", "month_at_progression_drug",
+                                  "os_date_surv", "os_surv_cor", "month_at_os")), 
+                       Duration, by = "avatar_id") %>%
   mutate(date_last_follow_up = coalesce(date_last_follow_up, date_contact_lost)) %>% 
-  select(-c(date_contact_lost, was_contact_lost, TCC_ID)) %>% 
   mutate(vital_status = ifelse(is.na(date_death), "Alive", "Dead")) %>% 
-  full_join(., Duration, by= "avatar_id") %>% 
-  full_join(., Progression_drugs, by= "avatar_id")
+  select(c("avatar_id", "Date_of_Birth", "vital_status", everything()), -date_contact_lost)
   
 write_csv(stat_data, paste0(path, "/data for stats.csv"))
 

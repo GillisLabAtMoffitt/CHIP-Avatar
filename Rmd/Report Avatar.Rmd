@@ -1,0 +1,342 @@
+---
+title: "Report 01.29.2021"
+author: "Christelle Colin-Leitzinger"
+date: "1/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      cache = FALSE,
+                      # fig.width = 7, fig.height = 5, 
+                      fig.align='center'#, fig.show='hold'
+                      )
+```
+
+# Report on year 1 Avatar data Multiple Myeloma patients
+The ORIEN Avatar^TM Research Program focuses on patients with advanced primary or metastatic disease, those with limited treatment options, as well as patients who are likely to develop progressive disease, and will capitalize on the disease-area expertise of ORIEN's research scientists.   
+It generates massive amounts of genetic and clinical information on patients consenting to the Total Cancer Care® (TCC) Protocol.   
+ORIEN Avatar tracks patient clinical progressions over their lifetime to provide the richest data source for targeted cancer therapy advancement.  ORIEN Avatar data solution is optimized for oncology research by providing integrated longitudinal clinical data and whole exome, transcriptome and germline sequencing around consented oncology patients.   
+We are focusing on patients with multiple myeloma disease.
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(VennDiagram)
+library(viridis)
+library(lubridate)
+library(gtsummary)
+library(survival)
+library(survminer)
+```
+
+```{r load}
+Global_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Global_data.rds")
+germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/germline_patient_data.rds")
+```
+
+<br>
+
+***
+
+# I.Avatar data
+The dataset contains clinical data on `r length(unique(Global_data$avatar_id))` unique patient.
+
+<div class = "row">
+<div class = "col-md-6">
+```{r demographics in avatar}
+Global_data  %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "MM Avatar patients") %>% 
+  select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Whole, ISS) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2))
+```
+</div>
+
+<div class = "col-md-6">
+```{r age avatar}
+p <- qplot(x =Age_at_diagnosis_closest_germline, data=subset(Global_data,!is.na(Age_at_diagnosis_closest_germline)), fill=..count.., geom="histogram") 
+p + scale_fill_viridis_c(
+  alpha = 1,
+  begin = 0,
+  end = 1,
+  direction = 1,
+  option = "D",
+  values = NULL,
+  space = "Lab",
+  na.value = "grey50",
+  guide = "colourbar",
+  aesthetics = "fill"
+) +
+  theme_minimal() +
+  labs(x="Age at Diagnosis", y="Number of Patient", title="Age at Diagnisis Repartition in Avatar")
+```
+</div>
+</div>
+<br>
+
+***
+
+# II.Germline data
+`r length(unique(germline_patient_data$avatar_id))` unique germline patient were sequenced and.
+
+### 1.Demographics of MM patients with WES
+<div class = "row">
+<div class = "col-md-6">
+```{r echo=FALSE, out.width='70%'}
+knitr::include_graphics('/Users/colinccm/Documents/GitHub/CHIP-Avatar/Germline patients in Demographic and Clinical data.png')
+knitr::include_graphics('/Users/colinccm/Documents/GitHub/CHIP-Avatar/Patient who had Germline sequenced.png')
+knitr::include_graphics('/Users/colinccm/Documents/GitHub/CHIP-Avatar/ISS Patient who had Germline sequenced.png')
+```
+</div>
+
+<div class = "col-md-6">
+```{r demographics in germline}
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Whole, ISS) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2))
+```
+</div>
+</div>
+
+```{r germline}
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Disease_Status_facet, ISS
+    ) %>% 
+  tbl_summary(by = Disease_Status_facet, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p()
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
+  mutate(Disease_Status_facet = forcats::fct_explicit_na(Disease_Status_facet)) %>% 
+  mutate(Race = str_replace(Race, "Asian|More than one race|Am Indian", "Others")) %>% 
+  tbl_summary(by = Disease_Status_facet, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p()
+
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(CH_status, Disease_Status_germline) %>% 
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency")) %>% add_p() 
+```
+
+<br>
+
+
+
+```{r }
+
+```
+
+<br>
+
+
+### 2.Treatments
+
+```{r}
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  filter(!str_detect(Disease_Status_germline, "Amyl|MYELO|Normal|Refrac|Solit|WALD")) %>%
+  mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Drugs", "No Drugs")) %>%
+  mutate(first_regimen_name_MM = case_when(
+    !str_detect(first_regimen_name_MM, 
+                "VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRd") 
+                                                     ~ "Other Regimen",
+    TRUE                                             ~ first_regimen_name_MM
+  )) %>% 
+  mutate(No_Treatment = case_when(
+    is.na(drug_start_date_1) &
+      is.na(rad_start_date_1) &
+      is.na(date_of_bmt_1) ~ "No Treatment",
+    TRUE                   ~ "Treatment Given"
+  )) %>% 
+  select(Drugs, first_regimen_name_MM, Disease_Status_germline, Radiation_at_all_time, HCT_at_all_time, No_Treatment) %>% 
+  tbl_summary(by = Disease_Status_germline,
+              sort = list(everything() ~ "frequency")) %>% add_p()
+
+germline_patient_data %>%
+  mutate(Whole = "Most common regimen in 1st regimen") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(first_regimen_name_MM = str_replace_na(first_regimen_name_MM, replacement = "No Drugs")) %>% 
+  filter(str_detect(first_regimen_name_MM, "VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRD")) %>% 
+  select(first_regimen_name_MM, Whole) %>% 
+  tbl_summary(by = Whole,
+              sort = list(everything() ~ "frequency"))
+```
+
+<br>
+
+
+### 4.Disparities in MM patients with WES
+
+```{r}
+p1 <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagnosis_closest_germline), !is.na(Gender)),
+            aes(x=Gender, y=Age_at_diagnosis_closest_germline), fill=Gender) + 
+  geom_boxplot(color= c("purple3", "royalblue2")) +
+  theme_minimal() +
+  labs(x="Gender", y="Age at Diagnosis", title="Age repartition per gender in germline") + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  stat_compare_means()
+
+p2 <- ggplot(germline_patient_data %>%
+              # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>%
+              filter(!is.na(Age_at_diagnosis_closest_germline), !is.na(Gender), !is.na(Disease_Status_facet)),
+            aes(x=Gender, y=Age_at_diagnosis_closest_germline), fill=Gender) + 
+  geom_boxplot(color= rep(c("purple3", "royalblue2"), 3)) +
+  theme_minimal() +
+  labs(x="Gender", y="Age at Diagnosis", title="Age repartition per gender in Avatar") + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  facet_grid(. ~ Disease_Status_facet) +
+  theme(strip.background = element_rect(colour="grey", fill="white",
+                                        size=1.5, linetype="solid")) +
+  stat_compare_means()
+gridExtra::grid.arrange(p1, p2, ncol = 2, top="Disp")
+
+p1 <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagnosis_closest_germline), (Ethnicity == "Hispanic" | Ethnicity == "Non-Hispanic") ), 
+            aes(x=Ethnicity, y=Age_at_diagnosis_closest_germline), fill=Ethnicity) + 
+  geom_boxplot(color = c("darkred", "darkgreen")) + 
+  theme_minimal() +
+  labs(x="Ethnicity", y="Age at Diagnosis", title="Age repartition per ethnicity in germline") + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  stat_compare_means()
+
+p2 <- ggplot(germline_patient_data %>% 
+              # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>%
+              filter(!is.na(Age_at_diagnosis_closest_germline),
+                     !is.na(Disease_Status_facet), (Ethnicity == "Hispanic" | Ethnicity == "Non-Hispanic") ),
+            aes(x=Ethnicity, y=Age_at_diagnosis_closest_germline), fill=Ethnicity) + 
+  geom_boxplot(color = c("darkred", "darkgreen", "darkred", "darkgreen", "darkred", "darkgreen")) + 
+  theme_minimal() +
+  labs(x="Ethnicity", y="Age at Diagnosis", title="Age repartition per ethnicity in Avatar") + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  facet_grid(. ~ Disease_Status_facet) +
+  theme(strip.background = element_rect(colour="grey", fill="white",
+                                        size=1.5, linetype="solid")) +
+  stat_compare_means()
+gridExtra::grid.arrange(p1, p2, ncol = 2, top="Disp")
+
+p1 <- germline_patient_data %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black", "Others"))) %>% filter(!is.na(Race), !is.na(Disease_Status_facet)) %>% 
+  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>% 
+  ggplot(aes(x=Race, y=Age_at_diagnosis_closest_germline), fill=Race) + 
+  geom_boxplot(color= c("#A92E5EFF", "#E65D2FFF", "grey")) + # c(rep(c("#A92E5EFF", "#E65D2FFF", "grey"),3))
+  theme_minimal() +
+  labs(x="Race", y="Age at Diagnosis", title="Age repartition per race in germline") + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  theme(strip.background = element_rect(colour="grey", fill="white",
+                                        size=1.5, linetype="solid")) +
+  stat_compare_means()
+
+p2 <- germline_patient_data %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black"))) %>% filter(!is.na(Race),!is.na(Disease_Status_facet)) %>% 
+  # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>% 
+  ggplot(aes(x=Race, y=Age_at_diagnosis_closest_germline), fill=Race) + 
+  geom_boxplot(color= c(rep(c("#A92E5EFF", "#E65D2FFF"),3))) +
+  theme_minimal() +
+  labs(x="Race", y="Age at Diagnosis", title="Age repartition per race in Avatar") + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  theme(strip.background = element_rect(colour="grey", fill="white",
+                                        size=1.5, linetype="solid")) +
+  facet_grid(. ~ Disease_Status_facet) +
+  stat_compare_means()
+gridExtra::grid.arrange(p1, p2, ncol = 2, top="Disp")
+```
+
+
+<br>
+
+
+### 5.CH
+
+<div class = "row">
+<div class = "col-md-6">
+```{r}
+length(!is.na(germline_patient_data$CH_status))
+
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(CH_status, Disease_Status_germline) %>% 
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency")) %>% add_p()
+```
+
+</div>
+
+<div class = "col-md-6">
+```{r}
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, CH_status, ISS) %>% 
+  mutate(Race = str_replace(Race, "Unknown", NA_character_)) %>%
+  mutate(Ethnicity = str_replace(Ethnicity, "Unknown", NA_character_)) %>%
+  mutate(Race = str_replace(Race, "Asian|More than one race|Am Indian", "Others")) %>% 
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p()
+```
+</div>
+</div>
+
+
+<br>
+
+## Survivals
+<div class = "row">
+<div class = "col-md-6">
+```{r, fig.height = 7}
+germline_patient_surv <- germline_patient_data %>% distinct(avatar_id, .keep_all = TRUE)
+mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_surv_cor)
+myplot <- survfit(mysurv~1)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS from Dx",
+           font.main = c(16, "bold", "black"),
+           xlab = "Time in months", 
+           # surv.median.line = c("hv"),
+           # Add risk table
+           risk.table = TRUE,
+           tables.height = 0.2,
+           risk.table.title = "Risk table (number(%))",
+           # risk.table.pos = "in",
+           conf.int = FALSE,
+           censor = TRUE
+)
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = germline_patient_surv$month_at_progression_drug, event = germline_patient_surv$progression_drug_surv)
+myplot <- survfit(mysurv~1)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "PFS from drug",
+           font.main = c(16, "bold", "black"),
+           xlab = "Time in months", 
+           # Add risk table
+           risk.table = TRUE,
+           tables.height = 0.2,
+           risk.table.title = "Risk table (number(%))",
+           conf.int = FALSE,
+           censor = TRUE
+)
+```
+</div>
+</div>
+
+
+
+
+
+
+
+<br>
+
+***
+
+&nbsp;
+<hr />
+<p style="text-align: center;">Code in <a href="https://github.com/GillisLabAtMoffitt/CHIP-Avatar">GillisLabAtMoffitt  </a>GitHub</p>

@@ -1,5 +1,12 @@
 ########################################### I ### Create dataframe for all start dates, will use that for timeline ----
-# readRDS(Global_data)
+# readRDS("Global_data_pre.rds")
+capwords <- function(s, strict = FALSE) {
+  cap <- function(s) paste(toupper(substring(s, 1, 1)),
+                           {s <- substring(s, 2); if(strict) tolower(s) else s},
+                           sep = "", collapse = " " )
+  sapply(strsplit(s, split = " "), cap, USE.NAMES = !is.null(names(s)))
+}
+
 Global_data <- Global_data %>%
   mutate(drug_name_1_for_MM = 
            str_remove_all(drug_name__1, "given with investigational therapy: |clinical trial: |investigational agent: clinical trial|investigational agent: | -|-|; $| sulfate|clinical trial/")) %>% 
@@ -276,7 +283,7 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
     rad_start_date_1 >= last_date_available        ~ NA_POSIXct_, # doesn't remove date
     TRUE                                           ~ rad_start_date_1
   )) %>%
-  mutate(Radiation = ifelse(!is.na(rad_start_date_1), "Radiation", "No Radiation")) %>% 
+  mutate(Radiation_at_all_time = ifelse(!is.na(rad_start_date_1), "Radiation", "No Radiation")) %>% 
   mutate(interval_radiation_vs_germ = interval(start = rad_start_date_1, collectiondt_germline)/
            duration(n=1, units = "days")) %>% 
   mutate(pfs_radiation = case_when(
@@ -299,7 +306,7 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
     date_of_bmt_1 >= last_date_available           ~ NA_POSIXct_, # doesn't remove date
     TRUE                                           ~ date_of_bmt_1
   )) %>%
-  mutate(HCT = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT")) %>% 
+  mutate(HCT_at_all_time = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT")) %>% 
   mutate(pfs_hct = case_when(
     pfs_hct_start_date <= collectiondt_germline          ~ "Yes",
     pfs_hct_start_date > collectiondt_germline |
@@ -323,12 +330,21 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
     !is.na(Disease_Status_germline)                                                    ~ "not assessed"
     # is.na(Disease_Status_germline)                                                     ~ NA_character_
   )) %>% 
+  mutate(Disease_Status_germline = tolower(Disease_Status_germline)) %>% 
+  mutate(Disease_Status_germline = capwords(Disease_Status_germline)) %>% 
+  mutate(Disease_Status_germline = na_if(Disease_Status_germline, "NANA")) %>% 
+  mutate(Disease_Status_germline = str_replace(Disease_Status_germline, "Amyloidosis- Diagnostic Marrow", "Amyloidosis")) %>% 
+  mutate(Disease_Status_germline = str_replace(Disease_Status_germline, "Refractory anemia with ring sideroblasts", "Refractory Anemia with Ring Sideroblasts (RARS)")) %>% 
   mutate(Disease_Status_germline =
            factor(Disease_Status_germline, levels = c("Pre Treatment Newly Diagnosed Multiple Myeloma",
                                                       "Post Treatment Newly Diagnosed Multiple Myeloma",
                                                       "Early Relapse Multiple Myeloma",
                                                       "Late Relapse Multiple Myeloma",
-                                                      "Smoldering Multiple Myeloma", "Mgus"))) %>% 
+                                                      "Smoldering Multiple Myeloma", "Mgus",
+                                                      "Solitary Plasmacytoma", "Normal Marrow", 
+                                                      "Amyloidosis", "Waldenstrom Macroglobulinemia", 
+                                                      "Myelofibrosis", "Refractory Anemia with Ring Sideroblasts (RARS)",
+                                                      "Polyclonal Gammopathy"))) %>% 
   mutate(Disease_Status_facet = case_when(
     Disease_Status_germline == "Pre Treatment Newly Diagnosed Multiple Myeloma" |
       Disease_Status_germline == "Post Treatment Newly Diagnosed Multiple Myeloma" |
@@ -353,98 +369,96 @@ write.csv(Global_data, paste0(path, "/Global_data updated.csv"))
 
 
 ########################################### II ### Create all the age from dates ----
-Age_data <- Global_data
-
 enddate <- today()
-Age_data$Age <- interval(start= Global_data$Date_of_Birth, end= enddate)/                      
+Global_data$Age <- interval(start= Global_data$Date_of_Birth, end= enddate)/                      
   duration(n=1, unit="years")
-Age_data$Age <- round(Age_data$Age, 3)
-# summary(Age_data$Age)
+Global_data$Age <- round(Global_data$Age, 3)
+# summary(Global_data$Age)
 
-Age_data$Age_at_diagnosis_closest_germline <- interval(start= Global_data$Date_of_Birth, end= Global_data$Dx_date_closest_germline)/                      
+Global_data$Age_at_diagnosis_closest_germline <- interval(start= Global_data$Date_of_Birth, end= Global_data$Dx_date_closest_germline)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_diagnosis_closest_germline <- round(Age_data$Age_at_diagnosis_closest_germline, 3)
-# summary(Age_data$Age_at_diagnosis, na.rm = TRUE)
-Age_data$Age_at_MMonly_diagnosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_MMonly_diagnosis)/                      
+Global_data$Age_at_diagnosis_closest_germline <- round(Global_data$Age_at_diagnosis_closest_germline, 3)
+# summary(Global_data$Age_at_diagnosis, na.rm = TRUE)
+Global_data$Age_at_MMonly_diagnosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_MMonly_diagnosis)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_MMonly_diagnosis <- round(Age_data$Age_at_MMonly_diagnosis, 3)
-Age_data$Age_at_MMSMMGUSdiagnosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_MMSMMGUSdiagnosis)/                      
+Global_data$Age_at_MMonly_diagnosis <- round(Global_data$Age_at_MMonly_diagnosis, 3)
+Global_data$Age_at_MMSMMGUSdiagnosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_MMSMMGUSdiagnosis)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_MMSMMGUSdiagnosis <- round(Age_data$Age_at_MMSMMGUSdiagnosis, 3)
+Global_data$Age_at_MMSMMGUSdiagnosis <- round(Global_data$Age_at_MMSMMGUSdiagnosis, 3)
 
-Age_data$Age_at_death <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_death)/                      
+Global_data$Age_at_death <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_death)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_death <- round(Age_data$Age_at_death, 3)
-# summary(Age_data$Age_at_death, na.rm = TRUE)
+Global_data$Age_at_death <- round(Global_data$Age_at_death, 3)
+# summary(Global_data$Age_at_death, na.rm = TRUE)
 
-Age_data$Age_at_lastfollowup <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_last_follow_up)/                      
+Global_data$Age_at_lastfollowup <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_last_follow_up)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_lastfollowup <- round(Age_data$Age_at_lastfollowup, 3)
-# summary(Age_data$Age_at_lastfollowup, na.rm = TRUE)
+Global_data$Age_at_lastfollowup <- round(Global_data$Age_at_lastfollowup, 3)
+# summary(Global_data$Age_at_lastfollowup, na.rm = TRUE)
 
-Age_data$Age_at_lastdate <- interval(start= Global_data$Date_of_Birth, end= Global_data$last_date_available)/                      
+Global_data$Age_at_lastdate <- interval(start= Global_data$Date_of_Birth, end= Global_data$last_date_available)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_lastdate <- round(Age_data$Age_at_lastdate, 3)
-# summary(Age_data$Age_at_lastdate, na.rm = TRUE)
+Global_data$Age_at_lastdate <- round(Global_data$Age_at_lastdate, 3)
+# summary(Global_data$Age_at_lastdate, na.rm = TRUE)
 
-Age_data$Age_at_firstdrug <- interval(start= Global_data$Date_of_Birth, end= Global_data$drug_start_date_1)/                      
+Global_data$Age_at_firstdrug <- interval(start= Global_data$Date_of_Birth, end= Global_data$drug_start_date_1)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_firstdrug <- round(Age_data$Age_at_firstdrug, 3)
-# summary(Age_data$Age_at_firstdrug, na.rm = TRUE)
+Global_data$Age_at_firstdrug <- round(Global_data$Age_at_firstdrug, 3)
+# summary(Global_data$Age_at_firstdrug, na.rm = TRUE)
 
-Age_data$Age_at_firstbmt <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_bmt_1)/                      
+Global_data$Age_at_firstbmt <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_bmt_1)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_firstbmt <- round(Age_data$Age_at_firstbmt, 3)
-# summary(Age_data$Age_at_firstbmt, na.rm = TRUE)
+Global_data$Age_at_firstbmt <- round(Global_data$Age_at_firstbmt, 3)
+# summary(Global_data$Age_at_firstbmt, na.rm = TRUE)
 
-Age_data$Age_at_firstrad <- interval(start= Global_data$Date_of_Birth, end= Global_data$rad_start_date_1)/                      
+Global_data$Age_at_firstrad <- interval(start= Global_data$Date_of_Birth, end= Global_data$rad_start_date_1)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_firstrad <- round(Age_data$Age_at_firstrad, 3)
-# summary(Age_data$Age_at_firstrad, na.rm = TRUE)
+Global_data$Age_at_firstrad <- round(Global_data$Age_at_firstrad, 3)
+# summary(Global_data$Age_at_firstrad, na.rm = TRUE)
 
-Age_data$Age_at_germcollect <- interval(start= Global_data$Date_of_Birth, end= Global_data$collectiondt_germline)/                      
+Global_data$Age_at_germcollect <- interval(start= Global_data$Date_of_Birth, end= Global_data$collectiondt_germline)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_germcollect <- round(Age_data$Age_at_germcollect, 3)
-# summary(Age_data$Age_at_germcollect, na.rm = TRUE)
+Global_data$Age_at_germcollect <- round(Global_data$Age_at_germcollect, 3)
+# summary(Global_data$Age_at_germcollect, na.rm = TRUE)
 
-Age_data$Age_at_tumorcollect <- interval(start= Global_data$Date_of_Birth, end= Global_data$collectiondt_tumor_1)/                      
+Global_data$Age_at_tumorcollect <- interval(start= Global_data$Date_of_Birth, end= Global_data$collectiondt_tumor_1)/                      
   duration(n=1, unit="years")
-Age_data$Age_at_tumorcollect <- round(Age_data$Age_at_tumorcollect, 3)
-# summary(Age_data$Age_at_tumorcollect, na.rm = TRUE)
+Global_data$Age_at_tumorcollect <- round(Global_data$Age_at_tumorcollect, 3)
+# summary(Global_data$Age_at_tumorcollect, na.rm = TRUE)
 
-Age_data$month_at_progression_Dx <- interval(start= Global_data$date_of_diagnosis_1, end= Global_data$pfs_progression_date)/                      
+Global_data$month_at_progression_Dx <- interval(start= Global_data$date_of_diagnosis_1, end= Global_data$pfs_progression_date)/                      
   duration(n=1, unit="months")
-Age_data$month_at_progression_Dx <- round(Age_data$month_at_progression_Dx, 3)
-b <- Age_data[,c("avatar_id", "month_at_progression_Dx", "date_of_diagnosis_1", "pfs_progression_date", "last_date_available", "progression_date", 
-                 "last_event_available")]
+Global_data$month_at_progression_Dx <- round(Global_data$month_at_progression_Dx, 3)
+# b <- Global_data[,c("avatar_id", "month_at_progression_Dx", "date_of_diagnosis_1", "pfs_progression_date", "last_date_available", "progression_date", 
+#                  "last_event_available")]
 
-Age_data$month_at_progression_drug <- interval(start= Global_data$pfs_drug_start_date, end= Global_data$pfs_drug_progression_date)/                      
+Global_data$month_at_progression_drug <- interval(start= Global_data$pfs_drug_start_date, end= Global_data$pfs_drug_progression_date)/                      
   duration(n=1, unit="months")
-Age_data$month_at_progression_drug <- round(Age_data$month_at_progression_drug, 3)
-b <- Age_data[,c("avatar_id", "month_at_progression_drug", "pfs_drug_start_date", "pfs_drug_progression_date", "last_date_available", "progression_date", 
-                 "last_event_available")]
+Global_data$month_at_progression_drug <- round(Global_data$month_at_progression_drug, 3)
+# b <- Global_data[,c("avatar_id", "month_at_progression_drug", "pfs_drug_start_date", "pfs_drug_progression_date", "last_date_available", "progression_date", 
+#                  "last_event_available")]
 
 
-Age_data$month_at_progression_rad <- interval(start= Global_data$pfs_rad_start_date, end= Global_data$pfs_rad_progression_date)/                      
+Global_data$month_at_progression_rad <- interval(start= Global_data$pfs_rad_start_date, end= Global_data$pfs_rad_progression_date)/                      
   duration(n=1, unit="months")
-Age_data$month_at_progression_rad <- round(Age_data$month_at_progression_rad, 3)
+Global_data$month_at_progression_rad <- round(Global_data$month_at_progression_rad, 3)
 
-Age_data$month_at_progression_hct <- interval(start= Global_data$pfs_hct_start_date, end= Global_data$pfs_hct_progression_date)/                      
+Global_data$month_at_progression_hct <- interval(start= Global_data$pfs_hct_start_date, end= Global_data$pfs_hct_progression_date)/                      
   duration(n=1, unit="months")
-Age_data$month_at_progression_hct <- round(Age_data$month_at_progression_hct, 3)
+Global_data$month_at_progression_hct <- round(Global_data$month_at_progression_hct, 3)
 
-Age_data$month_at_os <- interval(start= Global_data$date_of_diagnosis_1, end= Global_data$os_date_surv)/                      
+Global_data$month_at_os <- interval(start= Global_data$date_of_diagnosis_1, end= Global_data$os_date_surv)/                      
   duration(n=1, unit="months")
-Age_data$month_at_os <- round(Age_data$month_at_os, 3)
-b <- Age_data[,c("avatar_id", "month_at_os", "date_death", "date_of_diagnosis_1", "os_date_surv", "os_surv", "last_date_available"
-                 )]
+Global_data$month_at_os <- round(Global_data$month_at_os, 3)
+# b <- Global_data[,c("avatar_id", "month_at_os", "date_death", "date_of_diagnosis_1", "os_date_surv", "os_surv", "last_date_available"
+#                  )]
 
-rm(b)
-
+# rm(b)
+write_rds(Global_data, path = "Global_data.rds")
 
 ################################################################################################## III ## Germline ----
 # Create dataframe for only the patients who had germline sequenced
-germline_patient_data <- Age_data[!is.na(Age_data$Disease_Status_germline),]
+germline_patient_data <- Global_data[!is.na(Global_data$Disease_Status_germline),]
 write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
 
 
@@ -531,6 +545,7 @@ germline_patient_data <- germline_patient_data %>%
     TRUE ~ os_surv
   ))
 
+write_rds(germline_patient_data, path = "germline_patient_data.rds")
 # write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))
 tab <- table(germline_patient_data$GermBFtumorWES)
 # jpeg("barplot3.jpg", width = 350, height = 350)

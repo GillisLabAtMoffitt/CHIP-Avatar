@@ -74,17 +74,28 @@ tbl <-
   as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics by CH simplified race in germline patients.pdf"))
 
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Disease_Status_germline, Whole) %>% 
+  tbl_summary(by = Whole) %>% as_gt()
 
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(CH_status, Disease_Status_germline) %>% 
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency")) %>% add_p() %>% 
+  as_gt()
 
 
 
 
 # We have 512 unique patient IDs in Sequencing, does they match the treatment
-# Treatment$avatar_id == Germline$avatar_id # No
+# Treatment$avatar_id == germline_patient_data$avatar_id # No
 
 
 venn.diagram(
-  x = list(MM_history$avatar_id, Germline$avatar_id, Demo_RedCap_V4ish$avatar_id),
+  x = list(MM_history$avatar_id, germline_patient_data$avatar_id, Demo_RedCap_V4ish$avatar_id),
   category.names = c("Clinical data" , "Germline data", "Demographics data"),
   filename = 'Germline patients in Demographic and Clinical data.png',
   output=TRUE,
@@ -113,7 +124,7 @@ venn.diagram(
 )
 
 # venn.diagram(
-#   x = list(MM_history$avatar_id, Germline$avatar_id, WES$avatar_id, Demo_RedCap_V4ish$avatar_id),
+#   x = list(MM_history$avatar_id, germline_patient_data$avatar_id, WES$avatar_id, Demo_RedCap_V4ish$avatar_id),
 #   category.names = c("Clinical data" , "Germline data" , "WES data", "Demographics data"),
 #   filename = 'Germline, WES and Demo.png',
 #   output=TRUE,
@@ -210,7 +221,7 @@ venn.diagram(
 )
 
 venn.diagram(
-  x = list(MM_history$avatar_id, Germline$avatar_id),
+  x = list(MM_history$avatar_id, germline_patient_data$avatar_id),
   category.names = c("Clinical data" , "Germline data"),
   filename = 'Patient who had Germline sequenced.png',
   output=TRUE,
@@ -239,9 +250,43 @@ venn.diagram(
   rotation.degree = -90
 
 )
+ISS1 <- germline_patient_data %>% filter(ISS == "I") %>% select(avatar_id)
+ISS2 <- germline_patient_data %>% filter(ISS == "II") %>% select(avatar_id)
+ISS3 <- germline_patient_data %>% filter(ISS == "III") %>% select(avatar_id)
+venn.diagram(
+  x = list(germline_patient_data$avatar_id, 
+           ISS1$avatar_id, ISS2$avatar_id, ISS3$avatar_id),
+  category.names = c("Germline data", "ISS-I", "ISS-II", "ISS-III"),
+  filename = 'ISS Patient who had Germline sequenced.png',
+  output=TRUE,
+  
+  # Output features
+  imagetype="png" ,
+  height = 700 , 
+  width = 700 , 
+  resolution = 300,
+  compression = "lzw",
+  
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = c("#FEA873FF", "lightblue", "pink", "lightgreen"), # clin, germ
+  # darkbluegrey "#00204DFF" = clinical , yellow #FFEA46FF = germ
+  margin = 0.05,
+  
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans"#,
+  # cat.pos = c(-20, 160),
+  # cat.dist = c(0.055, 0.055),
+  #ext.percent = 2,
+  # rotation.degree = -90
+  
+)
 
 venn.diagram(
-  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id),
+  x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, germline_patient_data$avatar_id),
   category.names = c("Clinical data" , "Drugs" , "BMT", "Germline data"),
   filename = 'Patient who had Drugs, BMT and Germline sequenced.png',
   output=TRUE,
@@ -272,7 +317,7 @@ venn.diagram(
 )
 
 # venn.diagram(
-#   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id, Radiation$avatar_id),
+#   x = list(MM_history$avatar_id, Treatment$avatar_id, SCT$avatar_id, germline_patient_data$avatar_id, Radiation$avatar_id),
 #   category.names = c("Clinical data" , "Drugs" , "BMT", "Germline data", "Radiation"),
 #   filename = 'Patient who had Drugs, BMT, Radiation and Germline sequenced.png',
 #   output=TRUE,
@@ -302,7 +347,7 @@ venn.diagram(
 # )
 
 venn.diagram(
-  x = list(Treatment$avatar_id, SCT$avatar_id, Germline$avatar_id),
+  x = list(Treatment$avatar_id, SCT$avatar_id, germline_patient_data$avatar_id),
   category.names = c("Drugs" , "BMT", "Germline data"),
   filename = 'Patient who had Drugs, BMT and Germline sequenced 2.png',
   output=TRUE,
@@ -770,7 +815,7 @@ gt::gtsave(tbl, paste0(path, "/Figures/Treatment/Drugs in 1st regimen germline p
 # table <- as.data.table(table(germline_patient_data$drug_name__1))
 # write.csv(table, paste0(path, "/list of all drugs in data.csv"))
 tbl <- germline_patient_data %>%
-  mutate(Whole = "All regimen in 1st regimen") %>% 
+  mutate(Whole = "Most common regimen in 1st regimen") %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(first_regimen_name_MM = str_replace_na(first_regimen_name_MM, replacement = "No Drugs")) %>% 
   filter(str_detect(first_regimen_name_MM, "VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRD")) %>% 
@@ -800,7 +845,7 @@ tbl <- germline_patient_data %>%
       is.na(date_of_bmt_1) ~ "No Treatment",
     TRUE                   ~ "Treatment Given"
   )) %>% 
-  select(Drugs, first_regimen_name_MM, Disease_Status_germline, Radiation, HCT, No_Treatment) %>% 
+  select(Drugs, first_regimen_name_MM, Disease_Status_germline, Radiation_at_all_time, HCT_at_all_time, No_Treatment) %>% 
   tbl_summary(by = Disease_Status_germline,
               sort = list(everything() ~ "frequency")) %>% add_p() %>% as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Treatment/Table any treatment in germline patients.pdf"))

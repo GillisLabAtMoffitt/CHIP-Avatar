@@ -127,8 +127,8 @@ uid_MM <- paste(unique(MM_history_V12$avatar_id), collapse = '|')
 Treatment_V12 <-
   readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("mrn", "avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
-           "drug_name_other_")) %>%  # didn't take "treatment_line_"
+  select(c("mrn", "avatar_id", "treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date",
+           "drug_name_other_")) %>%
   unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = FALSE) %>% 
   rename(drug_other = "drug_name_other_")
 uid_T <- paste(unique(Treatment_V12$avatar_id), collapse = '|')
@@ -319,14 +319,14 @@ MM_historyV2 <- MM_historyV2[(!grepl(uid_MM, MM_historyV2$avatar_id)),]
 TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", "drug_start_date" , "drug_name_", "drug_stop_date",
+  select(c("avatar_id", "treatment_line_", "drug_start_date" , "drug_name_", "drug_stop_date",
            "drug_name_other")) %>%  # didn't take "treatment_line_"
   unite(drug_name_, c(drug_name_,drug_name_other), sep = ": ", na.rm = TRUE, remove = TRUE) #%>% 
   # rename(drug_other = "drug_name_other")
 Qcd_TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "QC'd Treatment") %>%
-  select(c("avatar_id", "drug_start_date" , "drug_name_", "drug_stop_date"))
+  select(-relapse_date)
 TreatmentV2 <- TreatmentV2[(!grepl(uid_T, TreatmentV2$avatar_id)),]
 Qcd_TreatmentV2 <- Qcd_TreatmentV2[(!grepl(uid_T, Qcd_TreatmentV2$avatar_id)),]
 #---
@@ -896,7 +896,10 @@ IMIDS_maintenance <- IMIDS_maintenance %>%
 
 # remove NA row in QC'd data
 Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
-Qcd_TreatmentV2 <- Qcd_TreatmentV2 %>% drop_na("drug_start_date", "drug_name_")
+Qcd_TreatmentV2 <- Qcd_TreatmentV2 %>% drop_na("drug_start_date", "drug_name_") %>%
+  arrange(drug_start_date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(treatment_line_ = dense_rank(interaction(avatar_id, drug_start_date)))
 # remove the Ids found in Qc'd from the Treatment 
 uid <- paste(unique(Qcd_Treatment$avatar_id), collapse = '|')
 Treatment <- Treatment[(!grepl(uid, Treatment$avatar_id)),]
@@ -905,14 +908,45 @@ TreatmentV2 <- TreatmentV2[(!grepl(uid, TreatmentV2$avatar_id)),]
 # Bind QC'd and Treatment for each version
 # Need to pivot longer Treatment from V1 (and V2) because not same formatting
 # Having one drug per row will help to remove duplicate in drugs after binding all version together
-Treatment <- bind_rows(Qcd_Treatment, Treatment, .id = "Treatment") %>% 
-  # mutate_at(("drug_name_"), ~ str_replace_all(., ",", ";")) %>% 
-  separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "; |;", extra = "warn", 
+Treatment <- bind_rows(Qcd_Treatment, Treatment) %>% 
+  group_by(avatar_id) %>% 
+  arrange(drug_start_date) %>% 
+  mutate(treatment_line = row_number()) %>% 
+  mutate_at(("drug_name_"), ~ str_replace_all(., "/", ": ")) %>% 
+  separate(col = drug_name_, paste("drug_name_", 1:10, sep=""), sep = "; |;", extra = "warn", 
            fill = "right") %>% 
   purrr::keep(~!all(is.na(.))) %>%
   pivot_longer(cols = starts_with("drug_name_"),
                names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
-TreatmentV2 <- bind_rows(Qcd_TreatmentV2, TreatmentV2, .id = "Treatment") %>% 
+
+
+
+
+
+
+Treatment1 <- TreatmentV2 %>% 
+  mutate(treatment_line_ = case_when(
+    str_detect(treatment_line_, "First") ~ 1,
+    str_detect(treatment_line_, "Second") ~ 2,
+    str_detect(treatment_line_, "Third") ~ 3,
+    str_detect(treatment_line_, "Fourth") ~ 4,
+    str_detect(treatment_line_, "Fifth") ~ 5,
+    str_detect(treatment_line_, "Sixth") ~ 6,
+    str_detect(treatment_line_, "Seventh") ~ 7,
+    str_detect(treatment_line_, "Eighth") ~ 8,
+    str_detect(treatment_line_, "Ninth") ~ 9,
+    str_detect(treatment_line_, "Tenth") ~ 10,
+    str_detect(treatment_line_, "Eleventh") ~ 11,
+    str_detect(treatment_line_, "Maint") ~ 12
+    )) %>% 
+  group_by(avatar_id, drug_start_date) %>% 
+  fill(treatment_line_, .direction = "downup") %>% 
+  group_by(avatar_id) %>% 
+  arrange(drug_start_date) %>% 
+  # mutate(treatment_line = dense_rank(interaction(avatar_id, drug_start_date))) %>% 
+  fill(treatment_line, .direction = "downup") %>%  # is not the best way, could do a 30 days rule
+  ungroup() %>% 
+  bind_rows(Qcd_TreatmentV2, ., .id = "Treatment") %>% 
   separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "; |;", extra = "warn", 
            fill = "right") %>% 
   purrr::keep(~!all(is.na(.))) %>%

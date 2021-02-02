@@ -543,18 +543,34 @@ write_csv(regimen_data, path = paste0(path, "/Figures/Treatment/Duration and Gap
 # write_csv(mrn_regimen, path = paste0(path, "/Figures/Treatment/Duration and Gap of regimen with mrn.csv"))
 
 # What are the duration between start and stop of each regimen?
-Duration <- dcast(setDT(treatment), avatar_id+drug_start_date ~ rowid(avatar_id), 
-      value.var = c("drug_name_", "drug_stop_date")) %>% 
-  select(ncol(.):drug_stop_date_1, everything()) %>% 
-  unite(drug_stop_date, 1:"drug_stop_date_1", sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
-  separate(drug_stop_date, paste("drug_stop_date", 1, sep="_"), sep = "; ",
-           extra = "warn", fill = "right") %>% 
+Duration <- dcast(setDT(treatment), mrn+avatar_id+treatment_line_ ~ rowid(avatar_id),
+                  value.var = c("drug_name_","drug_start_date", "drug_stop_date")) %>% 
   unite(drug_name_, starts_with("drug_name_"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
-  arrange(avatar_id, drug_start_date) %>% 
-  distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(regimen_duration = interval(start = drug_start_date, end = drug_stop_date_1)/
+  
+  unite(drug_start_date, starts_with("drug_start_date"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  separate(drug_start_date, "drug_start_date", sep = "; ",
+           extra = "warn", fill = "right") %>% 
+  
+  select(c(mrn, avatar_id, treatment_line_, "drug_name_", drug_start_date, ncol(.):drug_stop_date_1)) %>% 
+  unite(drug_stop_date, starts_with("drug_stop_date"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  separate(drug_stop_date, "drug_stop_date", sep = "; ",
+           extra = "warn", fill = "right") %>% 
+  mutate(drug_stop_date = as.POSIXct(drug_stop_date, format = "%Y-%m-%d")) %>% 
+  filter(treatment_line_ == "1") %>% 
+  # dcast(setDT(treatment), avatar_id+drug_start_date ~ rowid(avatar_id), 
+  #     value.var = c("drug_name_", "drug_stop_date")) %>% 
+  # select(ncol(.):drug_stop_date_1, everything()) %>% 
+  # unite(drug_stop_date, 1:"drug_stop_date_1", sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  # separate(drug_stop_date, paste("drug_stop_date", 1, sep="_"), sep = "; ",
+  #          extra = "warn", fill = "right") %>% 
+  # unite(drug_name_, starts_with("drug_name_"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  # arrange(avatar_id, drug_start_date) %>% 
+  mutate(drug_start_date = as.POSIXct(drug_start_date, format = "%Y-%m-%d")) %>%
+  mutate(drug_stop_date = as.POSIXct(drug_stop_date, format = "%Y-%m-%d")) %>%
+  
+  mutate(regimen_duration = interval(start = drug_start_date, end = drug_stop_date)/
            duration(n =1 , units = "days")) %>% 
-  mutate(drug_stop_date = as.POSIXct(.$drug_stop_date_1, format = "%Y-%m-%d")) %>%
+  
   mutate(drug_name_1_for_MM = 
            str_remove_all(drug_name_, "given with investigational therapy: |clinical trial: |investigational agent: clinical trial|investigational agent: | -|-|; $| sulfate|clinical trial/")) %>% 
   mutate(drug_count = sapply(strsplit(drug_name_1_for_MM, ";"), length)) %>% 
@@ -717,12 +733,8 @@ stat_data <- left_join(germline_patient_data %>%
   mutate(date_last_follow_up = coalesce(date_last_follow_up, date_contact_lost)) %>% 
   mutate(vital_status = ifelse(is.na(date_death), "Alive", "Dead")) %>% 
   select(c("avatar_id", "Date_of_Birth", "vital_status", everything()), -date_contact_lost)
-  
+                       
 write_csv(stat_data, paste0(path, "/data for stats.csv"))
-
-
-
-
 
 # How many time patients had KRd, VRd, Rd, DRd, Len, Len+dex in the first regimen by disease status?
 # germline_patient_treat <- germline_patient_data %>%

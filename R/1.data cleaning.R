@@ -320,9 +320,8 @@ TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "Treatment") %>%
   select(c("avatar_id", "treatment_line_", "drug_start_date" , "drug_name_", "drug_stop_date",
-           "drug_name_other")) %>%  # didn't take "treatment_line_"
-  unite(drug_name_, c(drug_name_,drug_name_other), sep = ": ", na.rm = TRUE, remove = TRUE) #%>% 
-  # rename(drug_other = "drug_name_other")
+           "drug_name_other")) %>%
+  unite(drug_name_, c(drug_name_,drug_name_other), sep = ": ", na.rm = TRUE, remove = TRUE)
 Qcd_TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "QC'd Treatment") %>%
@@ -407,10 +406,9 @@ Alc_SmoV4 <-
 TreatmentV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
-           "drug_name_other")) %>%  # didn't take "treatment_line_"
-  unite(drug_name_, c(drug_name_,drug_name_other), sep = ": ", na.rm = TRUE, remove = TRUE)# %>% 
-  # rename(drug_other = "drug_name_other")
+  select(c("avatar_id", "treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date",
+           "drug_name_other")) %>%
+  unite(drug_name_, c(drug_name_,drug_name_other), sep = ": ", na.rm = TRUE, remove = TRUE)
 #---
 Progression_V4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
@@ -485,10 +483,9 @@ Alc_SmoV4.1 <-
 TreatmentV4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
                     sheet = "Treatment") %>%
-  select(c("avatar_id", "drug_start_date", "drug_name_", "drug_stop_date",
-           "drug_name_other_")) %>%  # didn't take "treatment_line_"
-  unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = TRUE)# %>% 
-  # rename(drug_other = "drug_name_other_")
+  select(c("avatar_id", "treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date",
+           "drug_name_other_")) %>%
+  unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = TRUE)
 #
 Progression_V4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
@@ -694,7 +691,7 @@ WES_seq <-
 # Germline <- bind_rows(Combined_data_MM, Seq_WES_Raghu, Sequencing2, Seq_WES_Raghu2, .id = "vers")
 # Germline <- Germline %>% distinct(avatar_id,
 #                                   SLID_germline , .keep_all = TRUE) 
-# write.csv(Germline, paste0(path, "/Combined germline_seq data.csv"))
+# # write.csv(Germline, paste0(path, "/Combined germline_seq data.csv"))
 
 
 # Merge all
@@ -766,7 +763,7 @@ mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, 
 #   
 #   distinct(avatar_id, .keep_all = TRUE) %>% 
 #   select("avatar_id", Dx_date_closest_germline = "date")
-# write.csv(diagn_data, paste0(path, "/diagnosis data with germline and interval.csv"))
+# # write.csv(diagn_data, paste0(path, "/diagnosis data with germline and interval.csv"))
 
 MM_history <- dcast(setDT(mm_history), avatar_id+collectiondt_germline ~ rowid(avatar_id), 
                     value.var = c("Dx_date_closest_germline", "date_of_diagnosis", "disease_stage")) %>% 
@@ -785,7 +782,7 @@ MM_history <- dcast(setDT(mm_history), avatar_id+collectiondt_germline ~ rowid(a
   mutate(date_of_MMSMMGUSdiagnosis = coalesce(date_of_MMonly_diagnosis, date_of_diagnosis_1)) %>% 
   select(c("avatar_id", "date_of_MMonly_diagnosis", "date_of_MMSMMGUSdiagnosis", everything()))
 
-write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
+# write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
 
 # Vitals ----
 # Bind and arrange to have dates in order within each Alive, Dead, and Lost
@@ -835,7 +832,7 @@ Vitals <- full_join(Vitals, Contact_lost, by= "avatar_id") %>%
   #   is.na(date_death)                       ~ date_last_follow_up
   # )) 
 
-write.csv(Vitals,paste0(path, "/simplified files/Vitals simplify.csv"))
+# write.csv(Vitals,paste0(path, "/simplified files/Vitals simplify.csv"))
 # For BMI, we may need to keep both if want to see evolution but for now keep the earliest (closest to diagnisis)
 # then fill-up with second column when the first is NA using coalesce
 # mutate(bmi_at_dx_v2 = coalesce(bmi_at_dx_v2_1, bmi_at_dx_v2_2)) %>% 
@@ -879,7 +876,7 @@ sct <- bind_rows(SCT_V12, SCT, SCTV2, SCTV4, SCTV4.1, .id = "versionSCT") %>%
 SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), 
              value.var = "date_of_bmt") %>% 
   `colnames<-`(c("avatar_id", "date_of_bmt_1", "date_of_bmt_2", "date_of_bmt_3"))
-write.csv(SCT,paste0(path, "/simplified files/SCT simplify.csv"))
+# write.csv(SCT,paste0(path, "/simplified files/SCT simplify.csv"))
 
 # Treatment ----
 IMIDS_maintenance <- IMIDS_maintenance %>% 
@@ -899,7 +896,7 @@ Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
 Qcd_TreatmentV2 <- Qcd_TreatmentV2 %>% drop_na("drug_start_date", "drug_name_") %>%
   arrange(drug_start_date) %>% 
   group_by(avatar_id) %>% 
-  mutate(treatment_line_ = dense_rank(interaction(avatar_id, drug_start_date)))
+  mutate(treatment_line_ = as.character(dense_rank(interaction(avatar_id, drug_start_date))))
 # remove the Ids found in Qc'd from the Treatment 
 uid <- paste(unique(Qcd_Treatment$avatar_id), collapse = '|')
 Treatment <- Treatment[(!grepl(uid, Treatment$avatar_id)),]
@@ -911,7 +908,7 @@ TreatmentV2 <- TreatmentV2[(!grepl(uid, TreatmentV2$avatar_id)),]
 Treatment <- bind_rows(Qcd_Treatment, Treatment) %>% 
   group_by(avatar_id) %>% 
   arrange(drug_start_date) %>% 
-  mutate(treatment_line = row_number()) %>% 
+  mutate(treatment_line_ = as.character(row_number())) %>% 
   mutate_at(("drug_name_"), ~ str_replace_all(., "/", ": ")) %>% 
   separate(col = drug_name_, paste("drug_name_", 1:10, sep=""), sep = "; |;", extra = "warn", 
            fill = "right") %>% 
@@ -919,34 +916,29 @@ Treatment <- bind_rows(Qcd_Treatment, Treatment) %>%
   pivot_longer(cols = starts_with("drug_name_"),
                names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
 
-
-
-
-
-
-Treatment1 <- TreatmentV2 %>% 
+TreatmentV2 <- TreatmentV2 %>% 
   mutate(treatment_line_ = case_when(
-    str_detect(treatment_line_, "First") ~ 1,
-    str_detect(treatment_line_, "Second") ~ 2,
-    str_detect(treatment_line_, "Third") ~ 3,
-    str_detect(treatment_line_, "Fourth") ~ 4,
-    str_detect(treatment_line_, "Fifth") ~ 5,
-    str_detect(treatment_line_, "Sixth") ~ 6,
-    str_detect(treatment_line_, "Seventh") ~ 7,
-    str_detect(treatment_line_, "Eighth") ~ 8,
-    str_detect(treatment_line_, "Ninth") ~ 9,
-    str_detect(treatment_line_, "Tenth") ~ 10,
-    str_detect(treatment_line_, "Eleventh") ~ 11,
-    str_detect(treatment_line_, "Maint") ~ 12
+    str_detect(treatment_line_, "First") ~ "1",
+    str_detect(treatment_line_, "Second") ~ "2",
+    str_detect(treatment_line_, "Third") ~ "3",
+    str_detect(treatment_line_, "Fourth") ~ "4",
+    str_detect(treatment_line_, "Fifth") ~ "5",
+    str_detect(treatment_line_, "Sixth") ~ "6",
+    str_detect(treatment_line_, "Seventh") ~ "7",
+    str_detect(treatment_line_, "Eighth") ~ "8",
+    str_detect(treatment_line_, "Ninth") ~ "9",
+    str_detect(treatment_line_, "Tenth") ~ "10",
+    str_detect(treatment_line_, "Eleventh") ~ "11",
+    str_detect(treatment_line_, "Maint") ~ "90"
     )) %>% 
   group_by(avatar_id, drug_start_date) %>% 
-  fill(treatment_line_, .direction = "downup") %>% 
-  group_by(avatar_id) %>% 
-  arrange(drug_start_date) %>% 
-  # mutate(treatment_line = dense_rank(interaction(avatar_id, drug_start_date))) %>% 
-  fill(treatment_line, .direction = "downup") %>%  # is not the best way, could do a 30 days rule
+  arrange(drug_start_date, treatment_line_) %>% 
+  fill(treatment_line_, .direction = "down") %>% 
+  # group_by(avatar_id) %>% 
+  # # mutate(treatment_line = dense_rank(interaction(avatar_id, drug_start_date))) %>% 
+  # fill(treatment_line, .direction = "downup") %>%  # is not the best way, could do a 30 days rule
   ungroup() %>% 
-  bind_rows(Qcd_TreatmentV2, ., .id = "Treatment") %>% 
+  bind_rows(Qcd_TreatmentV2, .) %>% 
   separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "; |;", extra = "warn", 
            fill = "right") %>% 
   purrr::keep(~!all(is.na(.))) %>%
@@ -954,15 +946,35 @@ Treatment1 <- TreatmentV2 %>%
                names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
 
 Treatment_V12 <- Treatment_V12 %>% 
-  separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "\\+", extra = "warn", 
+  separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "\\+", extra = "warn", # Just for 1 row
            fill = "right") %>% 
   purrr::keep(~!all(is.na(.))) %>%
   pivot_longer(cols = starts_with("drug_name_"),
                names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
 
 # ready to bind
-treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, TreatmentV4.1, .id = "versionTreat") %>% 
-  select(avatar_id, drug_start_date, drug_stop_date, drug_name_) %>% 
+treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, TreatmentV4.1, .id = "versionTreat") %>%
+  mutate(treatment_line_ = case_when(
+    str_detect(treatment_line_, "First") ~ "1",
+    str_detect(treatment_line_, "Second") ~ "2",
+    str_detect(treatment_line_, "Third") ~ "3",
+    str_detect(treatment_line_, "Fourth") ~ "4",
+    str_detect(treatment_line_, "Fifth") ~ "5",
+    str_detect(treatment_line_, "Sixth") ~ "6",
+    str_detect(treatment_line_, "Seventh") ~ "7",
+    str_detect(treatment_line_, "Eighth") ~ "8",
+    str_detect(treatment_line_, "Ninth") ~ "9",
+    str_detect(treatment_line_, "Tenth") ~ "10",
+    str_detect(treatment_line_, "Eleventh") ~ "11",
+    str_detect(treatment_line_, "Twelth") ~ "12",
+    str_detect(treatment_line_, "Thirteenth") ~ "13",
+    str_detect(treatment_line_, "Fourteenth") ~ "14",
+    str_detect(treatment_line_, "Fifteenth") ~ "15",
+    str_detect(treatment_line_, "Sixteenth") ~ "16",
+    str_detect(treatment_line_, "Maint") ~ "90",
+    TRUE ~ treatment_line_
+  )) %>% 
+  select(mrn, avatar_id, treatment_line_, drug_start_date, drug_stop_date, drug_name_) %>% 
   mutate(drug_name_ = tolower(drug_name_)) %>% 
   mutate(drug_name_ = case_when(
     drug_name_ == "cafilzomib"                                             ~ "carfilzomib",
@@ -988,28 +1000,46 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
   arrange(drug_start_date, drug_stop_date)
 
 
+Treatment <- dcast(setDT(treatment), mrn+avatar_id+treatment_line_ ~ rowid(avatar_id),
+                  value.var = c("drug_name_","drug_start_date", "drug_stop_date")) %>% 
+  unite(drug_name_, starts_with("drug_name_"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  
+  unite(drug_start_date, starts_with("drug_start_date"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  separate(drug_start_date, "drug_start_date", sep = "; ",
+           extra = "warn", fill = "right") %>% 
+  
+  select(c(mrn, avatar_id, treatment_line_, "drug_name_", drug_start_date, ncol(.):drug_stop_date_1)) %>% 
+  unite(drug_stop_date, starts_with("drug_stop_date"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  separate(drug_stop_date, "drug_stop_date", sep = "; ",
+           extra = "warn", fill = "right") %>% 
+  mutate(drug_stop_date = as.POSIXct(drug_stop_date, format = "%Y-%m-%d"))
+
 # Now can dcast to have line of drug_name_ for each line/regimen
 # 1st for regimen with same start and end date
-Treatment <- treatment %>% 
-  reshape2::dcast(avatar_id+drug_start_date+drug_stop_date ~ rowid(avatar_id),
-                  value.var = c("drug_name_")) %>% 
-  unite(drug_name_, -avatar_id:-drug_stop_date, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
-  arrange(drug_start_date, drug_stop_date)
-# 2nd for regimen with same start, I separated it to have the different end date in case
-Treatment <- dcast(setDT(Treatment), avatar_id+drug_start_date ~ rowid(avatar_id), 
-                   value.var = c("drug_name_", "drug_stop_date")) %>% 
-  unite(drug_name_, starts_with("drug_name_"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
-  unite(drug_stop_date, starts_with("drug_stop_date"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
-  separate(drug_stop_date, paste("drug_stop_date", 1:3, sep="_"), sep = "; ",
-           extra = "warn", fill = "right") %>% 
-  arrange(drug_start_date)
-Treatment$drug_stop_date_1 <- as.POSIXct(Treatment$drug_stop_date_1, format = "%Y-%m-%d")
-Treatment$drug_stop_date_2 <- as.POSIXct(Treatment$drug_stop_date_2, format = "%Y-%m-%d")
-Treatment$drug_stop_date_3 <- as.POSIXct(Treatment$drug_stop_date_3, format = "%Y-%m-%d")
+# Treatment <- treatment %>% 
+#   reshape2::dcast(mrn+avatar_id+treatment_line_+drug_start_date+drug_stop_date ~ rowid(avatar_id),
+#                   value.var = c("drug_name_")) %>% 
+#   unite(drug_name_, -mrn:-drug_stop_date, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+#   arrange(drug_start_date, drug_stop_date)
+# # 2nd for regimen with same start, I separated it to have the different end date in case
+# Treatment <- dcast(setDT(Treatment), mrn+avatar_id+drug_start_date ~ rowid(avatar_id), 
+#                    value.var = c("treatment_line_", "drug_name_", "drug_stop_date")) %>%
+#   unite(treatment_line_, starts_with("treatment_line_"), sep = "; ", na.rm = TRUE, remove = TRUE) %>%
+#   separate(treatment_line_, "treatment_line_", sep = "; ",
+#            extra = "warn", fill = "right") %>% 
+#   unite(drug_name_, starts_with("drug_name_"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+#   unite(drug_stop_date, starts_with("drug_stop_date"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+#   separate(drug_stop_date, paste("drug_stop_date", 1:3, sep="_"), sep = "; ",
+#            extra = "warn", fill = "right") %>% 
+#   arrange(drug_start_date)
+# Treatment$drug_stop_date_1 <- as.POSIXct(Treatment$drug_stop_date_1, format = "%Y-%m-%d")
+# Treatment$drug_stop_date_2 <- as.POSIXct(Treatment$drug_stop_date_2, format = "%Y-%m-%d")
+# Treatment$drug_stop_date_3 <- as.POSIXct(Treatment$drug_stop_date_3, format = "%Y-%m-%d")
+
 # 3rd dcast per avatar_id
-Treatment <- dcast(setDT(Treatment), avatar_id ~ rowid(avatar_id), 
-                   value.var = c("drug_start_date", "drug_name_", "drug_stop_date_1", 
-                                 "drug_stop_date_2", "drug_stop_date_3"))
+Treatment <- dcast(setDT(Treatment), mrn+avatar_id ~ rowid(avatar_id), 
+                   value.var = c("treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date"))
+
 Treatment <- Treatment %>% 
   purrr::keep(~!all(is.na(.))) %>% 
   mutate(received_IMIDs = case_when(
@@ -1027,16 +1057,13 @@ Treatment <- Treatment %>%
       str_detect(drug_name__12, "lidomide") |
       str_detect(drug_name__13, "lidomide") |
       str_detect(drug_name__14, "lidomide") |
-      str_detect(drug_name__15, "lidomide") |
-      str_detect(drug_name__16, "lidomide") |
-      str_detect(drug_name__17, "lidomide") |
-      str_detect(drug_name__18, "lidomide")    ~ "IMIDs",
+      str_detect(drug_name__15, "lidomide")    ~ "IMIDs",
     TRUE ~ "No IMIDs"
   )) %>% 
   full_join(., IMIDS_maintenance, by = "avatar_id")
 
 rm(migration_patients, IMIDS_maintenance)
-write.csv(Treatment,paste0(path, "/simplified files/Treatment simplify.csv"))
+# write.csv(Treatment,paste0(path, "/simplified files/Treatment simplify.csv"))
 
 # Radiation ----
 # Radiation V1 doesn't have a date format
@@ -1056,7 +1083,7 @@ radiation <- bind_rows(Radiation_V12, RadiationV1, RadiationV2, RadiationV4, Rad
   arrange(rad_start_date)
 Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
                      c("rad_start_date", "rad_stop_date", "rad_bf_germline"))
-write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
+# write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
 
 # Progression----
 Progr_V12 <- Progr_V12 %>% 
@@ -1100,7 +1127,7 @@ Progression_treat <- Progression # For hct and drugs
 Progression <- Progression %>% # Keep earliest progression_date => For OS
   arrange(progression_date) %>% 
   distinct(avatar_id, .keep_all = TRUE)
-write.csv(Progression, paste0(path, "/simplified files/Progression simplify.csv"))
+# write.csv(Progression, paste0(path, "/simplified files/Progression simplify.csv"))
 
 Progression_treat <- Progression_treat %>% 
   left_join(., Treatment %>% select(c("avatar_id", "drug_start_date_1")), by = "avatar_id") %>%
@@ -1135,7 +1162,7 @@ Progression_drugs <- Progression_drugs %>% # Remove progression < drug and keep 
   arrange(progression_date) %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   rename(progression_drug_date = "progression_date")
-write.csv(Progression_drugs, paste0(path, "/simplified files/Progression used for survivals from drugs date.csv"))
+# write.csv(Progression_drugs, paste0(path, "/simplified files/Progression used for survivals from drugs date.csv"))
 
 Progression_rad <- Progression_rad %>% # Remove progression < rad and keep earliest progression_rad_date
   left_join(., Radiation %>% select(c("avatar_id", "rad_start_date_1")), by = "avatar_id") %>% 
@@ -1280,13 +1307,13 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., OS_data, by = "avatar_id") %>% 
   full_join(., Staging_ISS, by = c("avatar_id", "collectiondt_germline")) %>% 
   full_join(Demo_RedCap_V4ish, ., by = "avatar_id")
-# write.csv(Global_data, paste0(path, "/Global_data.csv"))
+# # write.csv(Global_data, paste0(path, "/Global_data.csv"))
 Global_data <- left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id")) %>% 
   filter(!str_detect(avatar_id, "A000428|A000456"))
 write_rds(Global_data, path = "Global_data_pre.rds")
 #--
 # avatar_no_germline <- Global_data %>% filter(is.na(Global_data$Disease_Status_germline)) %>% 
 #   select("avatar_id")
-# write.csv(avatar_no_germline, paste0(path, "/patient id with no germline.csv"))
+# # write.csv(avatar_no_germline, paste0(path, "/patient id with no germline.csv"))
 
 

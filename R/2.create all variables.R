@@ -379,7 +379,7 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
   
   
   
-  
+rm(all_dates, all_dates1, last_event, Last_labs_dates, Contact_lost, OS_data, Staging_ISS)
 
 # Global_data[, c("avatar_id", "pfs_progression_date", "progression_surv", "pfs_progression_date", "last_date_available", "last_event_available")]
 
@@ -585,7 +585,7 @@ barplot(tab, main = "Frequency of collection date first observed", ylim = c(0,50
 tab
 
 # Cleaning
-# rm(tab, all_dates1, last_event, Last_labs_dates)
+rm(tab)
 
 
 # Request info from Raghu

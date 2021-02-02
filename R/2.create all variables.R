@@ -448,6 +448,10 @@ Global_data$Age_at_tumorcollect <- interval(start= Global_data$Date_of_Birth, en
 Global_data$Age_at_tumorcollect <- round(Global_data$Age_at_tumorcollect, 3)
 # summary(Global_data$Age_at_tumorcollect, na.rm = TRUE)
 
+Global_data$age_at_progression <- interval(start= Global_data$Date_of_Birth, end= Global_data$pfs_progression_date)/                      
+  duration(n=1, unit="years")
+Global_data$age_at_progression <- round(Global_data$age_at_progression, 3)
+
 Global_data$month_at_progression_Dx <- interval(start= Global_data$date_of_diagnosis_1, end= Global_data$pfs_progression_date)/                      
   duration(n=1, unit="months")
 Global_data$month_at_progression_Dx <- round(Global_data$month_at_progression_Dx, 3)
@@ -478,6 +482,9 @@ Global_data$month_at_os <- interval(start= Global_data$date_of_diagnosis_1, end=
 Global_data$month_at_os <- round(Global_data$month_at_os, 3)
 # b <- Global_data[,c("avatar_id", "month_at_os", "date_death", "date_of_diagnosis_1", "os_date_surv", "os_surv", "last_date_available"
 #                  )]
+Global_data$age_at_os <- interval(start= Global_data$Date_of_Birth, end= Global_data$os_date_surv)/                      
+  duration(n=1, unit="years")
+Global_data$age_at_os <- round(Global_data$age_at_os, 3)
 
 # rm(b)
 write_rds(Global_data, path = "Global_data.rds")

@@ -2,7 +2,14 @@
 title: "Report 01.29.2021"
 author: "Christelle Colin-Leitzinger"
 date: "1/29/2021"
-output: html_document
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: false
+    theme: cerulean #darkly
+    highlight: pygments
+    # keep_md: true
 ---
 
 ```{r setup, include=FALSE}
@@ -41,8 +48,15 @@ germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/g
 
 ***
 
-# I.Avatar data
-The dataset contains clinical data on `r length(unique(Global_data$avatar_id))` unique patient.
+# I.Multiple Myeloma (MM) Avatar data
+The MM Avatar dataset contains clinical data on `r length(unique(Global_data$avatar_id))` unique patient.
+Patient A000428 and A000456 are remove from the data because non MM patient.
+
+```{r}
+# head(Global_data)
+rmarkdown::paged_table(Global_data)
+```
+
 
 <div class = "row">
 <div class = "col-md-6">
@@ -53,7 +67,9 @@ Global_data  %>%
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Whole, ISS) %>%
   tbl_summary(by = Whole, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2))
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2), 
+              label = Age_at_diagnosis_closest_germline ~ "Age at Diagnosis") %>% 
+  bold_labels()
 ```
 </div>
 
@@ -74,6 +90,21 @@ p + scale_fill_viridis_c(
 ) +
   theme_minimal() +
   labs(x="Age at Diagnosis", y="Number of Patient", title="Age at Diagnisis Repartition in Avatar")
+
+Global_data  %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>%
+  select(avatar_id, starts_with("SLID_tumor")) %>% 
+  pivot_longer(cols = -avatar_id, names_to = "SLID_tumor", names_prefix = "SLID_tumor_", values_to = "value") %>% 
+  filter(!is.na(value)) %>%
+  arrange(desc(SLID_tumor)) %>% distinct(avatar_id, .keep_all = TRUE) %>% 
+  group_by(SLID_tumor) %>% 
+  summarise(count = n()) %>% 
+  ggplot(aes(x=SLID_tumor, y = count))+
+  geom_bar(stat="identity")+
+  labs(x = "Tumor sequenced", title = "Nbr of tumor sequenced patients")+
+  geom_text(aes(label = paste0("n=", count)), size = 3, position = position_stack(vjust = 1.08))+
+  theme_minimal()+
+  coord_flip()
 ```
 </div>
 </div>

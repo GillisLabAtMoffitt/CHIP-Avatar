@@ -1012,6 +1012,7 @@ Treatment <- dcast(setDT(treatment), mrn+avatar_id+treatment_line_ ~ rowid(avata
   unite(drug_stop_date, starts_with("drug_stop_date"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
   separate(drug_stop_date, "drug_stop_date", sep = "; ",
            extra = "warn", fill = "right") %>% 
+  mutate(drug_start_date = as.POSIXct(drug_start_date, format = "%Y-%m-%d")) %>% 
   mutate(drug_stop_date = as.POSIXct(drug_stop_date, format = "%Y-%m-%d"))
 
 # Now can dcast to have line of drug_name_ for each line/regimen

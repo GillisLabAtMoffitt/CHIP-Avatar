@@ -1,13 +1,6 @@
-
-tbl <- germline_patient_data %>%
-  distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(Whole = "Germline patients") %>% 
-  select(ISS, Whole) %>% 
-  tbl_summary(by = Whole) %>% as_gt()
-gt::gtsave(tbl, zoom = .4, paste0(path, "/Figures/ISS/ISS staging in germline patients.pdf"))
-
+################################################################################################## I ## Global data mining ----
 tbl <- 
-  Age_data  %>% 
+  Global_data  %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "MM Avatar patients") %>% 
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Whole, ISS) %>%
@@ -18,7 +11,7 @@ tbl <-
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in MM Avatar patients.pdf"))
 
 tbl <- 
-  Age_data  %>% 
+  Global_data  %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "MM Avatar patients") %>% 
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
@@ -28,6 +21,42 @@ tbl <-
               digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% 
   as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in MM Avatar patients by DS with missing.pdf"))
+
+Global_data  %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>%
+  select(avatar_id, starts_with("SLID_tumor")) %>% 
+  pivot_longer(cols = -avatar_id, names_to = "SLID_tumor", names_prefix = "SLID_tumor_", values_to = "value") %>% 
+  filter(!is.na(value)) %>%
+  arrange(desc(SLID_tumor)) %>% distinct(avatar_id, .keep_all = TRUE) %>% 
+  group_by(SLID_tumor) %>% 
+  summarise(count = n()) %>% 
+  ggplot(aes(x=SLID_tumor, y = count))+
+  geom_bar(stat="identity")+
+  labs(x = "Tumor sequenced", title = "Nbr of tumor sequenced patients")+
+  geom_text(aes(label = paste0("n=", count)), size = 3, position = position_stack(vjust = 1.08))+
+  theme_minimal()+
+  coord_flip()
+
+
+
+
+
+
+
+
+
+
+
+
+################################################################################################## II ## Germline data mining ----
+
+
+tbl <- germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(ISS, Whole) %>% 
+  tbl_summary(by = Whole) %>% as_gt()
+gt::gtsave(tbl, zoom = .4, paste0(path, "/Figures/ISS/ISS staging in germline patients.pdf"))
 
 tbl <- 
   germline_patient_data %>% 
@@ -728,13 +757,128 @@ stat_data <- left_join(germline_patient_data %>%
                                   "date_death", "Age_at_death",
                                   "date_last_follow_up", "date_contact_lost", 
                                   "progression_drug_surv", "pfs_drug_progression_date", "month_at_progression_drug",
-                                  "os_date_surv", "os_surv_cor", "month_at_os")), 
+                                  "age_at_progression",
+                                  "os_date_surv", "os_surv_cor", "month_at_os", "age_at_os")), 
                        Duration, by = "avatar_id") %>%
   mutate(date_last_follow_up = coalesce(date_last_follow_up, date_contact_lost)) %>% 
   mutate(vital_status = ifelse(is.na(date_death), "Alive", "Dead")) %>% 
   select(c("avatar_id", "Date_of_Birth", "vital_status", everything()), -date_contact_lost)
                        
 write_csv(stat_data, paste0(path, "/data for stats.csv"))
+
+tbl <- stat_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Age_at_diagnosis, Gender, Race, Ethnicity, Whole, ISS) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
+  as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics2 in germline patients.pdf"))
+
+tbl <- stat_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Disease_Status_germline, Whole) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency")) %>% 
+  as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Disease_Status_germline in germline patients.pdf"))
+
+tbl <- stat_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(regimen_name, Whole) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency")) %>% 
+  as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/regimen_name in germline patients.pdf"))
+
+tbl <- stat_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(regimen_duration, Whole) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency")) %>% 
+  as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/regimen_duration in germline patients.pdf"))
+
+tbl <- stat_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(month_at_progression_drug, month_at_os, Whole) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency"),
+              digits = list(c(month_at_progression_drug, month_at_os) ~ 2)) %>% 
+  as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/month_at_progression_drug and OS in germline patients.pdf"))
+
+
+
+patient <- readxl::read_xlsx(paste0(path, "/Nancy's working files/MM Avatar_Sequenced subset.xlsx"),
+                             sheet = "Sequenced") %>% 
+  select(avatar_id) %>% distinct()
+id <- paste(patient$avatar_id, collapse = "|")
+stat_data_sequeenced <- stat_data[ grepl(id, stat_data$avatar_id) , ]
+
+write_csv(stat_data_sequeenced, paste0(path, "/Sequenced patients data for stats.csv"))
+
+tbl <- stat_data_sequeenced %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Sequenced patients") %>% 
+  select(Age_at_diagnosis, Gender, Race, Ethnicity, Whole, ISS) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(c(Age_at_diagnosis, Race) ~ 2)) %>% 
+  as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in sequenced patients.pdf"))
+
+tbl <- stat_data_sequeenced %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Sequenced patients") %>% 
+  select(Disease_Status_germline, Whole) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency")) %>% 
+  as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Disease_Status_germline in sequenced patients.pdf"))
+
+tbl <- stat_data_sequeenced %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Sequenced patients") %>% 
+  select(regimen_name, Whole) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency")) %>% 
+  as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/regimen_name in sequenced patients.pdf"))
+
+tbl <- stat_data_sequeenced %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Sequenced patients") %>% 
+  select(regimen_duration, Whole) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency")) %>% 
+  as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/regimen_duration in sequenced patients.pdf"))
+
+tbl <- stat_data_sequeenced %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Sequenced patients") %>% 
+  select(month_at_progression_drug, month_at_os, Whole) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency"),
+              digits = list(c(month_at_progression_drug, month_at_os) ~ 2)) %>% 
+  as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/month_at_progression_drug and OS in sequenced patients.pdf"))
+
+
+
+
+
+
+
+
+
+
 
 # How many time patients had KRd, VRd, Rd, DRd, Len, Len+dex in the first regimen by disease status?
 # germline_patient_treat <- germline_patient_data %>%

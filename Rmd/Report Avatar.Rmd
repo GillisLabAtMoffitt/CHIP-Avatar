@@ -105,6 +105,20 @@ Global_data  %>%
   geom_text(aes(label = paste0("n=", count)), size = 3, position = position_stack(vjust = 1.08))+
   theme_minimal()+
   coord_flip()
+Global_data  %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>%
+  select(avatar_id, starts_with("SLID_tumor")) %>% 
+  pivot_longer(cols = -avatar_id, names_to = "SLID_tumor", names_prefix = "SLID_tumor_", values_to = "value") %>% 
+  filter(!is.na(value)) %>%
+  arrange(desc(SLID_tumor)) %>% distinct(avatar_id, .keep_all = TRUE) %>% 
+  group_by(SLID_tumor) %>% 
+  summarise(count = n()) %>% 
+  ggplot(aes(x=SLID_tumor, y = count))+
+  geom_bar(stat="identity")+
+  labs(x = "Tumor sequenced", title = "Nbr of tumor sequenced patients")+
+  geom_text(aes(label = paste0("n=", count)), size = 3, hjust = "inward", position = position_stack(vjust = 1.08))+
+  theme_minimal()+
+  coord_flip()
 ```
 </div>
 </div>

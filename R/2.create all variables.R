@@ -7,156 +7,155 @@ capwords <- function(s, strict = FALSE) {
   sapply(strsplit(s, split = " "), cap, USE.NAMES = !is.null(names(s)))
 }
 
-Global_data <- Global_data %>%
-  mutate(drug_name_1_for_MM = 
-           str_remove_all(drug_name__1, "given with investigational therapy: |clinical trial: |investigational agent: clinical trial|investigational agent: | -|-|; $| sulfate|clinical trial/")) %>% 
-  # mutate(drug_name_1_for_MM = str_remove_all(drug_name_1_for_MM, "; NonMM drugs|NonMM drugs; ")) %>% 
-  mutate(drug_count = sapply(strsplit(drug_name_1_for_MM, ";"), length)) %>% 
-  mutate(drug_name_1_for_MM = str_replace_all(drug_name_1_for_MM, "liposomal doxorubicin", "doxil")) %>% 
-  mutate(first_regimen_name_MM = case_when(
-    drug_count == 7 &
-      str_detect(drug_name_1_for_MM, "bort") &
-      str_detect(drug_name_1_for_MM, "thalidomide") &
-      str_detect(drug_name_1_for_MM, "cyclophosphamide") &
-      str_detect(drug_name_1_for_MM, "cisplatin") &
-      str_detect(drug_name_1_for_MM, "etoposide") &
-      str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "doxo")                ~ "VDT-PACE",
-    drug_count == 4 &
-      str_detect(drug_name_1_for_MM, "bortezomib") &
-      str_detect(drug_name_1_for_MM, "cyclophos") &
-      str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "doxil")               ~ "ABCD",
-    drug_count == 4 &
-      str_detect(drug_name_1_for_MM, "daratumumab") &
-      str_detect(drug_name_1_for_MM, "lena") &
-      str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "carfilzomib")         ~ "Dara-KRd",
-    drug_count == 4 &
-      str_detect(drug_name_1_for_MM, "vincristine") &
-      str_detect(drug_name_1_for_MM, "cyclophos") &
-      str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "doxo")                ~ "C-VAD",
-    drug_count == 4 &
-      str_detect(drug_name_1_for_MM, "thalidomide") &
-      str_detect(drug_name_1_for_MM, "vincristine") &
-      str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "doxil")               ~ "T-VAD doxil",
-    drug_count == 4 &
-      str_detect(drug_name_1_for_MM, "bortezomib") &
-      str_detect(drug_name_1_for_MM, "daratumumab") &
-      str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "lena")                ~ "D-RVd or dara-RVd",
-    drug_count == 4 &
-      str_detect(drug_name_1_for_MM, "bortezomib") &
-      str_detect(drug_name_1_for_MM, "cyclophosphamide") &
-      str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "doxo")                ~ "D-RVd or dara-RVd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "bortezomib") &
-      str_detect(drug_name_1_for_MM, "busulfan") &
-      str_detect(drug_name_1_for_MM, "melphalan")           ~ "BuMelVel",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "cyclophos") &
-      str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "lena")                ~ "CRd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "cyclophos") &
-      str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "bort")                ~ "CyBorD or VCd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "doxil") &
-      str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "lena")                ~ "Dd-R",
-    (drug_count == 3 &
-       str_detect(drug_name_1_for_MM, "daratu") &
-       str_detect(drug_name_1_for_MM, "lena") &
-       str_detect(drug_name_1_for_MM, "dex")) |
-      str_detect(drug_name_1_for_MM, "ddr")                 ~ "DRd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "vincristine") &
-      str_detect(drug_name_1_for_MM, "doxil") &
-      str_detect(drug_name_1_for_MM, "dex")                 ~ "DVd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "ixazomib") &
-      str_detect(drug_name_1_for_MM, "lena") &
-      str_detect(drug_name_1_for_MM, "dex")                 ~ "IRd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "cyclophosphamide") &
-      str_detect(drug_name_1_for_MM, "carfilzomib") &
-      str_detect(drug_name_1_for_MM, "dex")                 ~ "KCd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "lena") &
-      str_detect(drug_name_1_for_MM, "carfilzomib") &
-      str_detect(drug_name_1_for_MM, "dex")                 ~ "KRd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "lena") &
-      str_detect(drug_name_1_for_MM, "oprozomib") &
-      str_detect(drug_name_1_for_MM, "dex")                 ~ "ORd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "bortezomib") &
-      str_detect(drug_name_1_for_MM, "doxil") &
-      str_detect(drug_name_1_for_MM, "dex")                 ~ "PDd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "bortezomib") &
-      str_detect(drug_name_1_for_MM, "doxo") &
-      str_detect(drug_name_1_for_MM, "dex")                 ~ "PAd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "lena") &
-      str_detect(drug_name_1_for_MM, "doxo") &
-      str_detect(drug_name_1_for_MM, "dex")                 ~ "RAd",
-    (drug_count == 3 &
-       str_detect(drug_name_1_for_MM, "bortezomib") &
-       str_detect(drug_name_1_for_MM, "lena") &
-       str_detect(drug_name_1_for_MM, "dex")) |
-      str_detect(drug_name_1_for_MM, "rvd")                 ~ "VRd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "vincristine") &
-      str_detect(drug_name_1_for_MM, "doxo") &
-      str_detect(drug_name_1_for_MM, "dex")                 ~ "VAd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "bortezomib") &
-      str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "melph")               ~ "VMd",
-    drug_count == 3 &
-      str_detect(drug_name_1_for_MM, "bortezomib") &
-      str_detect(drug_name_1_for_MM, "dex") &
-      str_detect(drug_name_1_for_MM, "thalidomide")         ~ "VTd",
-    drug_count == 2 &
-      str_detect(drug_name_1_for_MM, "carfilzomib") &
-      str_detect(drug_name_1_for_MM, "dex")                  ~ "Kd",
-    drug_count == 2 &
-      str_detect(drug_name_1_for_MM, "thal") &
-      str_detect(drug_name_1_for_MM, "dex")                  ~ "Td",
-    drug_count == 2 &
-      str_detect(drug_name_1_for_MM, "lena") &
-      str_detect(drug_name_1_for_MM, "dex")                 ~ "Rd",
-    drug_count == 2 &
-      str_detect(drug_name_1_for_MM, "bortezomib") &
-      str_detect(drug_name_1_for_MM, "dex")                 ~ "Bor-Dex",
-    drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "lenalidomide")        ~ "Lenalidomide",
-    drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "dex")                 ~ "Dexamethasone",
-    drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "doxo")                ~ "Doxorubicin",
-    drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "doxil")               ~ "Doxil",
-    drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "bortezomib")          ~ "Bortezomib",
-    drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "melph")               ~ "Melphalan",
-    drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "carfilzomib")         ~ "Carfilzomib",
-    drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "cyclo")               ~ "Cyclophosphamide",
-    drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "thalidomide")         ~ "Thalidomide",
-    drug_count == 1 &
-      str_detect(drug_name_1_for_MM, "vincristine")         ~ "Vincristine",
-    TRUE                                                    ~ drug_name_1_for_MM
-  )) %>% 
-  mutate(first_regimen_name_MM = str_replace_na(first_regimen_name_MM, replacement = "No Drugs"))
+# Global_data <- Global_data %>%
+  # mutate(drug_name_1_for_MM = 
+  #          str_remove_all(drug_name__1, "given with investigational therapy: |clinical trial: |investigational agent: clinical trial|investigational agent: | -|-|; $| sulfate|clinical trial/")) %>% 
+  # mutate(drug_count = sapply(strsplit(drug_name_1_for_MM, ";"), length)) %>% 
+  # mutate(drug_name_1_for_MM = str_replace_all(drug_name_1_for_MM, "liposomal doxorubicin", "doxil")) %>% 
+  # mutate(first_regimen_name_MM = case_when(
+  #   drug_count == 7 &
+  #     str_detect(drug_name_1_for_MM, "bort") &
+  #     str_detect(drug_name_1_for_MM, "thalidomide") &
+  #     str_detect(drug_name_1_for_MM, "cyclophosphamide") &
+  #     str_detect(drug_name_1_for_MM, "cisplatin") &
+  #     str_detect(drug_name_1_for_MM, "etoposide") &
+  #     str_detect(drug_name_1_for_MM, "dex") &
+  #     str_detect(drug_name_1_for_MM, "doxo")                ~ "VDT-PACE",
+  #   drug_count == 4 &
+  #     str_detect(drug_name_1_for_MM, "bortezomib") &
+  #     str_detect(drug_name_1_for_MM, "cyclophos") &
+  #     str_detect(drug_name_1_for_MM, "dex") &
+  #     str_detect(drug_name_1_for_MM, "doxil")               ~ "ABCD",
+  #   drug_count == 4 &
+  #     str_detect(drug_name_1_for_MM, "daratumumab") &
+  #     str_detect(drug_name_1_for_MM, "lena") &
+  #     str_detect(drug_name_1_for_MM, "dex") &
+  #     str_detect(drug_name_1_for_MM, "carfilzomib")         ~ "Dara-KRd",
+  #   drug_count == 4 &
+  #     str_detect(drug_name_1_for_MM, "vincristine") &
+  #     str_detect(drug_name_1_for_MM, "cyclophos") &
+  #     str_detect(drug_name_1_for_MM, "dex") &
+  #     str_detect(drug_name_1_for_MM, "doxo")                ~ "C-VAD",
+  #   drug_count == 4 &
+  #     str_detect(drug_name_1_for_MM, "thalidomide") &
+  #     str_detect(drug_name_1_for_MM, "vincristine") &
+  #     str_detect(drug_name_1_for_MM, "dex") &
+  #     str_detect(drug_name_1_for_MM, "doxil")               ~ "T-VAD doxil",
+  #   drug_count == 4 &
+  #     str_detect(drug_name_1_for_MM, "bortezomib") &
+  #     str_detect(drug_name_1_for_MM, "daratumumab") &
+  #     str_detect(drug_name_1_for_MM, "dex") &
+  #     str_detect(drug_name_1_for_MM, "lena")                ~ "D-RVd or dara-RVd",
+  #   drug_count == 4 &
+  #     str_detect(drug_name_1_for_MM, "bortezomib") &
+  #     str_detect(drug_name_1_for_MM, "cyclophosphamide") &
+  #     str_detect(drug_name_1_for_MM, "dex") &
+  #     str_detect(drug_name_1_for_MM, "doxo")                ~ "D-RVd or dara-RVd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "bortezomib") &
+  #     str_detect(drug_name_1_for_MM, "busulfan") &
+  #     str_detect(drug_name_1_for_MM, "melphalan")           ~ "BuMelVel",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "cyclophos") &
+  #     str_detect(drug_name_1_for_MM, "dex") &
+  #     str_detect(drug_name_1_for_MM, "lena")                ~ "CRd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "cyclophos") &
+  #     str_detect(drug_name_1_for_MM, "dex") &
+  #     str_detect(drug_name_1_for_MM, "bort")                ~ "CyBorD or VCd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "doxil") &
+  #     str_detect(drug_name_1_for_MM, "dex") &
+  #     str_detect(drug_name_1_for_MM, "lena")                ~ "Dd-R",
+  #   (drug_count == 3 &
+  #      str_detect(drug_name_1_for_MM, "daratu") &
+  #      str_detect(drug_name_1_for_MM, "lena") &
+  #      str_detect(drug_name_1_for_MM, "dex")) |
+  #     str_detect(drug_name_1_for_MM, "ddr")                 ~ "DRd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "vincristine") &
+  #     str_detect(drug_name_1_for_MM, "doxil") &
+  #     str_detect(drug_name_1_for_MM, "dex")                 ~ "DVd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "ixazomib") &
+  #     str_detect(drug_name_1_for_MM, "lena") &
+  #     str_detect(drug_name_1_for_MM, "dex")                 ~ "IRd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "cyclophosphamide") &
+  #     str_detect(drug_name_1_for_MM, "carfilzomib") &
+  #     str_detect(drug_name_1_for_MM, "dex")                 ~ "KCd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "lena") &
+  #     str_detect(drug_name_1_for_MM, "carfilzomib") &
+  #     str_detect(drug_name_1_for_MM, "dex")                 ~ "KRd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "lena") &
+  #     str_detect(drug_name_1_for_MM, "oprozomib") &
+  #     str_detect(drug_name_1_for_MM, "dex")                 ~ "ORd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "bortezomib") &
+  #     str_detect(drug_name_1_for_MM, "doxil") &
+  #     str_detect(drug_name_1_for_MM, "dex")                 ~ "PDd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "bortezomib") &
+  #     str_detect(drug_name_1_for_MM, "doxo") &
+  #     str_detect(drug_name_1_for_MM, "dex")                 ~ "PAd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "lena") &
+  #     str_detect(drug_name_1_for_MM, "doxo") &
+  #     str_detect(drug_name_1_for_MM, "dex")                 ~ "RAd",
+  #   (drug_count == 3 &
+  #      str_detect(drug_name_1_for_MM, "bortezomib") &
+  #      str_detect(drug_name_1_for_MM, "lena") &
+  #      str_detect(drug_name_1_for_MM, "dex")) |
+  #     str_detect(drug_name_1_for_MM, "rvd")                 ~ "VRd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "vincristine") &
+  #     str_detect(drug_name_1_for_MM, "doxo") &
+  #     str_detect(drug_name_1_for_MM, "dex")                 ~ "VAd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "bortezomib") &
+  #     str_detect(drug_name_1_for_MM, "dex") &
+  #     str_detect(drug_name_1_for_MM, "melph")               ~ "VMd",
+  #   drug_count == 3 &
+  #     str_detect(drug_name_1_for_MM, "bortezomib") &
+  #     str_detect(drug_name_1_for_MM, "dex") &
+  #     str_detect(drug_name_1_for_MM, "thalidomide")         ~ "VTd",
+  #   drug_count == 2 &
+  #     str_detect(drug_name_1_for_MM, "carfilzomib") &
+  #     str_detect(drug_name_1_for_MM, "dex")                  ~ "Kd",
+  #   drug_count == 2 &
+  #     str_detect(drug_name_1_for_MM, "thal") &
+  #     str_detect(drug_name_1_for_MM, "dex")                  ~ "Td",
+  #   drug_count == 2 &
+  #     str_detect(drug_name_1_for_MM, "lena") &
+  #     str_detect(drug_name_1_for_MM, "dex")                 ~ "Rd",
+  #   drug_count == 2 &
+  #     str_detect(drug_name_1_for_MM, "bortezomib") &
+  #     str_detect(drug_name_1_for_MM, "dex")                 ~ "Bor-Dex",
+  #   drug_count == 1 &
+  #     str_detect(drug_name_1_for_MM, "lenalidomide")        ~ "Lenalidomide",
+  #   drug_count == 1 &
+  #     str_detect(drug_name_1_for_MM, "dex")                 ~ "Dexamethasone",
+  #   drug_count == 1 &
+  #     str_detect(drug_name_1_for_MM, "doxo")                ~ "Doxorubicin",
+  #   drug_count == 1 &
+  #     str_detect(drug_name_1_for_MM, "doxil")               ~ "Doxil",
+  #   drug_count == 1 &
+  #     str_detect(drug_name_1_for_MM, "bortezomib")          ~ "Bortezomib",
+  #   drug_count == 1 &
+  #     str_detect(drug_name_1_for_MM, "melph")               ~ "Melphalan",
+  #   drug_count == 1 &
+  #     str_detect(drug_name_1_for_MM, "carfilzomib")         ~ "Carfilzomib",
+  #   drug_count == 1 &
+  #     str_detect(drug_name_1_for_MM, "cyclo")               ~ "Cyclophosphamide",
+  #   drug_count == 1 &
+  #     str_detect(drug_name_1_for_MM, "thalidomide")         ~ "Thalidomide",
+  #   drug_count == 1 &
+  #     str_detect(drug_name_1_for_MM, "vincristine")         ~ "Vincristine",
+  #   TRUE                                                    ~ drug_name_1_for_MM
+  # )) %>% 
+  # mutate(first_regimen_name_MM = str_replace_na(first_regimen_name_MM, replacement = "No Drugs"))
 
 # Need to separate in 2 df ,do diag separately to make sure it appear before germ or tumor date, date of treatment
 all_dates <- Global_data %>% 
@@ -166,7 +165,7 @@ all_dates <- Global_data %>%
          # "date_of_diagnosis_2", "date_of_diagnosis_3", "date_of_diagnosis_4",
          "collectiondt_germline", starts_with("collectiondt_tumor_"),
          starts_with("date_of_bmt_"),
-         starts_with("drug_start_date_"), starts_with("drug_stop_date_"),
+         starts_with("line_start_date_"), starts_with("line_stop_date_"),
          starts_with("rad_start_date_"), starts_with("rad_stop_date_"), 
          starts_with("progression_"),
          "labs_last_date", "date_last_follow_up", "date_contact_lost", "date_death")
@@ -228,7 +227,7 @@ id <- paste(unique( Global_data$avatar_id[which(!is.na(Global_data$was_contact_l
 #   filter(str_detect(avatar_id , id)) %>% 
 #   purrr::keep(~!all(is.na(.)))
 
-write.csv(last_event, paste0(path, "/last_event.csv"))
+# write.csv(last_event, paste0(path, "/last_event.csv"))
 
 
 Global_data <- Global_data %>% # Add date_death as progression_date when no previous progression_date
@@ -252,22 +251,22 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
   
   # PFS FROM DRUG DATE
   mutate(pfs_drug_progression_date = coalesce(progression_drug_date, pfs_date_death)) %>% 
-  mutate(progression_drug_surv = case_when(
+  mutate(progression_event = case_when(
     !is.na(pfs_drug_progression_date)          ~ 1,
     is.na(pfs_drug_progression_date)           ~ 0
   )) %>% 
   # Add last_date_available
   mutate(pfs_drug_progression_date = coalesce(pfs_drug_progression_date, last_date_available)) %>% 
   # Remove the drug dates after last date available
-  mutate(pfs_drug_start_date = case_when(
-    drug_start_date_1 >= last_date_available        ~ NA_POSIXct_, # doesn't remove date
-    TRUE                                            ~ drug_start_date_1
+  mutate(pfs_line_start_date = case_when(
+    line_start_date_1 >= last_date_available        ~ NA_POSIXct_, # doesn't remove date
+    TRUE                                            ~ line_start_date_1
   )) %>%
-  mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Drug", "No Drug")) %>% 
+  mutate(Drugs = ifelse(!is.na(line_start_date_1), "Drug", "No Drug")) %>% 
   mutate(pfs_drugs = case_when(
-    pfs_drug_start_date <= collectiondt_germline         ~ "Yes",
-    pfs_drug_start_date > collectiondt_germline |
-      is.na(pfs_drug_start_date)                         ~ "No"
+    pfs_line_start_date <= collectiondt_germline         ~ "Yes",
+    pfs_line_start_date > collectiondt_germline |
+      is.na(pfs_line_start_date)                         ~ "No"
   )) %>% 
   
   # PFS FROM RAD DATE
@@ -321,19 +320,19 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
   )) %>% 
   # Add last_date_available
   mutate(pfs_treatment_progression_date = coalesce(pfs_treatment_progression_date, last_date_available)) %>% 
-  # Take first treatment dates after last date available from pfs_hct_start_date and pfs_drug_start_date
+  # Take first treatment dates after last date available from pfs_hct_start_date and pfs_line_start_date
   mutate(pfs_treatment_start_date = case_when(
-    pfs_drug_start_date >= pfs_hct_start_date         ~ NA_POSIXct_,
-    TRUE                                              ~ pfs_drug_start_date
+    pfs_line_start_date >= pfs_hct_start_date         ~ NA_POSIXct_,
+    TRUE                                              ~ pfs_line_start_date
   )) %>%
   mutate(pfs_treatment_start_date = coalesce(pfs_treatment_start_date, pfs_hct_start_date)) %>% 
   mutate(pfs_treatment = case_when(
     !is.na(pfs_hct_start_date) &
-      !is.na(pfs_drug_start_date)                     ~ "Drug + SCT",
+      !is.na(pfs_line_start_date)                     ~ "Drug + SCT",
     !is.na(pfs_hct_start_date) &
-      is.na(pfs_drug_start_date)                      ~ "SCT only (before or after germline)",
+      is.na(pfs_line_start_date)                      ~ "SCT only (before or after germline)",
     is.na(pfs_hct_start_date) &
-      !is.na(pfs_drug_start_date)                     ~ "Drug only"
+      !is.na(pfs_line_start_date)                     ~ "Drug only"
   )) %>% 
 
   
@@ -387,7 +386,7 @@ rm(all_dates, all_dates1, last_event, Last_labs_dates, Contact_lost, OS_data, St
 #                  c("Dx_date_closest_germline", "date_last_follow_up", "date_contact_lost", "date_death", "last_date_available")]
 
 
-write.csv(Global_data, paste0(path, "/Global_data updated.csv"))
+# write.csv(Global_data, paste0(path, "/Global_data updated.csv"))
 
 
 ########################################### II ### Create all the age from dates ----
@@ -423,7 +422,7 @@ Global_data$Age_at_lastdate <- interval(start= Global_data$Date_of_Birth, end= G
 Global_data$Age_at_lastdate <- round(Global_data$Age_at_lastdate, 3)
 # summary(Global_data$Age_at_lastdate, na.rm = TRUE)
 
-Global_data$Age_at_firstdrug <- interval(start= Global_data$Date_of_Birth, end= Global_data$drug_start_date_1)/                      
+Global_data$Age_at_firstdrug <- interval(start= Global_data$Date_of_Birth, end= Global_data$line_start_date_1)/                      
   duration(n=1, unit="years")
 Global_data$Age_at_firstdrug <- round(Global_data$Age_at_firstdrug, 3)
 # summary(Global_data$Age_at_firstdrug, na.rm = TRUE)
@@ -458,10 +457,10 @@ Global_data$month_at_progression_Dx <- round(Global_data$month_at_progression_Dx
 # b <- Global_data[,c("avatar_id", "month_at_progression_Dx", "date_of_diagnosis_1", "pfs_progression_date", "last_date_available", "progression_date", 
 #                  "last_event_available")]
 
-Global_data$month_at_progression_drug <- interval(start= Global_data$pfs_drug_start_date, end= Global_data$pfs_drug_progression_date)/                      
+Global_data$month_at_progression_drug <- interval(start= Global_data$pfs_line_start_date, end= Global_data$pfs_drug_progression_date)/                      
   duration(n=1, unit="months")
 Global_data$month_at_progression_drug <- round(Global_data$month_at_progression_drug, 3)
-# b <- Global_data[,c("avatar_id", "month_at_progression_drug", "pfs_drug_start_date", "pfs_drug_progression_date", "last_date_available", "progression_date", 
+# b <- Global_data[,c("avatar_id", "month_at_progression_drug", "pfs_line_start_date", "pfs_drug_progression_date", "last_date_available", "progression_date", 
 #                  "last_event_available")]
 
 
@@ -492,7 +491,7 @@ write_rds(Global_data, path = "Global_data.rds")
 ################################################################################################## III ## Germline ----
 # Create dataframe for only the patients who had germline sequenced
 germline_patient_data <- Global_data[!is.na(Global_data$Disease_Status_germline),]
-write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
+# write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
 
 
 
@@ -502,9 +501,9 @@ write.csv(germline_patient_data, paste0(path, "/germline_patient_data.csv"))
 # Do a check on dates
 germline_patient_data <- germline_patient_data %>% 
   mutate(germlineBFdrugs = case_when(
-    collectiondt_germline > drug_start_date_1 ~ "No",
-    collectiondt_germline <= drug_start_date_1 ~ "OK",
-    is.na(drug_start_date_1) ~ "OK"
+    collectiondt_germline > line_start_date_1 ~ "No",
+    collectiondt_germline <= line_start_date_1 ~ "OK",
+    is.na(line_start_date_1) ~ "OK"
   )) %>% 
   mutate(germlineBFbmt1 = case_when(
     collectiondt_germline > date_of_bmt_1  ~ "No",
@@ -555,10 +554,10 @@ germline_patient_data <- germline_patient_data %>%
       pfs_progression_date > date_contact_lost              ~ 0,
     TRUE ~ progression_surv
   )) %>% # remove censored patient when pfs_drug_progression_date > date_contact_lost - remove 1 patient
-  mutate(progression_drug_surv = case_when( 
-    progression_drug_surv == 1 & 
+  mutate(progression_event = case_when( 
+    progression_event == 1 & 
       pfs_drug_progression_date > date_contact_lost         ~ 0,
-    TRUE ~ progression_drug_surv
+    TRUE ~ progression_event
   )) %>% # remove censored patient when date_death > date_contact_lost (just in case)
   
   mutate(progression_rad_surv = case_when( 
@@ -577,14 +576,14 @@ germline_patient_data <- germline_patient_data %>%
     TRUE ~ progression_treatment_surv
   )) %>% 
   
-  mutate(os_surv_cor = case_when( 
+  mutate(os_event = case_when( 
     os_surv == 1 & 
       date_death > date_contact_lost                        ~ 0,
     TRUE ~ os_surv
   ))
 
 write_rds(germline_patient_data, path = "germline_patient_data.rds")
-# write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))
+# # write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))
 tab <- table(germline_patient_data$GermBFtumorWES)
 # jpeg("barplot3.jpg", width = 350, height = 350)
 barplot(tab, main = "Frequency of collection date first observed", ylim = c(0,500))
@@ -597,11 +596,11 @@ rm(tab)
 
 # Request info from Raghu
 # get_info <- as.data.frame(germline_patient_data$avatar_id)
-# write.csv(get_info, paste0(path, "/germline patient ids.csv"))
+# # write.csv(get_info, paste0(path, "/germline patient ids.csv"))
 # get_info <- germline_patient_data$avatar_id[is.na(germline_patient_data$WES_HUDSON_ALPHA_germline)]
-# write.csv(get_info, paste0(path, "/get_info.csv"))
+# # write.csv(get_info, paste0(path, "/get_info.csv"))
 # get_info2 <- germline_patient_data$avatar_id[is.na(germline_patient_data$TCC_ID)]
-# write.csv(get_info2, paste0(path, "/get_info2.csv"))
+# # write.csv(get_info2, paste0(path, "/get_info2.csv"))
 
 
 

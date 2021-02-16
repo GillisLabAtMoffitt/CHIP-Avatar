@@ -15,7 +15,7 @@ p + scale_fill_viridis_c(
   aesthetics = "fill"
 ) +
   theme_minimal() +
-  labs(x="Age at Diagnosis", y="Number of Patient", title="Age at Diagnisis Repartition in Avatar")
+  labs(x="Age at Diagnosis", y="Number of Patient", title="Age at Diagnosis Repartition in Avatar")
 # # dev.off()
 
 # Gender

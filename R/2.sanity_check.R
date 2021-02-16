@@ -152,11 +152,11 @@ table_sanity_check <- as.data.table(matrix(c("check", "radiation_check", "treatm
 
 write.csv(table_sanity_check, paste0(path, "/sanity check output/sanity check.csv"))
 
-wrong_date_bmt <- as.data.table(sanity_check[which(sanity_check$sct_check == "not good"), c("avatar_id", "date_of_bmt_1", "date_of_bmt_2")])
+wrong_date_bmt <- as.data.table(sanity_check[which(sanity_check$sct_check == "not good"), c("avatar_id", "mrn", "date_of_bmt_1", "date_of_bmt_2")])
 write.csv(wrong_date_bmt, paste0(path, "/sanity check output/wrong_date_bmt.csv"))
 
 wrong_date_drug <- sanity_check[which(sanity_check$treat_check == "not good"), ] %>% 
-  select("avatar_id", starts_with("drug_start"), starts_with("drug_name"))
+  select("avatar_id", "mrn", starts_with("drug_start"), starts_with("drug_name"))
 wrong_date_drug <- as.data.table(wrong_date_drug)
 write.csv(wrong_date_drug, paste0(path, "/sanity check output/wrong_date_drug.csv"))
 

@@ -1,5 +1,5 @@
 ################################################################################################## I ## Global data mining ----
-tbl <- 
+# tbl <- 
   Global_data  %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "MM Avatar patients") %>% 
@@ -10,7 +10,7 @@ tbl <-
   bold_labels() %>% as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in MM Avatar patients.pdf"))
 
-tbl <- 
+# tbl <- 
   Global_data  %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "MM Avatar patients") %>% 
@@ -51,14 +51,15 @@ Global_data  %>%
 ################################################################################################## II ## Germline data mining ----
 
 
-tbl <- germline_patient_data %>%
+# tbl <- 
+  germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(ISS, Whole) %>% 
   tbl_summary(by = Whole) %>% bold_labels() %>% as_gt()
 gt::gtsave(tbl, zoom = .4, paste0(path, "/Figures/ISS/ISS staging in germline patients.pdf"))
 
-tbl <- 
+# tbl <- 
   germline_patient_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
@@ -69,7 +70,8 @@ tbl <-
   bold_labels() %>% as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in germline patients.pdf"))
 
-tbl <- germline_patient_data %>%
+# tbl <- 
+  germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Disease_Status_facet, ISS
     ) %>% 
@@ -79,7 +81,8 @@ tbl <- germline_patient_data %>%
   bold_labels() %>% as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in germline patients by DS no missing.pdf"))
 
-tbl <- germline_patient_data %>%
+# tbl <- 
+  germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
   mutate(Disease_Status_facet = forcats::fct_explicit_na(Disease_Status_facet)) %>% 
@@ -90,7 +93,7 @@ tbl <- germline_patient_data %>%
   bold_labels() %>% as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics race simplified in germline patients by DS with missing.pdf"))
 
-tbl <- 
+# tbl <- 
   germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, CH_status, ISS) %>% 
@@ -539,16 +542,17 @@ germ_before_treatment <- as.table(germ_before_treatment)
 
 ################### Drugs
 write_csv(germline_patient_data %>% 
-            select(avatar_id, drug_name__1, drug_name_1_for_MM, drug_count, first_regimen_name_MM), 
+            select(avatar_id, drug_name__1, drug_name_1_for_MM, drug_count, first_regimen_name), 
           paste0(path, "/Figures/Treatment/regimen name in germline.csv"))
 
-tbl <- germline_patient_data %>% count(first_regimen_name_MM) %>% arrange(desc(n))
+# tbl <- germline_patient_data %>% count(first_regimen_name) %>% arrange(desc(n))
 write_csv(tbl, paste0(path, "/Figures/Treatment/list regimen.csv"))
 
 sum(is.na(germline_patient_data$drug_start_date_1))
 
 # What are the duration between start data of regimen?
-regimen_data <- treatment %>% 
+# regimen_data <- 
+  treatment %>% 
   reshape2::dcast(avatar_id+drug_start_date+drug_stop_date ~ rowid(avatar_id),
                   value.var = c("drug_name_")) %>%
   unite(drug_name_, -avatar_id:-drug_stop_date, sep = "; ", na.rm = TRUE, remove = TRUE) %>%
@@ -572,7 +576,8 @@ write_csv(regimen_data, path = paste0(path, "/Figures/Treatment/Duration and Gap
 # write_csv(mrn_regimen, path = paste0(path, "/Figures/Treatment/Duration and Gap of regimen with mrn.csv"))
 
 # What are the duration between start and stop of each regimen?
-Duration <- dcast(setDT(treatment), mrn+avatar_id+treatment_line_ ~ rowid(avatar_id),
+# Duration <- 
+  dcast(setDT(treatment), mrn+avatar_id+treatment_line_ ~ rowid(avatar_id),
                   value.var = c("drug_name_","drug_start_date", "drug_stop_date")) %>% 
   unite(drug_name_, starts_with("drug_name_"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
   
@@ -751,7 +756,7 @@ Duration <- dcast(setDT(treatment), mrn+avatar_id+treatment_line_ ~ rowid(avatar
   select(avatar_id, regimen_name, drug_start_date, drug_stop_date, regimen_duration) 
 
 stat_data <- germline_patient_data %>% 
-                         select(c("avatar_id", "Date_of_Birth", "Gender", "Ethnicity", "Race", "ISS",
+                         select(c("mrn", "avatar_id", "Date_of_Birth", "Gender", "Ethnicity", "Race", "ISS",
                                   "Disease_Status_germline", 
                                   date_of_diagnosis = "Dx_date_closest_germline",
                                   "date_death",
@@ -770,7 +775,8 @@ stat_data <- germline_patient_data %>%
                        
 write_csv(stat_data, paste0(path, "/data for stats.csv"))
 
-tbl <- stat_data %>% 
+# tbl <- 
+  stat_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(Gender, Race, Ethnicity, Whole, ISS, Disease_Status_germline) %>%
@@ -779,7 +785,7 @@ tbl <- stat_data %>%
   bold_labels() %>% as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics3 in germline patients.pdf"))
 
-# tbl <- stat_data %>% 
+# # tbl <- stat_data %>% 
 #   distinct(avatar_id, .keep_all = TRUE) %>% 
 #   mutate(Whole = "Germline patients") %>% 
 #   select(Disease_Status_germline, Whole) %>%
@@ -788,7 +794,8 @@ gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics3 in g
 #   bold_labels() %>% as_gt()
 # gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Disease_Status_germline in germline patients.pdf"))
 
-tbl <- stat_data %>% 
+# tbl <- 
+  stat_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(month_at_progression_drug, month_at_os, first_regimen_name, regimen_duration, Whole) %>%
@@ -798,7 +805,7 @@ tbl <- stat_data %>%
   bold_labels() %>% as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Treatment and outcomes in germline patients.pdf"))
 
-# tbl <- stat_data %>% 
+# # tbl <- stat_data %>% 
 #   distinct(avatar_id, .keep_all = TRUE) %>% 
 #   mutate(Whole = "Germline patients") %>% 
 #   select(regimen_duration, Whole) %>%
@@ -807,7 +814,7 @@ gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Treatment and outc
 #   bold_labels() %>% as_gt()
 # gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/regimen_duration in germline patients.pdf"))
 
-# tbl <- stat_data %>% 
+# # tbl <- stat_data %>% 
 #   distinct(avatar_id, .keep_all = TRUE) %>% 
 #   mutate(Whole = "Germline patients") %>% 
 #   select(month_at_progression_drug, month_at_os, Whole) %>%
@@ -827,7 +834,8 @@ stat_data_sequeenced <- stat_data[ grepl(id, stat_data$avatar_id) , ]
 
 write_csv(stat_data_sequeenced, paste0(path, "/Sequenced patients data for stats.csv"))
 
-tbl <- stat_data_sequeenced %>% 
+# tbl <- 
+  stat_data_sequeenced %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Sequenced patients") %>% 
   select(Gender, Race, Ethnicity, Whole, ISS, Disease_Status_germline) %>%
@@ -836,7 +844,7 @@ tbl <- stat_data_sequeenced %>%
   bold_labels() %>% as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in sequenced patients.pdf"))
 
-# tbl <- stat_data_sequeenced %>% 
+# # tbl <- stat_data_sequeenced %>% 
 #   distinct(avatar_id, .keep_all = TRUE) %>% 
 #   mutate(Whole = "Sequenced patients") %>% 
 #   select(Disease_Status_germline, Whole) %>%
@@ -845,7 +853,8 @@ gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in se
 #   bold_labels() %>% as_gt()
 # gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Disease_Status_germline in sequenced patients.pdf"))
 
-tbl <- stat_data_sequeenced %>% 
+# tbl <- 
+  stat_data_sequeenced %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Sequenced patients") %>% 
   select(month_at_progression_drug, month_at_os, first_regimen_name, regimen_duration, Whole) %>%
@@ -855,7 +864,7 @@ tbl <- stat_data_sequeenced %>%
   bold_labels() %>% as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/regimen_name in sequenced patients.pdf"))
 
-# tbl <- stat_data_sequeenced %>% 
+# # tbl <- stat_data_sequeenced %>% 
 #   distinct(avatar_id, .keep_all = TRUE) %>% 
 #   mutate(Whole = "Sequenced patients") %>% 
 #   select(regimen_duration, Whole) %>%
@@ -864,7 +873,7 @@ gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/regimen_name in se
 #   bold_labels() %>% as_gt()
 # gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/regimen_duration in sequenced patients.pdf"))
 # 
-# tbl <- stat_data_sequeenced %>% 
+# # tbl <- stat_data_sequeenced %>% 
 #   distinct(avatar_id, .keep_all = TRUE) %>% 
 #   mutate(Whole = "Sequenced patients") %>% 
 #   select(month_at_progression_drug, month_at_os, Whole) %>%
@@ -966,7 +975,8 @@ gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/regimen_name in se
 #   mutate(drugs_first_regimen = coalesce(drugs_first_regimen, Drugs))
 
 # What are the drugs in the first regimen?
-tbl <- germline_patient_data %>% select(`Drug name` = "drug_name__1") %>% 
+# tbl <- 
+  germline_patient_data %>% select(`Drug name` = "drug_name__1") %>% 
   mutate(Whole = "All drugs in 1st regimen") %>% 
   tbl_summary(by = Whole,
               sort = list(everything() ~ "frequency")) %>% bold_labels() %>% as_gt()
@@ -974,30 +984,29 @@ gt::gtsave(tbl, paste0(path, "/Figures/Treatment/Drugs in 1st regimen germline p
 
 # table <- as.data.table(table(germline_patient_data$drug_name__1))
 # write.csv(table, paste0(path, "/list of all drugs in data.csv"))
-tbl <- germline_patient_data %>%
+# tbl <- 
+  germline_patient_data %>%
   mutate(Whole = "Most common regimen in 1st regimen") %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(first_regimen_name_MM = str_replace_na(first_regimen_name_MM, replacement = "No Drugs")) %>% 
-  filter(str_detect(first_regimen_name_MM, "VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRD")) %>% 
-  # mutate(first_regimen_name_MM = factor(first_regimen_name_MM, levels = c("VRd", "No Drugs", "Bor-Dex", "CyBorD or VCd", "Rd", "Dex",
-  #                                                                "Len", "Td", "KRd", "V", "NonMM drugs", "M", "VAd", "ABCD", "IRD",
-  #                                                                "D-RVd or dara-RVd"))) %>%
-  select(first_regimen_name_MM, Whole) %>% 
+  mutate(first_regimen_name = str_replace_na(first_regimen_name, replacement = "No Drugs")) %>% 
+  filter(str_detect(first_regimen_name, "VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRD")) %>% 
+  select(first_regimen_name, Whole) %>% 
   tbl_summary(by = Whole,
               sort = list(everything() ~ "frequency")) %>% bold_labels() %>% as_gt()
 gt::gtsave(tbl, zoom = 1,
            paste0(path, "/Figures/Treatment/Regimen 1st germline patients.pdf"))
 
 # What are the drugs in the first regimen by disease ststus (+BMT, radiadtion)?
-tbl <- germline_patient_data %>%
+# tbl <- 
+  germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   filter(!str_detect(Disease_Status_germline, "Amyl|MYELO|Normal|Refrac|Solit|WALD")) %>%
   mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Drugs", "No Drugs")) %>%
-  mutate(first_regimen_name_MM = case_when(
-    !str_detect(first_regimen_name_MM, 
+  mutate(first_regimen_name = case_when(
+    !str_detect(first_regimen_name, 
                 "VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRd") 
                                                      ~ "Other Regimen",
-    TRUE                                             ~ first_regimen_name_MM
+    TRUE                                             ~ first_regimen_name
   )) %>% 
   mutate(No_Treatment = case_when(
     is.na(drug_start_date_1) &
@@ -1005,24 +1014,25 @@ tbl <- germline_patient_data %>%
       is.na(date_of_bmt_1) ~ "No Treatment",
     TRUE                   ~ "Treatment Given"
   )) %>% 
-  select(Drugs, first_regimen_name_MM, Disease_Status_germline, Radiation_at_all_time, HCT_at_all_time, No_Treatment) %>% 
+  select(Drugs, first_regimen_name, Disease_Status_germline, Radiation_at_all_time, HCT_at_all_time, No_Treatment) %>% 
   tbl_summary(by = Disease_Status_germline,
               sort = list(everything() ~ "frequency")) %>% add_p() %>% bold_labels() %>% as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Treatment/Table any treatment in germline patients.pdf"))
 
 # What are the "other regimen"
-tbl <- germline_patient_data %>%
+# tbl <- 
+  germline_patient_data %>%
   mutate(Whole = "Other drugs than most used regimen") %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(first_regimen_name_MM = ifelse(!is.na(drug_start_date_1), first_regimen_name_MM, "No Drugs")) %>% 
-  mutate(first_regimen_name_MMb = case_when(
-    !str_detect(first_regimen_name_MM, 
+  mutate(first_regimen_name = ifelse(!is.na(drug_start_date_1), first_regimen_name, "No Drugs")) %>% 
+  mutate(first_regimen_nameb = case_when(
+    !str_detect(first_regimen_name, 
                 "No Drugs|VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRd") 
                                                      ~ "Other Regimen",
-    TRUE                                             ~ first_regimen_name_MM
+    TRUE                                             ~ first_regimen_name
   )) %>% 
-  filter(first_regimen_name_MMb == "Other Regimen") %>% 
-  select(first_regimen_name_MM, Whole) %>% 
+  filter(first_regimen_nameb == "Other Regimen") %>% 
+  select(first_regimen_name, Whole) %>% 
   tbl_summary(by = Whole,
               sort = list(everything() ~ "frequency")) %>% bold_labels() %>% as_gt()
 gt::gtsave(tbl, zoom = 1, 

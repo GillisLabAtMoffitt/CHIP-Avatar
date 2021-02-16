@@ -595,12 +595,7 @@ legend("bottomright", legend = c("version1", "version2", "version4"),
 #######################################################################################  III  # For 1st sequencing file
 ### Bind Germline
 Germline <- Germline %>% 
-  distinct()# %>% 
-  # filter(!str_detect(avatar_id, "A000428|A000456"))
-#   `colnames<-`(c("avatar_id", "collectiondt_germline", 
-#                  "WES_HUDSON_ALPHA_germline", "Disease_Status_germline", "SLID_germline")) %>% 
-#   arrange(SLID_germline) %>% 
-#   distinct(avatar_id, Disease_Status_germline, .keep_all = TRUE)
+  distinct()
 
 # One of the sequencing data is in 2 part so merge that first
 # Are moffitt_sample_id are equal in WES and Sequencing ?
@@ -632,14 +627,6 @@ WES_seq <-
           "BaitSet"
         )
   )
-
-# WES_seq  <- WES_seq[order(WES_seq$collectiondt_tumor_1), ] %>%
-#   arrange(collectiondt_tumor_2) %>%
-#   arrange(collectiondt_tumor_3) %>%
-#   arrange(collectiondt_tumor_4) %>%
-#   arrange(collectiondt_tumor_5) %>%
-#   arrange(collectiondt_tumor_6)
-
 
 # # Merge with Germ (date) with WES_seq (sequencing)
 # Combined_data_MM <- merge.data.frame(Germ, WES_seq,
@@ -695,15 +682,12 @@ WES_seq <-
 
 
 # Merge all
-
 Germline <- left_join(WES_seq, Germline, by = "avatar_id") %>% 
   filter(SLID_germline.x == SLID_germline.y | is.na(SLID_germline.x == SLID_germline.y)) %>% 
   rename(SLID_germline = "SLID_germline.x", collectiondt_germline = "collectiondt_germline.x") %>% 
   # distinct(avatar_id, SLID_germline, .keep_all = TRUE) %>% 
   mutate(collectiondt_germline = coalesce(collectiondt_germline, collectiondt_germline.y)) %>% 
   select(-SLID_germline.y, -collectiondt_germline.y)
-
-
 
 # Cleaning
 rm(Sequencing, Sequencing2, WES_tumor, WES_seq, Seq_WES_Raghu, Seq_WES, Seq_WES_Raghu2)
@@ -987,8 +971,9 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
     drug_name_ == "cafilzomib"                                             ~ "carfilzomib",
     drug_name_ == "daratumuab"                                             ~ "daratumumab",
     str_detect(drug_name_, "^dex")                                         ~ "dexamethasone",
-    str_detect(drug_name_, "^lena")                                        ~ "lenalidomide",
+    str_detect(drug_name_, "^lena|revlimid")                               ~ "lenalidomide",
     str_detect(drug_name_, "^mel")                                         ~ "melphalan",
+    str_detect(drug_name_, "velcade")                                      ~ "bortezomib",
     drug_name_ == "vinicristine"                                           ~ "vincristine",
     drug_name_ %in% c("anastrozole", "azacitidine", "carmustine", 
                       "cytarabine", "decitabine", "denosumab", 
@@ -1009,7 +994,7 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
   # ungroup() %>%
   arrange(avatar_id, treatment_line_, drug_name_, drug_start_date, drug_stop_date)
 
-# treatment1 <- dcast(setDT(treatment), mrn+avatar_id+treatment_line_+drug_name_ ~ rowid(avatar_id),
+# treatment1 <- dcast(setDT(treatment), mrn+avatar_id+treatment_line_+drug_name_ ~ rowid(avatar_id), ## Old code
 #                    value.var = c("drug_start_date", "drug_stop_date"))
 
 # Make sure that the same drug in 1 line is counted once with the earliest start date and latest stop date
@@ -1021,7 +1006,6 @@ treatment1 <- treatment %>% group_by(mrn, avatar_id, treatment_line_, drug_name_
   group_by(avatar_id, treatment_line_) %>% 
   mutate(line_start_date = min(drug_start_date)) %>% 
   mutate(line_stop_date = max(drug_stop_date))
-  
 
 # Summarize by regimen/line
 Treatment1 <- treatment1 %>% 
@@ -1030,7 +1014,7 @@ Treatment1 <- treatment1 %>%
   summarise_at(vars(drug_name_, drug_start_date, drug_stop_date), paste, collapse = "; ") %>%
   mutate(drug_count = sapply(strsplit(drug_name_, ";"), length)) %>% 
 
-# Treatment <- dcast(setDT(treatment1), mrn+avatar_id+treatment_line_ ~ rowid(avatar_id),
+# Treatment <- dcast(setDT(treatment1), mrn+avatar_id+treatment_line_ ~ rowid(avatar_id), ## Old code
 #                   value.var = c("drug_name_","drug_start_date", "drug_stop_date")) %>% 
 #   unite(drug_name_, starts_with("drug_name_"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
   
@@ -1084,6 +1068,11 @@ Treatment1 <- treatment1 %>%
       str_detect(drug_name_, "cyclophosphamide") &
       str_detect(drug_name_, "dex") &
       str_detect(drug_name_, "doxo")                ~ "D-RVd or dara-RVd",
+    drug_count == 4 &
+      str_detect(drug_name_, "bortezomib") &
+      str_detect(drug_name_, "cyclophosphamide") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "lena")                ~ "VDCR",
     drug_count == 3 &
       str_detect(drug_name_, "bortezomib") &
       str_detect(drug_name_, "busulfan") &
@@ -1190,7 +1179,7 @@ Treatment1 <- treatment1 %>%
   )) %>% 
   mutate(regimen_name = str_replace_na(regimen_name, replacement = "No Drugs"))
 
-# Now can dcast to have line of drug_name_ for each line/regimen
+# Now can dcast to have line of drug_name_ for each line/regimen ## Old code
 # 1st for regimen with same start and end date
 # Treatment <- treatment %>% 
 #   reshape2::dcast(mrn+avatar_id+treatment_line_+drug_start_date+drug_stop_date ~ rowid(avatar_id),
@@ -1217,6 +1206,7 @@ Treatment <- dcast(setDT(Treatment1), mrn+avatar_id ~ rowid(avatar_id),
                    value.var = c("treatment_line_", "line_start_date", "drug_name_", "regimen_name", 
                                  "line_stop_date", "drug_start_date", "drug_stop_date"))
 
+regimen_changed_id <- c("A000180", "A000414", "A014308", "A014310", "A015461", "A022588", "A025760")
 Treatment <- Treatment %>% 
   purrr::keep(~!all(is.na(.))) %>% 
   mutate(received_IMIDs = case_when(
@@ -1237,7 +1227,10 @@ Treatment <- Treatment %>%
       str_detect(drug_name__15, "lidomide")    ~ "IMIDs",
     TRUE ~ "No IMIDs"
   )) %>% 
-  full_join(., IMIDS_maintenance, by = "avatar_id")
+  full_join(., IMIDS_maintenance, by = "avatar_id") %>% 
+  rename(first_regimen_name = regimen_name_1) %>% 
+  mutate(first_regimen_name = ifelse((str_detect(avatar_id, paste0(regimen_changed_id, collapse = "|"))), "VRd", first_regimen_name))
+
 
 rm(migration_patients, IMIDS_maintenance)
 # write.csv(Treatment,paste0(path, "/simplified files/Treatment simplify.csv"))
@@ -1466,6 +1459,7 @@ barplot(
 
 
 ##################################################################################################  IV  ## Merge----
+patients_removed_nonMM <- c("A000428", "A000456")
 Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_germline", "SLID_germline",
                              "collectiondt_germline", "Disease_Status_germline", 
                              starts_with("SLID_tumor"), starts_with("collectiondt_tumor_", 
@@ -1486,11 +1480,12 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(Demo_RedCap_V4ish %>% select(-TCC_ID), ., by = "avatar_id")
 # # write.csv(Global_data, paste0(path, "/Global_data.csv"))
 Global_data <- left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id")) %>% 
-  filter(!str_detect(avatar_id, "A000428|A000456"))
+  filter(!str_detect(avatar_id, paste0(patients_removed_nonMM, collapse = "|")))
 write_rds(Global_data, path = "Global_data_pre.rds")
 #--
 # avatar_no_germline <- Global_data %>% filter(is.na(Global_data$Disease_Status_germline)) %>% 
 #   select("avatar_id")
 # # write.csv(avatar_no_germline, paste0(path, "/patient id with no germline.csv"))
+rm(regimen_changed_id, patients_removed_nonMM)
 
-
+# End Cleaning

@@ -12,6 +12,19 @@ output:
     # keep_md: true
 ---
 
+<style type="text/css">
+.figure {
+   margin-top: 25px;
+   <!-- margin-bottom: 100px; -->
+}
+
+table {
+    margin-top: 25px;
+    <!-- margin-bottom: 100px !important; -->
+}
+
+</style>
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
                       warning = FALSE,
@@ -20,6 +33,9 @@ knitr::opts_chunk$set(echo = FALSE,
                       # fig.width = 7, fig.height = 5, 
                       fig.align='center'#, fig.show='hold'
                       )
+options(gtsummary.print_engine = "gt")
+options(gtsummary.as_gt.addl_cmds = "gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1))")
+
 ```
 
 # Report on year 1 Avatar data Multiple Myeloma patients
@@ -90,8 +106,8 @@ p + scale_fill_viridis_c(
   guide = "colourbar",
   aesthetics = "fill"
 ) +
-  theme_minimal(base_size = 20) +
-  labs(x="Age at Diagnosis", y="Number of Patient", title="Age at Diagnisis Repartition in Avatar")
+  theme_minimal(base_size = 15) +
+  labs(x="Age at Diagnosis", y="Number of Patient", title="Age at Diagnosis Repartition")
 
 Global_data  %>% 
   distinct(avatar_id, .keep_all = TRUE) %>%
@@ -105,22 +121,9 @@ Global_data  %>%
   geom_bar(stat="identity")+
   labs(x = "Tumor sequenced", title = "Nbr of tumor sequenced patients")+
   geom_text(aes(label = paste0("n=", count)), size = 3, position = position_stack(vjust = 1.08))+
-  theme_minimal()+
+  theme_minimal(base_size = 15)+
   coord_flip()
-Global_data  %>% 
-  distinct(avatar_id, .keep_all = TRUE) %>%
-  select(avatar_id, starts_with("SLID_tumor")) %>% 
-  pivot_longer(cols = -avatar_id, names_to = "SLID_tumor", names_prefix = "SLID_tumor_", values_to = "value") %>% 
-  filter(!is.na(value)) %>%
-  arrange(desc(SLID_tumor)) %>% distinct(avatar_id, .keep_all = TRUE) %>% 
-  group_by(SLID_tumor) %>% 
-  summarise(count = n()) %>% 
-  ggplot(aes(x=SLID_tumor, y = count))+
-  geom_bar(stat="identity")+
-  labs(x = "Tumor sequenced", title = "Nbr of tumor sequenced patients")+
-  geom_text(aes(label = paste0("n=", count)), size = 3, hjust = "inward", position = position_stack(vjust = 1.08))+
-  theme_minimal()+
-  coord_flip()
+
 ```
 </div>
 </div>
@@ -132,8 +135,8 @@ Global_data  %>%
 p <- ggplot(Global_data %>% filter(!is.na(Age_at_diagnosis_closest_germline), !is.na(Gender)),
             aes(x=Gender, y=Age_at_diagnosis_closest_germline), fill=Gender) + 
   geom_boxplot(color= c("purple3", "royalblue2")) +
-  theme_minimal() +
-  labs(x="Gender", y="Age at Diagnosis", title="Age repartition per gender in Avatar")
+  theme_minimal(base_size = 28) +
+  labs(x=NULL, y="Age at Diagnosis", title="Age repartition per gender")
 p + geom_jitter(shape=16, position=position_jitter(0.2))+
   stat_compare_means()
 ```
@@ -144,8 +147,8 @@ p + geom_jitter(shape=16, position=position_jitter(0.2))+
 p <- ggplot(Global_data %>% filter(!is.na(Age_at_diagnosis_closest_germline), (Ethnicity == "Hispanic" | Ethnicity == "Non-Hispanic") ),
             aes(x=Ethnicity, y=Age_at_diagnosis_closest_germline), fill=Ethnicity) + 
   geom_boxplot(color = c("darkred", "darkgreen")) +
-  theme_minimal() +
-  labs(x="Ethnicity", y="Age at Diagnosis", title="Age repartition per ethnicity in Avatar")
+  theme_minimal(base_size = 28) +
+  labs(x=NULL, y="Age at Diagnosis", title="Age repartition per ethnicity")
 p + geom_jitter(shape=16, position=position_jitter(0.2))+
   stat_compare_means()
 ```
@@ -157,8 +160,8 @@ p <- Global_data %>%
   mutate(Race = factor(Race, levels=c("White", "Black",  "Others"))) %>% filter(!is.na(Race)) %>% 
   ggplot(aes(x=Race, y=Age_at_diagnosis_closest_germline), fill=Race) + 
   geom_boxplot(color= c("#A92E5EFF", "#E65D2FFF", "grey")) + # color= c("#60136EFF", "#A92E5EFF", "#E65D2FFF")
-  theme_minimal() +
-  labs(x="Race", y="Age at Diagnosis", title="Age repartition per race in Avatar")
+  theme_minimal(base_size = 28) +
+  labs(x=NULL, y="Age at Diagnosis", title="Age repartition per race")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
   stat_compare_means()
 ```
@@ -198,10 +201,20 @@ germline_patient_data %>%
 </div>
 </div>
 
-
-
-### By disease status
+### Disease status at germline collection
 ```{r germline}
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Disease_Status_germline, Whole) %>% 
+  tbl_summary(by = Whole) %>% bold_labels() %>% as_gt()  %>%
+  gt::tab_style(
+    style = gt::cell_text(
+      color = "#0099CC"
+    ),
+    locations = gt::cells_column_labels(everything())
+  ) 
+
 germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Disease_Status_facet, ISS
@@ -225,17 +238,18 @@ germline_patient_data %>%
               sort = list(everything() ~ "frequency")) %>% add_p() 
 ```
 <br>
-### More about age
+
+### Age at diagnosis disparities
 
 #### Gender
 <div class = "row">
 <div class = "col-md-5">
-```{r, fig.height = 7}
+```{r, fig.height = 10}
 p <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagnosis_closest_germline), !is.na(Gender)),
             aes(x=Gender, y=Age_at_diagnosis_closest_germline), fill=Gender) + 
   geom_boxplot(color= c("purple3", "royalblue2")) +
-  theme_minimal() +
-  labs(x="Gender", y="Age at Diagnosis", title="Age repartition per gender in germline")
+  theme_minimal(base_size = 22) +
+  labs(x=NULL, y="Age at Diagnosis", title="Age repartition per gender")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
   stat_compare_means()
 ```
@@ -248,8 +262,8 @@ p <- ggplot(germline_patient_data %>%
               filter(!is.na(Age_at_diagnosis_closest_germline), !is.na(Gender), !is.na(Disease_Status_facet)),
             aes(x=Gender, y=Age_at_diagnosis_closest_germline), fill=Gender) + 
   geom_boxplot(color= rep(c("purple3", "royalblue2"), 3)) +
-  theme_minimal() +
-  labs(x="Gender", y="Age at Diagnosis", title="Age repartition per gender in Avatar")
+  theme_minimal(base_size = 15) +
+  labs(x=NULL, y="Age at Diagnosis", title="Age repartition per gender")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
   facet_grid(. ~ Disease_Status_facet) +
   theme(strip.background = element_rect(colour="grey", fill="white",
@@ -262,12 +276,12 @@ p + geom_jitter(shape=16, position=position_jitter(0.2)) +
 #### Ethnicity
 <div class = "row">
 <div class = "col-md-5">
-```{r, fig.height = 7}
+```{r, fig.height = 10}
 p <- ggplot(germline_patient_data %>% filter(!is.na(Age_at_diagnosis_closest_germline), (Ethnicity == "Hispanic" | Ethnicity == "Non-Hispanic") ), 
             aes(x=Ethnicity, y=Age_at_diagnosis_closest_germline), fill=Ethnicity) + 
   geom_boxplot(color = c("darkred", "darkgreen")) + 
-  theme_minimal() +
-  labs(x="Ethnicity", y="Age at Diagnosis", title="Age repartition per ethnicity in germline")
+  theme_minimal(base_size = 22) +
+  labs(x=NULL, y="Age at Diagnosis", title="Age repartition per ethnicity")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
   stat_compare_means()
 ```
@@ -281,8 +295,8 @@ p <- ggplot(germline_patient_data %>%
                      !is.na(Disease_Status_facet), (Ethnicity == "Hispanic" | Ethnicity == "Non-Hispanic") ),
             aes(x=Ethnicity, y=Age_at_diagnosis_closest_germline), fill=Ethnicity) + 
   geom_boxplot(color = c("darkred", "darkgreen", "darkred", "darkgreen", "darkred", "darkgreen")) + 
-  theme_minimal() +
-  labs(x="Ethnicity", y="Age at Diagnosis", title="Age repartition per ethnicity in Avatar")
+  theme_minimal(base_size = 15) +
+  labs(x=NULL, y="Age at Diagnosis", title="Age repartition per ethnicity")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
   facet_grid(. ~ Disease_Status_facet) +
   theme(strip.background = element_rect(colour="grey", fill="white",
@@ -295,14 +309,14 @@ p + geom_jitter(shape=16, position=position_jitter(0.2)) +
 #### Race
 <div class = "row">
 <div class = "col-md-5">
-```{r, fig.height = 7}
+```{r, fig.height = 10}
 p <- germline_patient_data %>% 
   mutate(Race = factor(Race, levels=c("White", "Black", "Others"))) %>% filter(!is.na(Race), !is.na(Disease_Status_facet)) %>% 
   mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>% 
   ggplot(aes(x=Race, y=Age_at_diagnosis_closest_germline), fill=Race) + 
   geom_boxplot(color= c("#A92E5EFF", "#E65D2FFF", "grey")) + # c(rep(c("#A92E5EFF", "#E65D2FFF", "grey"),3))
-  theme_minimal() +
-  labs(x="Race", y="Age at Diagnosis", title="Age repartition per race in germline")
+  theme_minimal(base_size = 22) +
+  labs(x=NULL, y="Age at Diagnosis", title="Age repartition per race")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
   theme(strip.background = element_rect(colour="grey", fill="white",
                                         size=1.5, linetype="solid")) +
@@ -317,8 +331,8 @@ p <- germline_patient_data %>%
   # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>% 
   ggplot(aes(x=Race, y=Age_at_diagnosis_closest_germline), fill=Race) + 
   geom_boxplot(color= c(rep(c("#A92E5EFF", "#E65D2FFF"),3))) +
-  theme_minimal() +
-  labs(x="Race", y="Age at Diagnosis", title="Age repartition per race in Avatar")
+  theme_minimal(base_size = 15) +
+  labs(x=NULL, y="Age at Diagnosis", title="Age repartition per race")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
   theme(strip.background = element_rect(colour="grey", fill="white",
                                         size=1.5, linetype="solid")) +
@@ -334,8 +348,8 @@ The age of diagnosis for the pre-treatment and the relaspse disease status group
 p <-  ggplot(Global_data %>% filter(!is.na(Age_at_diagnosis_closest_germline)) %>% filter(!is.na(Disease_Status_germline)), 
              aes(x=Age_at_diagnosis_closest_germline, y=Disease_Status_germline)) + 
   geom_boxplot(color= inferno(n=12)) +
-  theme_minimal() +
-  labs(x="Race", y="Age at Diagnosis", title="Age repartition per disease status in Avatar")
+  theme_minimal(base_size = 10) +
+  labs(x=NULL, y="Age at Diagnosis", title="Age repartition per disease status")
 p + geom_jitter(shape=16, position=position_jitter(0.2))
 ```
 
@@ -355,7 +369,7 @@ p + geom_jitter(shape=16, position=position_jitter(0.2))
 <!-- ``` -->
 <!-- </div> -->
 <!-- </div> -->
-
+ 
 
 <br>
 <br>
@@ -365,15 +379,27 @@ p + geom_jitter(shape=16, position=position_jitter(0.2))
 ## 2.Treatments
 
 ```{r}
+a <- germline_patient_data %>% #select(first_regimen_name) %>%
+  group_by(first_regimen_name) %>% mutate(n = n()) %>% filter(n >= 10) %>% select(first_regimen_name) %>% distinct()
+
+common_regimen_name <- paste0(a$first_regimen_name, collapse = "|")
+
+germline_patient_data %>%
+  mutate(Whole = "Most common regimen in 1st regimen") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(first_regimen_name = str_replace_na(first_regimen_name, replacement = "No Drugs")) %>% 
+  filter(str_detect(first_regimen_name, common_regimen_name)) %>% 
+  select(first_regimen_name, Whole) %>% 
+  tbl_summary(by = Whole,
+              sort = list(everything() ~ "frequency"))
+
 germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   filter(!str_detect(Disease_Status_germline, "Amyl|MYELO|Normal|Refrac|Solit|WALD")) %>%
   mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Drugs", "No Drugs")) %>%
   mutate(first_regimen_name = case_when(
-    !str_detect(first_regimen_name, 
-                "VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRd") 
-                                                     ~ "Other Regimen",
-    TRUE                                             ~ first_regimen_name
+    !str_detect(first_regimen_name, common_regimen_name)    ~ "Other Regimen",
+    TRUE                                                    ~ first_regimen_name
   )) %>% 
   mutate(No_Treatment = case_when(
     is.na(drug_start_date_1) &
@@ -384,15 +410,6 @@ germline_patient_data %>%
   select(Drugs, first_regimen_name, Disease_Status_germline, Radiation_at_all_time, HCT_at_all_time, No_Treatment) %>% 
   tbl_summary(by = Disease_Status_germline,
               sort = list(everything() ~ "frequency")) %>% add_p()
-
-germline_patient_data %>%
-  mutate(Whole = "Most common regimen in 1st regimen") %>% 
-  distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(first_regimen_name = str_replace_na(first_regimen_name, replacement = "No Drugs")) %>% 
-  filter(str_detect(first_regimen_name, "VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRD")) %>% 
-  select(first_regimen_name, Whole) %>% 
-  tbl_summary(by = Whole,
-              sort = list(everything() ~ "frequency"))
 ```
 <br>
 <br>
@@ -404,7 +421,17 @@ germline_patient_data %>%
 <div class = "row">
 <div class = "col-md-6">
 ```{r}
-length(!is.na(germline_patient_data$CH_status))
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(CH_status) %>% 
+  tbl_summary(sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% as_gt()  %>%
+  gt::tab_style(
+    style = gt::cell_text(
+      color = "#0099CC"
+    ),
+    locations = gt::cells_column_labels(everything())
+  ) 
 
 germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 

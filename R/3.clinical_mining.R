@@ -56,7 +56,19 @@ Global_data  %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(ISS, Whole) %>% 
-  tbl_summary(by = Whole) %>% bold_labels() %>% as_gt()
+  tbl_summary(by = Whole) %>% bold_labels() %>% as_gt() %>%
+  gt::tab_style(
+    style = gt::cell_borders(
+      sides = c("top", "bottom"),
+      color = "#BBBBBB",
+      weight = 1.5,
+      style = "solid"
+    ),
+    locations = gt::cells_body(
+      columns = everything(),
+      rows = everything()
+    )
+  )
 gt::gtsave(tbl, zoom = .4, paste0(path, "/Figures/ISS/ISS staging in germline patients.pdf"))
 
 # tbl <- 
@@ -67,7 +79,8 @@ gt::gtsave(tbl, zoom = .4, paste0(path, "/Figures/ISS/ISS staging in germline pa
   tbl_summary(by = Whole, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% 
-  bold_labels() %>% as_gt()
+  bold_labels() %>% as_gt() %>% gt::tab_options(column_labels.border.bottom.color = "#A92E5EFF",
+                                                table_body.border.bottom.color = "#A92E5EFF")
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in germline patients.pdf"))
 
 # tbl <- 
@@ -78,7 +91,7 @@ gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in ge
   tbl_summary(by = Disease_Status_facet, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% 
-  bold_labels() %>% as_gt()
+  bold_labels() %>% as_gt() %>% gt::tab_options(table.font.color = "#A92E5EFF")
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in germline patients by DS no missing.pdf"))
 
 # tbl <- 
@@ -90,8 +103,20 @@ gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in ge
   tbl_summary(by = Disease_Status_facet, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% 
-  bold_labels() %>% as_gt()
+  bold_labels() %>% as_gt() %>% gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1))
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics race simplified in germline patients by DS with missing.pdf"))
+
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(CH_status) %>% 
+  tbl_summary(sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% as_gt()  %>%
+  gt::tab_style(
+    style = gt::cell_text(
+      color = "#0099CC"
+    ),
+    locations = gt::cells_column_labels(everything())
+  ) 
 
 # tbl <- 
   germline_patient_data %>%
@@ -102,15 +127,30 @@ gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics race 
   mutate(Race = str_replace(Race, "Asian|More than one race|Am Indian", "Others")) %>% 
   tbl_summary(by = CH_status, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% 
-  bold_labels() %>% as_gt()
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% add_overall() %>% add_stat_label() %>% 
+  bold_labels() %>% as_gt()  %>%
+    gt::tab_style(
+      style = gt::cell_text(
+        # size = px(11),
+        color = "#0099CC"#,
+        # font = "arial",
+        # transform = "uppercase"
+      ),
+      locations = gt::cells_column_labels(everything())
+    ) 
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics by CH simplified race in germline patients.pdf"))
 
 germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(Disease_Status_germline, Whole) %>% 
-  tbl_summary(by = Whole) %>% bold_labels() %>% as_gt()
+  tbl_summary(by = Whole) %>% bold_labels() %>% as_gt()  %>%
+  gt::tab_style(
+    style = gt::cell_text(
+      color = "#0099CC"
+    ),
+    locations = gt::cells_column_labels(everything())
+  ) 
 
 germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
@@ -548,7 +588,16 @@ write_csv(germline_patient_data %>%
 # tbl <- germline_patient_data %>% count(first_regimen_name) %>% arrange(desc(n))
 write_csv(tbl, paste0(path, "/Figures/Treatment/list regimen.csv"))
 
-sum(is.na(germline_patient_data$drug_start_date_1))
+germline_patient_data %>% #select(first_regimen_name) %>%
+  group_by(first_regimen_name) %>% mutate(n = n()) %>% filter(n >= 5) %>% select(first_regimen_name) %>% 
+  tbl_summary(sort = everything() ~ "frequency", missing_text = "No Drugs")
+
+a <- germline_patient_data %>% #select(first_regimen_name) %>%
+  group_by(first_regimen_name) %>% mutate(n = n()) %>% filter(n >= 5) %>% select(first_regimen_name) %>% distinct()
+
+paste0(a$first_regimen_name, 
+       collapse = "|")
+
 
 # What are the duration between start data of regimen?
 # regimen_data <- 

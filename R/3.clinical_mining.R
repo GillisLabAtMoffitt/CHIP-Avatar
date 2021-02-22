@@ -1031,39 +1031,54 @@ gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/regimen_name in se
               sort = list(everything() ~ "frequency")) %>% bold_labels() %>% as_gt()
 gt::gtsave(tbl, paste0(path, "/Figures/Treatment/Drugs in 1st regimen germline population.pdf"))
 
-# table <- as.data.table(table(germline_patient_data$drug_name__1))
-# write.csv(table, paste0(path, "/list of all drugs in data.csv"))
-# tbl <- 
-  germline_patient_data %>%
-  mutate(Whole = "Most common regimen in 1st regimen") %>% 
+# What are the regimen in the first regimen
+germline_patient_data %>%
+  mutate(Whole = "All regimen in 1st regimen") %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(first_regimen_name = str_replace_na(first_regimen_name, replacement = "No Drugs")) %>% 
-  filter(str_detect(first_regimen_name, "VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRD")) %>% 
+  # mutate(first_regimen_name = str_replace_na(first_regimen_name, replacement = "No Drugs")) %>% 
   select(first_regimen_name, Whole) %>% 
   tbl_summary(by = Whole,
-              sort = list(everything() ~ "frequency")) %>% bold_labels() %>% as_gt()
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No Drugs") %>% as_gt() %>%
+  gt::tab_options(column_labels.border.bottom.color = "#0099CC",
+                  table_body.border.bottom.color = "#0099CC")
+
+# What are the most regimen in the first regimen
+a <- germline_patient_data %>% 
+  # mutate(first_regimen_name = str_replace_na(first_regimen_name, replacement = "No Drugs")) %>% 
+  group_by(first_regimen_name) %>% mutate(n = n()) %>%
+  select(first_regimen_name, n) %>% 
+  filter(n >= 10) %>% select(first_regimen_name) %>% 
+  distinct()
+
+common_regimen_name <- paste0(a$first_regimen_name, collapse = "|^")
+germline_patient_data %>%
+  mutate(Whole = "Most common regimen in 1st regimen") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  # mutate(first_regimen_name = str_replace_na(first_regimen_name, replacement = "No Drugs")) %>% 
+  filter(str_detect(first_regimen_name, common_regimen_name) | is.na(first_regimen_name)) %>% 
+  select(first_regimen_name, Whole) %>% 
+  tbl_summary(by = Whole,
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No Drugs") %>% as_gt() %>%
+  gt::tab_source_note(gt::md("*Most common regimen = Regimen given at 10 patients or more*")) 
 gt::gtsave(tbl, zoom = 1,
            paste0(path, "/Figures/Treatment/Regimen 1st germline patients.pdf"))
 
-# What are the drugs in the first regimen by disease ststus (+BMT, radiadtion)?
+# What are the regimen in the first regimen by disease status +BMT, radiation?
 # tbl <- 
   germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  filter(!str_detect(Disease_Status_germline, "Amyl|MYELO|Normal|Refrac|Solit|WALD")) %>%
-  mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Drugs", "No Drugs")) %>%
-  mutate(first_regimen_name = case_when(
-    !str_detect(first_regimen_name, 
-                "VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRd") 
-                                                     ~ "Other Regimen",
-    TRUE                                             ~ first_regimen_name
-  )) %>% 
-  mutate(No_Treatment = case_when(
-    is.na(drug_start_date_1) &
-      is.na(rad_start_date_1) &
-      is.na(date_of_bmt_1) ~ "No Treatment",
-    TRUE                   ~ "Treatment Given"
-  )) %>% 
-  select(Drugs, first_regimen_name, Disease_Status_germline, Radiation_at_all_time, HCT_at_all_time, No_Treatment) %>% 
+  filter(!str_detect(Disease_Status_germline, "Amyl|Myelo|Normal|Refrac|Solit|Wald")) %>%
+    mutate(first_regimen_name = str_replace_na(first_regimen_name, replacement = "No Drugs")) %>% 
+    filter(str_detect(first_regimen_name, common_regimen_name)) %>% 
+  # mutate(Treatment_ever = case_when(
+  #   is.na(drug_start_date_1) &
+  #     is.na(rad_start_date_1) &
+  #     is.na(date_of_bmt_1) ~ "No Treatment",
+  #   TRUE                   ~ "Treatment Given"
+  # )) %>% 
+  select(Drugs, first_regimen_name, Disease_Status_germline, Radiation_ever, HCT_ever, Treatment_ever) %>% 
   tbl_summary(by = Disease_Status_germline,
               sort = list(everything() ~ "frequency")) %>% add_p() %>% bold_labels() %>% as_gt()
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Treatment/Table any treatment in germline patients.pdf"))

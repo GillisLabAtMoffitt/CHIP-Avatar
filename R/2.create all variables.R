@@ -132,7 +132,7 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
     rad_start_date_1 >= last_date_available        ~ NA_POSIXct_, # doesn't remove date
     TRUE                                           ~ rad_start_date_1
   )) %>%
-  mutate(Radiation_at_all_time = ifelse(!is.na(rad_start_date_1), "Radiation", "No Radiation")) %>% 
+  mutate(Radiation_ever = ifelse(!is.na(rad_start_date_1), "Radiation", "No Radiation")) %>% 
   mutate(interval_radiation_vs_germ = interval(start = rad_start_date_1, collectiondt_germline)/
            duration(n=1, units = "days")) %>% 
   mutate(pfs_radiation = case_when(
@@ -155,7 +155,7 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
     date_of_bmt_1 >= last_date_available           ~ NA_POSIXct_, # doesn't remove date
     TRUE                                           ~ date_of_bmt_1
   )) %>%
-  mutate(HCT_at_all_time = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT")) %>% 
+  mutate(HCT_ever = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT")) %>% 
   mutate(pfs_hct = case_when(
     pfs_hct_start_date <= collectiondt_germline          ~ "Yes",
     pfs_hct_start_date > collectiondt_germline |
@@ -224,7 +224,13 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
     Disease_Status_germline == "Mgus"                                                 ~ "MGUS",
     Disease_Status_germline == "Smoldering Multiple Myeloma"                          ~ "Smoldering"
   )) %>% 
-  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS")))
+  mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>% 
+  mutate(Treatment_ever = case_when(
+    is.na(drug_start_date_1) &
+      is.na(rad_start_date_1) &
+      is.na(date_of_bmt_1) ~ "No Treatment",
+    TRUE                   ~ "Treatment Given"
+  ))
   
   
   

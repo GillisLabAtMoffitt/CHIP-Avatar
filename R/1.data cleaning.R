@@ -1482,6 +1482,7 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
 Global_data <- left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id")) %>% 
   filter(!str_detect(avatar_id, paste0(patients_removed_nonMM, collapse = "|")))
 write_rds(Global_data, path = "Global_data_pre.rds")
+write_rds(Treatment1, "Treatment1.rds")
 #--
 # avatar_no_germline <- Global_data %>% filter(is.na(Global_data$Disease_Status_germline)) %>% 
 #   select("avatar_id")

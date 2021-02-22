@@ -58,6 +58,7 @@ library(survminer)
 ```{r load}
 Global_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Global_data.rds")
 germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/germline_patient_data.rds")
+Treatment1 <-  readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Treatment1.rds")
 path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
 patients_removed_nonMM <- c("A000428", "A000456")
 ```
@@ -69,6 +70,7 @@ patients_removed_nonMM <- c("A000428", "A000456")
 # I.Multiple Myeloma (MM) Avatar data
 The MM Avatar dataset contains clinical data on `r length(unique(Global_data$avatar_id))` unique patient.
 Two patients, `r paste0(patients_removed_nonMM, collapse = " and ")`, were removed from the data as they were reevaluated as non MM patients.
+ISS is reported for MM patients only.
 
 ```{r}
 # head(Global_data)
@@ -87,7 +89,8 @@ Global_data  %>%
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2), 
               label = Age_at_diagnosis_closest_germline ~ "Age at Diagnosis") %>% 
-  bold_labels()
+  bold_labels() %>% as_gt() %>%
+  gt::tab_source_note(gt::md("*ISS is reported for MM patients only*"))
 ```
 </div>
 
@@ -196,12 +199,23 @@ germline_patient_data %>%
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Whole, ISS) %>%
   tbl_summary(by = Whole, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2))
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% as_gt() %>%
+  gt::tab_source_note(gt::md("*ISS is reported for MM patients only*"))
 ```
 </div>
 </div>
 
 ### Disease status at germline collection
+The disease status is evaluated by following these criteria:
+
+
+**Pre Treatment Newly Diagnosed Multiple Myeloma**: Newly diagnosed multiple myeloma biopsy <span style="text-decoration:underline">before treatment initiation or within 1 month</span> of MM treatment initiation  
+**Post Treatment Newly Diagnosed Multiple Myeloma**: Patients who have received treatment for MM but <span style="text-decoration:underline"> have not progressed</span> by the time of biopsy  
+**Early Relapse Multiple Myeloma**: Patients who have received <span style="text-decoration:underline">1-3 lines of therapy</span> by the time of biopsy  
+**Late Relapse Multiple Myeloma**: Patients who have received <span style="text-decoration:underline">> 3 lines of therapy</span> by the time of biopsy  
+ 
+*Line of therapy = Group of drugs from treatment initiation to progression/relapse
+
 ```{r germline}
 germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
@@ -221,7 +235,9 @@ germline_patient_data %>%
     ) %>% 
   tbl_summary(by = Disease_Status_facet, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p()
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% as_gt() %>%
+  gt::tab_source_note(gt::md("*ISS is reported for MM patients only*"))
+
 germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Disease_Status_facet, ISS) %>% 
@@ -229,13 +245,8 @@ germline_patient_data %>%
   mutate(Race = str_replace(Race, "Asian|More than one race|Am Indian", "Others")) %>% 
   tbl_summary(by = Disease_Status_facet, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p()
-
-germline_patient_data %>%
-  distinct(avatar_id, .keep_all = TRUE) %>% 
-  select(CH_status, Disease_Status_germline) %>% 
-  tbl_summary(by = CH_status, 
-              sort = list(everything() ~ "frequency")) %>% add_p() 
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% as_gt() %>%
+  gt::tab_source_note(gt::md("*ISS is reported for MM patients only*"))
 ```
 <br>
 
@@ -377,39 +388,74 @@ p + geom_jitter(shape=16, position=position_jitter(0.2))
 
 ***
 ## 2.Treatments
-
+The results presented here are for the treatment of the germline patients population.
 ```{r}
-a <- germline_patient_data %>% #select(first_regimen_name) %>%
+a <- germline_patient_data %>% 
+    mutate(first_regimen_name = str_replace_na(first_regimen_name, replacement = "No Drugs")) %>% 
   group_by(first_regimen_name) %>% mutate(n = n()) %>% filter(n >= 10) %>% select(first_regimen_name) %>% distinct()
-
-common_regimen_name <- paste0(a$first_regimen_name, collapse = "|")
+common_regimen_name <- paste0(a$first_regimen_name, collapse = "|^")
 
 germline_patient_data %>%
   mutate(Whole = "Most common regimen in 1st regimen") %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(first_regimen_name = str_replace_na(first_regimen_name, replacement = "No Drugs")) %>% 
-  filter(str_detect(first_regimen_name, common_regimen_name)) %>% 
+  # mutate(first_regimen_name = str_replace_na(first_regimen_name, replacement = "No Drugs")) %>% 
+  filter(str_detect(first_regimen_name, common_regimen_name) | is.na(first_regimen_name)) %>% 
   select(first_regimen_name, Whole) %>% 
   tbl_summary(by = Whole,
-              sort = list(everything() ~ "frequency"))
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No Drugs") %>% as_gt() %>%
+  gt::tab_source_note(gt::md("*Most common regimen = Regimen given at 10 patients or more*"))
+```
 
+<div class = "row">
+<div class = "col-md-6">
+```{r}
+germline_patient_data %>%
+  mutate(Whole = "All regimen in 1st regimen") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  # mutate(first_regimen_name = str_replace_na(first_regimen_name, replacement = "No Drugs")) %>% 
+  select(first_regimen_name, Whole) %>% 
+  tbl_summary(by = Whole,
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No Drugs") %>% as_gt() %>%
+  gt::tab_options(column_labels.border.bottom.color = "#0099CC",
+                  table_body.border.bottom.color = "#0099CC")
+```
+</div>
+
+<div class = "col-md-6">
+```{r}
+Treatment1 %>%
+  mutate(Whole = "All regimen in ALL regimen for ALL patients!!!!") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(regimen_name, Whole) %>% 
+  tbl_summary(by = Whole,
+              sort = list(everything() ~ "frequency")) %>% as_gt() %>%
+  gt::tab_options(column_labels.border.bottom.color = "red",
+                  table_body.border.bottom.color = "red")
+```
+</div>
+</div>
+
+```{r}
 germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   filter(!str_detect(Disease_Status_germline, "Amyl|MYELO|Normal|Refrac|Solit|WALD")) %>%
-  mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Drugs", "No Drugs")) %>%
-  mutate(first_regimen_name = case_when(
-    !str_detect(first_regimen_name, common_regimen_name)    ~ "Other Regimen",
-    TRUE                                                    ~ first_regimen_name
-  )) %>% 
-  mutate(No_Treatment = case_when(
-    is.na(drug_start_date_1) &
-      is.na(rad_start_date_1) &
-      is.na(date_of_bmt_1) ~ "No Treatment",
-    TRUE                   ~ "Treatment Given"
-  )) %>% 
-  select(Drugs, first_regimen_name, Disease_Status_germline, Radiation_at_all_time, HCT_at_all_time, No_Treatment) %>% 
+  # mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Drugs", "No Drugs")) %>%
+  # mutate(first_regimen_name = case_when(
+  #   !str_detect(first_regimen_name, common_regimen_name)    ~ "Other Regimen",
+  #   TRUE                                                    ~ first_regimen_name
+  # )) %>% 
+  # mutate(No_Treatment = case_when(
+  #   is.na(drug_start_date_1) &
+  #     is.na(rad_start_date_1) &
+  #     is.na(date_of_bmt_1) ~ "No Treatment",
+  #   TRUE                   ~ "Treatment Given"
+  # )) %>% 
+  select(Drugs, first_regimen_name, Disease_Status_germline, Radiation_ever, HCT_ever, Treatment_ever) %>% 
   tbl_summary(by = Disease_Status_germline,
-              sort = list(everything() ~ "frequency")) %>% add_p()
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No Drugs") %>% add_p() %>% add_n() %>% as_gt()
 ```
 <br>
 <br>
@@ -417,7 +463,7 @@ germline_patient_data %>%
 
 ***
 ## 3.CH
-
+CH status is assessed by using the Avatar WES data.
 <div class = "row">
 <div class = "col-md-6">
 ```{r}
@@ -425,7 +471,7 @@ germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   select(CH_status) %>% 
   tbl_summary(sort = list(everything() ~ "frequency")) %>% 
-  bold_labels() %>% as_gt()  %>%
+  bold_labels() %>% as_gt() %>%
   gt::tab_style(
     style = gt::cell_text(
       color = "#0099CC"
@@ -437,7 +483,7 @@ germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   select(CH_status, Disease_Status_germline) %>% 
   tbl_summary(by = CH_status, 
-              sort = list(everything() ~ "frequency")) %>% add_p()
+              sort = list(everything() ~ "frequency")) %>% add_p() %>% as_gt()
 ```
 
 </div>
@@ -452,7 +498,8 @@ germline_patient_data %>%
   mutate(Race = str_replace(Race, "Asian|More than one race|Am Indian", "Others")) %>% 
   tbl_summary(by = CH_status, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p()
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% as_gt() %>%
+  gt::tab_source_note(gt::md("*ISS is reported for MM patients only*"))
 ```
 </div>
 </div>
@@ -462,7 +509,7 @@ germline_patient_data %>%
 
 ***
 # III.Survivals
-
+All survival analysis are limited to the germline population.
 ## 1.Survivals by clinical
 
 ### General
@@ -737,7 +784,7 @@ ggsurvplot(myplot, data = race_surv,
 </div>
 </div>
 
-### 
+### Ethnicity
 <div class = "row">
 <div class = "col-md-6">
 ```{r, fig.height = 7}
@@ -1648,7 +1695,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 # dev.off()
 
 mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
-myplot <- survfit(mysurv~HCT_at_all_time, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "OS HCT (general HCT yes/no)",
            font.main = c(24, "bold", "black"),
@@ -1752,7 +1799,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # Censor
            censor = TRUE
 )
-myplot <- survfit(mysurv~HCT_at_all_time, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
 ## jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS HCT.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from Dx (general HCT yes/no)",
@@ -1871,7 +1918,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-myplot <- survfit(mysurv~HCT_at_all_time, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from  HCT date (general HCT yes/no)",
            font.main = c(24, "bold", "black"),
@@ -1915,7 +1962,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 ```{r, fig.height = 7}
 mysurv <- Surv(time = germline_patient_surv$month_at_progression_treat, event = germline_patient_surv$treatment_progression_event)
 
-myplot <- survfit(mysurv~HCT_at_all_time, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS Treatment from treatment date (general HCT yes/no but no include drugs)",
            font.main = c(24, "bold", "black"),
@@ -1947,7 +1994,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # Censor
            censor = TRUE
 )
-myplot <- survfit(mysurv~HCT_at_all_time+ISS, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever+ISS, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from treatment (general HCT yes/no but no include drugs)",
            font.main = c(24, "bold", "black"),
@@ -1963,7 +2010,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # # legend.labs = c("No Treatment", "Treatment"),
            # palette = c("darkred", "darkgreen", "grey"),
            color = "ISS",
-           linetype = "HCT_at_all_time",
+           linetype = "HCT_ever",
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -1983,7 +2030,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 )
 # dev.off()
 
-myplot <- survfit(mysurv~HCT_at_all_time+CH_status, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever+CH_status, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from treatment (general HCT yes/no but no include drugs)",
            font.main = c(24, "bold", "black"),
@@ -1998,7 +2045,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            legend.title = "",
            # # legend.labs = c("No Treatment", "Treatment"),
            # palette = c("darkred", "darkgreen", "grey"),
-           color = "HCT_at_all_time",
+           color = "HCT_ever",
            linetype = "CH_status",
            pval = TRUE,
            conf.int = FALSE,
@@ -2352,7 +2399,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # Censor
            censor = TRUE
 )
-myplot <- survfit(mysurv~Radiation_at_all_time, data = germline_patient_surv)
+myplot <- survfit(mysurv~Radiation_ever, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS Radiation from Dx (general HCT yes/no)",
            font.main = c(24, "bold", "black"),
@@ -2456,7 +2503,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # Censor
            censor = TRUE
 )
-myplot <- survfit(mysurv~Radiation_at_all_time, data = germline_patient_surv)
+myplot <- survfit(mysurv~Radiation_ever, data = germline_patient_surv)
 ## jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS by Radiation.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS Radiation from Dx (general HCT yes/no)",
@@ -2571,7 +2618,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-myplot <- survfit(mysurv~Radiation_at_all_time, data = germline_patient_surv)
+myplot <- survfit(mysurv~Radiation_ever, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS Radiation from rad date (pfs_radiation is when rad <or= germline date)",
            font.main = c(24, "bold", "black"),

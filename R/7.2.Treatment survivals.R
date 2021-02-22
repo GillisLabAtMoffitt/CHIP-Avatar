@@ -71,7 +71,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 )
 
 
-myplot <- survfit(mysurv~HCT_at_all_time, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
 ## jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS HCT.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from Dx (general HCT yes/no)",
@@ -178,7 +178,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 )
 # dev.off()
 
-myplot <- survfit(mysurv~HCT_at_all_time, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from  HCT date (general HCT yes/no)",
            font.main = c(24, "bold", "black"),
@@ -282,7 +282,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 # dev.off()
 
 mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
-myplot <- survfit(mysurv~HCT_at_all_time, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "OS HCT (general HCT yes/no)",
            font.main = c(24, "bold", "black"),
@@ -389,7 +389,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 )
 # dev.off()
 
-myplot <- survfit(mysurv~HCT_at_all_time, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
 ## jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS by HCT2.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from Dx (general HCT yes/no but no include drugs)",
@@ -424,7 +424,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 )
 # dev.off()
 
-myplot <- survfit(mysurv~HCT_at_all_time+CH_status, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever+CH_status, data = germline_patient_surv)
 ## jpeg(paste0(path, "/Figures/Survivals/CHIP/PFS by HCT2.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from Dx (general HCT yes/no but no include drugs)",
@@ -440,7 +440,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            legend.title = "",
            # # legend.labs = c("No Treatment", "Treatment"),
            # palette = c("darkred", "darkgreen", "grey"),
-           color = "HCT_at_all_time",
+           color = "HCT_ever",
            linetype = "CH_status",
            pval = TRUE,
            conf.int = FALSE,
@@ -461,7 +461,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 )
 # dev.off()
 
-myplot <- survfit(mysurv~HCT_at_all_time+ISS, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever+ISS, data = germline_patient_surv)
 ## jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS by HCT2 ISS.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from Dx (general HCT yes/no but no include drugs)",
@@ -478,7 +478,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # # legend.labs = c("No Treatment", "Treatment"),
            # palette = c("darkred", "darkgreen", "grey"),
            color = "ISS",
-           linetype = "HCT_at_all_time",
+           linetype = "HCT_ever",
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -575,7 +575,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 # dev.off()
 
 
-myplot <- survfit(mysurv~HCT_at_all_time, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
 ## jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS by HCT2 from treatment date.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS Treatment from treatment date (general HCT yes/no but no include drugs)",
@@ -610,7 +610,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 )
 # dev.off()
 
-myplot <- survfit(mysurv~HCT_at_all_time+ISS, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever+ISS, data = germline_patient_surv)
 ## jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS by HCT2 ISS from treatment date.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from treatment (general HCT yes/no but no include drugs)",
@@ -627,7 +627,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # # legend.labs = c("No Treatment", "Treatment"),
            # palette = c("darkred", "darkgreen", "grey"),
            color = "ISS",
-           linetype = "HCT_at_all_time",
+           linetype = "HCT_ever",
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -647,7 +647,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 )
 # dev.off()
 
-myplot <- survfit(mysurv~HCT_at_all_time+CH_status, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever+CH_status, data = germline_patient_surv)
 ## jpeg(paste0(path, "/Figures/Survivals/CHIP/PFS by HCT2 CH from treatment date.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from treatment (general HCT yes/no but no include drugs)",
@@ -663,7 +663,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            legend.title = "",
            # # legend.labs = c("No Treatment", "Treatment"),
            # palette = c("darkred", "darkgreen", "grey"),
-           color = "HCT_at_all_time",
+           color = "HCT_ever",
            linetype = "CH_status",
            pval = TRUE,
            conf.int = FALSE,
@@ -758,7 +758,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 )
 # dev.off()
 
-myplot <- survfit(mysurv~HCT_at_all_time, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
 ## jpeg(paste0(path, "/Figures/Survivals/Treatment/OS HCT2.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "OS HCT2 (general HCT yes/no but no include drugs)",
@@ -793,7 +793,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 )
 # dev.off()
 
-myplot <- survfit(mysurv~HCT_at_all_time+ISS, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever+ISS, data = germline_patient_surv)
 ## jpeg(paste0(path, "/Figures/Survivals/Treatment/OS HCT2 ISS.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "OS HCT2 (general HCT yes/no but no include drugs)",
@@ -810,7 +810,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # # legend.labs = c("No Treatment", "Treatment"),
            # palette = c("darkred", "darkgreen", "grey"),
            color = "ISS",
-           linetype = "HCT_at_all_time",
+           linetype = "HCT_ever",
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -830,7 +830,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 )
 # dev.off()
 
-myplot <- survfit(mysurv~HCT_at_all_time+CH_status, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever+CH_status, data = germline_patient_surv)
 ## jpeg(paste0(path, "/Figures/Survivals/CHIP/OS HCT2 CH.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "OS HCT2 (general HCT yes/no but no include drugs)",
@@ -846,7 +846,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            legend.title = "",
            # # legend.labs = c("No Treatment", "Treatment"),
            # palette = c("darkred", "darkgreen", "grey"),
-           color = "HCT_at_all_time",
+           color = "HCT_ever",
            linetype = "CH_status",
            pval = TRUE,
            conf.int = FALSE,

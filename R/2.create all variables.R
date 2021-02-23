@@ -112,10 +112,10 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
     line_start_date_1 >= last_date_available        ~ NA_POSIXct_, # doesn't remove date
     TRUE                                            ~ line_start_date_1
   )) %>%
-  mutate(Drugs = ifelse(!is.na(line_start_date_1), "Drug", "No Drug")) %>% 
+  mutate(Drugs_ever = ifelse(!is.na(line_start_date_1), "Drug", "No Drug")) %>% 
   mutate(pfs_drugs = case_when(
-    pfs_line_start_date <= collectiondt_germline         ~ "Yes",
-    pfs_line_start_date > collectiondt_germline |
+    pfs_line_start_date < collectiondt_germline         ~ "Yes",
+    pfs_line_start_date >= collectiondt_germline |
       is.na(pfs_line_start_date)                         ~ "No"
   )) %>% 
   
@@ -136,8 +136,8 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
   mutate(interval_radiation_vs_germ = interval(start = rad_start_date_1, collectiondt_germline)/
            duration(n=1, units = "days")) %>% 
   mutate(pfs_radiation = case_when(
-    pfs_rad_start_date <= collectiondt_germline          ~ "Radiation before germline",
-    pfs_rad_start_date > collectiondt_germline |
+    pfs_rad_start_date < collectiondt_germline          ~ "Radiation before germline",
+    pfs_rad_start_date >= collectiondt_germline |
       is.na(pfs_rad_start_date)                          ~ "No Radiation or after germline"
   )) %>% 
   
@@ -157,25 +157,25 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
   )) %>%
   mutate(HCT_ever = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT")) %>% 
   mutate(pfs_hct = case_when(
-    pfs_hct_start_date <= collectiondt_germline          ~ "Yes",
-    pfs_hct_start_date > collectiondt_germline |
+    pfs_hct_start_date < collectiondt_germline          ~ "Yes",
+    pfs_hct_start_date >= collectiondt_germline |
       is.na(pfs_hct_start_date)                          ~ "No"
   )) %>%
   
-  # PFS FROM Drugs/HCT DATE
-  mutate(pfs_treatment_progression_date = coalesce(progression_treatment_date, pfs_date_death)) %>% 
-  mutate(treatment_progression_event = case_when(
-    !is.na(pfs_treatment_progression_date)           ~ 1,
-    is.na(pfs_treatment_progression_date)            ~ 0
-  )) %>% 
-  # Add last_date_available
-  mutate(pfs_treatment_progression_date = coalesce(pfs_treatment_progression_date, last_date_available)) %>% 
-  # Take first treatment dates after last date available from pfs_hct_start_date and pfs_line_start_date
-  mutate(pfs_treatment_start_date = case_when(
-    pfs_line_start_date >= pfs_hct_start_date         ~ NA_POSIXct_,
-    TRUE                                              ~ pfs_line_start_date
-  )) %>%
-  mutate(pfs_treatment_start_date = coalesce(pfs_treatment_start_date, pfs_hct_start_date)) %>% 
+  # # PFS FROM Drugs/HCT DATE
+  # mutate(pfs_treatment_progression_date = coalesce(progression_treatment_date, pfs_date_death)) %>% 
+  # mutate(treatment_progression_event = case_when(
+  #   !is.na(pfs_treatment_progression_date)           ~ 1,
+  #   is.na(pfs_treatment_progression_date)            ~ 0
+  # )) %>% 
+  # # Add last_date_available
+  # mutate(pfs_treatment_progression_date = coalesce(pfs_treatment_progression_date, last_date_available)) %>% 
+  # # Take first treatment dates after last date available from pfs_hct_start_date and pfs_line_start_date
+  # mutate(pfs_treatment_start_date = case_when(
+  #   pfs_line_start_date >= pfs_hct_start_date         ~ NA_POSIXct_,
+  #   TRUE                                              ~ pfs_line_start_date
+  # )) %>%
+  # mutate(pfs_treatment_start_date = coalesce(pfs_treatment_start_date, pfs_hct_start_date)) %>% 
   mutate(pfs_treatment = case_when(
     !is.na(pfs_hct_start_date) &
       !is.na(pfs_line_start_date)                     ~ "Drug + SCT",

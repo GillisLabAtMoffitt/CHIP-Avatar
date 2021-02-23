@@ -71,12 +71,12 @@ race_surv <- germline_patient_surv %>%
   mutate(Race1 = factor(Race, levels=c("White", "Black")))  %>% filter(!is.na(Race))
 
 # Gender----
-# From Dx
-mysurv <- Surv(time = germline_patient_surv$month_at_progression_Dx, event = germline_patient_surv$Progression_event)
+# From drug
+mysurv <- Surv(time = germline_patient_surv$month_at_progression_drug, event = germline_patient_surv$drug_progression_event)
 myplot <- survfit(mysurv~Gender, data = germline_patient_surv)
 # jpeg(paste0(path, "/Figures/Survivals/Demographic/PFS Gender from Dx.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS Gender from Dx",
+           title = "PFS Gender from date of drug",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -88,7 +88,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            legend = "top",
            legend.title = "Gender",
            # # legend.labs = c("No Gender", "Gender"),
-           # palette = c("darkred", "darkgreen", "grey"),
+           palette = c("purple3", "royalblue2"),
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -125,7 +125,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            legend = "top",
            legend.title = "Gender",
            # # legend.labs = c("No Gender", "Gender"),
-           # palette = c("darkred", "darkgreen", "grey"),
+           palette = c("purple3", "royalblue2"),
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -146,11 +146,11 @@ ggsurvplot(myplot, data = germline_patient_surv,
 
 # Ethnicity----
 # PFS
-mysurv <- Surv(time = ethnicity_surv$month_at_progression_Dx, event = ethnicity_surv$Progression_event)
+mysurv <- Surv(time = ethnicity_surv$month_at_progression_drug, event = ethnicity_surv$drug_progression_event)
 myplot <- survfit(mysurv~Ethnicity, data = ethnicity_surv)
 # jpeg(paste0(path, "/Figures/Survivals/Demographic/PFS Ethnicity from Dx.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = ethnicity_surv,
-           title = "PFS Ethnicity from Dx",
+           title = "PFS Ethnicity from drug",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -220,11 +220,11 @@ ggsurvplot(myplot, data = ethnicity_surv,
 
 # Race----
 # PFS
-mysurv <- Surv(time = race_surv$month_at_progression_Dx, event = race_surv$Progression_event)
+mysurv <- Surv(time = race_surv$month_at_progression_drug, event = race_surv$drug_progression_event)
 myplot <- survfit(mysurv~Race, data = race_surv)
 # jpeg(paste0(path, "/Figures/Survivals/Demographic/PFS Race Dx.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = race_surv,
-           title = "PFS Race from Dx",
+           title = "PFS Race from drug",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -258,7 +258,7 @@ ggsurvplot(myplot, data = race_surv,
 myplot <- survfit(mysurv~Race1, data = race_surv)
 # jpeg(paste0(path, "/Figures/Survivals/Demographic/PFS Race1 Dx.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = race_surv,
-           title = "PFS Race1 from Dx",
+           title = "PFS Race1 from drug",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),

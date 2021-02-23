@@ -574,7 +574,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            legend = "top",
            legend.title = "Gender",
            # # legend.labs = c("No Gender", "Gender"),
-           # palette = c("darkred", "darkgreen", "grey"),
+           palette = c("purple3", "royalblue2"),
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -596,11 +596,10 @@ ggsurvplot(myplot, data = germline_patient_surv,
 
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-mysurv <- Surv(time = germline_patient_surv$month_at_progression_Dx, event = germline_patient_surv$Progression_event)
+mysurv <- Surv(time = germline_patient_surv$month_at_progression_drug, event = germline_patient_surv$drug_progression_event)
 myplot <- survfit(mysurv~Gender, data = germline_patient_surv)
-# jpeg(paste0(path, "/Figures/Survivals/Demographic/PFS Gender from Dx.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS Gender from Dx",
+           title = "PFS Gender from date of drug",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -612,7 +611,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            legend = "top",
            legend.title = "Gender",
            # # legend.labs = c("No Gender", "Gender"),
-           # palette = c("darkred", "darkgreen", "grey"),
+           palette = c("purple3", "royalblue2"),
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -630,6 +629,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # Censor
            censor = TRUE
 )
+# dev.off()
 ```
 </div>
 </div>
@@ -712,11 +712,10 @@ ggsurvplot(myplot, data = race_surv,
 
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-mysurv <- Surv(time = race_surv$month_at_progression_Dx, event = race_surv$Progression_event)
+mysurv <- Surv(time = race_surv$month_at_progression_drug, event = race_surv$drug_progression_event)
 myplot <- survfit(mysurv~Race, data = race_surv)
-# jpeg(paste0(path, "/Figures/Survivals/Demographic/PFS Race Dx.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = race_surv,
-           title = "PFS Race from Dx",
+           title = "PFS Race from drug",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -748,9 +747,8 @@ ggsurvplot(myplot, data = race_surv,
 )
 # dev.off()
 myplot <- survfit(mysurv~Race1, data = race_surv)
-# jpeg(paste0(path, "/Figures/Survivals/Demographic/PFS Race1 Dx.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = race_surv,
-           title = "PFS Race1 from Dx",
+           title = "PFS Race1 from drug",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -829,11 +827,10 @@ ggsurvplot(myplot, data = ethnicity_surv,
 
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-mysurv <- Surv(time = ethnicity_surv$month_at_progression_Dx, event = ethnicity_surv$Progression_event)
+mysurv <- Surv(time = ethnicity_surv$month_at_progression_drug, event = ethnicity_surv$drug_progression_event)
 myplot <- survfit(mysurv~Ethnicity, data = ethnicity_surv)
-# jpeg(paste0(path, "/Figures/Survivals/Demographic/PFS Ethnicity from Dx.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = ethnicity_surv,
-           title = "PFS Ethnicity from Dx",
+           title = "PFS Ethnicity from drug",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -1022,41 +1019,8 @@ ggsurvplot(myplot, data = germline_patient_surv,
 
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-mysurv <- Surv(time = germline_patient_surv$month_at_progression_Dx, event = germline_patient_surv$Progression_event)
-myplot <- survfit(mysurv~CH_status, data = germline_patient_surv)
-# jpeg(paste0(path, "/Figures/Survivals/CHIP/PFS by CH from Dx.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS from diagnosis",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5, # line thickness default = 1
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "", 
-           # # legend.labs = c("CH", "No CH"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.17,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           )
-)
-
 mysurv <- Surv(time = germline_patient_surv$month_at_progression_drug, event = germline_patient_surv$drug_progression_event)
 myplot <- survfit(mysurv~CH_status, data = germline_patient_surv)
-# jpeg(paste0(path, "/Figures/Survivals/CHIP/PFS by CH from drugs date.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS calculated from drug date",
            font.main = c(24, "bold", "black"),
@@ -1089,6 +1053,8 @@ ggsurvplot(myplot, data = germline_patient_surv,
 </div>
 
 ### Disease status
+I left the PFS from Dx for the disease status who are not treated with drugs.
+Amyloidosis|MYELOFIBROSIS|Solitary|WALDENSTROM|Refractory|Normal|Poly are removed.
 <div class = "row">
 <div class = "col-md-6">
 ```{r, fig.height = 7}
@@ -1361,40 +1327,8 @@ ggsurvplot(myplot, data = germline_patient_data_seqsimp,
 
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-mysurv <- Surv(time = germline_patient_data_seqsimp$month_at_progression_Dx, event = germline_patient_data_seqsimp$Progression_event)
-myplot <- survfit(mysurv~CH_status, data = germline_patient_data_seqsimp)
-# jpeg(paste0(path, "/Figures/Survivals/CHIP/PFS by CH from Dx in sequenced patients MM+SM.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_data_seqsimp,
-           title = "PFS from diagnosis",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5, # line thickness default = 1
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "", 
-           # # legend.labs = c("CH", "No CH"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.17,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           )
-)
 mysurv <- Surv(time = germline_patient_data_seqsimp$month_at_progression_drug, event = germline_patient_data_seqsimp$drug_progression_event)
 myplot <- survfit(mysurv~CH_status, data = germline_patient_data_seqsimp)
-# jpeg(paste0(path, "/Figures/Survivals/CHIP/PFS by CH from drugs date in sequenced patients MM+SM.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_data_seqsimp,
            title = "PFS from drug date",
            font.main = c(24, "bold", "black"),
@@ -1587,6 +1521,7 @@ ggsurvplot(myplot, data = germline_patient_data_seqsimp,
 ## 2.Survivals by treatment
 
 ### HCT
+pfs-hct is when HCT happened before germline = Yes whereas HCT_ever is a more general Yes/No HCT.
 <div class = "row">
 <div class = "col-md-6">
 ```{r, fig.height = 7}
@@ -1626,75 +1561,6 @@ ggsurvplot(myplot, data = germline_patient_surv,
 )
 
 mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
-myplot <- survfit(mysurv~pfs_hct, data = germline_patient_surv)
-# jpeg(paste0(path, "/Figures/Survivals/Treatment/OS HCT.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_surv,
-           title = "OS HCT (pfs_hct is when HCT <or= germline date)",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "",
-           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
-           # palette = c("darkred", "darkgreen", "grey"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")),
-           # Censor
-           censor = TRUE
-)
-# dev.off()
-
-myplot <- survfit(mysurv~pfs_hct+CH_status, data = germline_patient_surv)
-# jpeg(paste0(path, "/Figures/Survivals/CHIP/OS HCT by CH.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_surv,
-           title = "OS HCT (pfs_hct is when HCT <or= germline date)",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "",
-           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
-           # palette = c("darkred", "darkgreen", "grey"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")),
-           # Censor
-           censor = TRUE
-)
-# dev.off()
-
-mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
 myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "OS HCT (general HCT yes/no)",
@@ -1732,120 +1598,8 @@ ggsurvplot(myplot, data = germline_patient_surv,
 
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-mysurv <- Surv(time = germline_patient_surv$month_at_progression_Dx, event = germline_patient_surv$Progression_event)
-myplot <- survfit(mysurv~pfs_hct, data = germline_patient_surv)
-# jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS HCT from Dx.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS HCT from Dx (pfs_hct is when HCT <or= germline date)",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "",
-           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
-           # palette = c("darkred", "darkgreen", "grey"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           censor = TRUE
-)
-
-myplot <- survfit(mysurv~pfs_hct+CH_status, data = germline_patient_surv)
-ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS HCT from Dx (pfs_hct is when HCT <or= germline date)",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "",
-           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
-           # palette = c("darkred", "darkgreen", "grey"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           censor = TRUE
-)
-myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
-## jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS HCT.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS HCT from Dx (general HCT yes/no)",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "",
-           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
-           # palette = c("darkred", "darkgreen", "grey"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           censor = TRUE
-)
-```
-</div>
-</div>
-
-
-
-
-
-<div class = "row">
-<div class = "col-md-6">
-```{r, fig.height = 7}
 mysurv <- Surv(time = germline_patient_surv$month_at_progression_hct, event = germline_patient_surv$hct_progression_event)
 myplot <- survfit(mysurv~pfs_hct, data = germline_patient_surv)
-# jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS HCT from hct date.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from  HCT date (pfs_hct is when HCT <or= germline date)",
            font.main = c(24, "bold", "black"),
@@ -1877,47 +1631,8 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # Censor
            # censor = TRUE
 )
-# dev.off()
 
-myplot <- survfit(mysurv~pfs_hct+CH_status, data = germline_patient_surv)
-# jpeg(paste0(path, "/Figures/Survivals/CHIP/PFS by CH HCT from hct date.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS HCT from  HCT date",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(10, "bold", "black"), # 20
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "",
-           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
-           # palette = c("darkred", "darkgreen", "grey"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           # censor = TRUE
-)
-
-```
-</div>
-
-<div class = "col-md-6">
-```{r, fig.height = 7}
+mysurv <- Surv(time = germline_patient_surv$month_at_progression_hct, event = germline_patient_surv$hct_progression_event)
 myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from  HCT date (general HCT yes/no)",
@@ -1950,21 +1665,252 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # Censor
            # censor = TRUE
 )
+
 ```
 </div>
 </div>
 
 
-### HCT from date of treatment (drugs+hct)
+
+### From drug date does that make a difference? 
+It adds the patients who get drugs but no SCT to the "NO" group.
 
 <div class = "row">
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-mysurv <- Surv(time = germline_patient_surv$month_at_progression_treat, event = germline_patient_surv$treatment_progression_event)
+mysurv <- Surv(time = germline_patient_surv$month_at_progression_drug, event = germline_patient_surv$drug_progression_event)
+myplot <- survfit(mysurv~pfs_hct, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "PFS HCT from  drug date (pfs_hct is when HCT <or= germline date)",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           # censor = TRUE
+)
+# dev.off()
+```
+</div>
 
+<div class = "col-md-6">
+```{r, fig.height = 7}
 myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS Treatment from treatment date (general HCT yes/no but no include drugs)",
+           title = "PFS HCT from  drug date (general HCT yes/no)",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), # 20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           # censor = TRUE
+)
+```
+</div>
+</div>
+
+### HCT & CH
+<div class = "row">
+<div class = "col-md-6">
+```{r, fig.height = 7}
+germline_patient_surv <- germline_patient_data %>% distinct(avatar_id, .keep_all = TRUE)
+mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
+myplot <- survfit(mysurv~pfs_hct+CH_status, data = germline_patient_surv)
+# jpeg(paste0(path, "/Figures/Survivals/CHIP/OS HCT by CH.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS HCT (pfs_hct is when HCT <or= germline date)",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), #20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)
+
+myplot <- survfit(mysurv~HCT_ever+CH_status, data = germline_patient_surv)
+# jpeg(paste0(path, "/Figures/Survivals/CHIP/OS HCT by CH.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS HCT ever",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), #20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)
+
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = germline_patient_surv$month_at_progression_hct, event = germline_patient_surv$hct_progression_event)
+myplot <- survfit(mysurv~pfs_hct+CH_status, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "PFS HCT from  HCT date (pfs_hct is when HCT <or= germline date)",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), # 20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           # censor = TRUE
+)
+
+myplot <- survfit(mysurv~HCT_ever+CH_status, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "PFS HCT from  HCT date",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), # 20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           # censor = TRUE
+)
+```
+</div>
+</div>
+
+### HCT & ISS
+
+<div class = "row">
+<div class = "col-md-6">
+```{r, fig.height = 7}
+germline_patient_surv <- germline_patient_data %>% distinct(avatar_id, .keep_all = TRUE)
+mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
+
+myplot <- survfit(mysurv~pfs_hct+ISS, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "PFS HCT from treatment (general HCT yes/no but no include drugs)",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -1977,6 +1923,8 @@ ggsurvplot(myplot, data = germline_patient_surv,
            legend.title = "",
            # # legend.labs = c("No Treatment", "Treatment"),
            # palette = c("darkred", "darkgreen", "grey"),
+           color = "ISS",
+           linetype = "pfs_hct",
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -1994,6 +1942,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # Censor
            censor = TRUE
 )
+
 myplot <- survfit(mysurv~HCT_ever+ISS, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
            title = "PFS HCT from treatment (general HCT yes/no but no include drugs)",
@@ -2028,82 +1977,17 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # Censor
            censor = TRUE
 )
-# dev.off()
 
-myplot <- survfit(mysurv~HCT_ever+CH_status, data = germline_patient_surv)
-ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS HCT from treatment (general HCT yes/no but no include drugs)",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "",
-           # # legend.labs = c("No Treatment", "Treatment"),
-           # palette = c("darkred", "darkgreen", "grey"),
-           color = "HCT_ever",
-           linetype = "CH_status",
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           censor = TRUE
-)
 ```
 </div>
 
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-myplot <- survfit(mysurv~pfs_hct, data = germline_patient_surv)
-ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS Treatment from treatment date (pfs_hct is when HCT <or= germline date)",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "",
-           # # legend.labs = c("No Treatment", "Treatment"),
-           # palette = c("darkred", "darkgreen", "grey"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           censor = TRUE
-)
+mysurv <- Surv(time = germline_patient_surv$month_at_progression_hct, event = germline_patient_surv$hct_progression_event)
+
 myplot <- survfit(mysurv~pfs_hct+ISS, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS HCT from treatment (pfs_hct is when HCT <or= germline date)",
+           title = "PFS HCT from hct (pfs_hct is when HCT <or= germline date)",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -2135,11 +2019,9 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # Censor
            censor = TRUE
 )
-# dev.off()
-
-myplot <- survfit(mysurv~pfs_hct+CH_status, data = germline_patient_surv)
+myplot <- survfit(mysurv~HCT_ever+ISS, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS HCT from treatment (pfs_hct is when HCT <or= germline date)",
+           title = "PFS HCT from hct (general HCT yes/no but no include drugs)",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -2152,8 +2034,8 @@ ggsurvplot(myplot, data = germline_patient_surv,
            legend.title = "",
            # # legend.labs = c("No Treatment", "Treatment"),
            # palette = c("darkred", "darkgreen", "grey"),
-           color = "pfs_hct",
-           linetype = "CH_status",
+           color = "ISS",
+           linetype = "HCT_ever",
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -2175,7 +2057,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 </div>
 </div>
 
-### HCT & drugs
+### HCT +/- drugs
 <div class = "row">
 <div class = "col-md-6">
 ```{r, fig.height = 7}
@@ -2253,11 +2135,11 @@ ggsurvplot(myplot, data = germline_patient_surv,
 
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-mysurv <- Surv(time = germline_patient_surv$month_at_progression_treat, event = germline_patient_surv$treatment_progression_event)
+mysurv <- Surv(time = germline_patient_surv$month_at_progression_drug, event = germline_patient_surv$drug_progression_event)
 myplot <- survfit(mysurv~pfs_treatment, data = germline_patient_surv)
 # jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS by Treatment from treatment date.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS Treatment from treatment date",
+           title = "PFS Treatment from drug date",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -2292,7 +2174,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 myplot <- survfit(mysurv~pfs_treatment+CH_status, data = germline_patient_surv)
 # jpeg(paste0(path, "/Figures/Survivals/CHIP/PFS by Treatment CH from treatment date.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS Treatment from treatment date",
+           title = "PFS Treatment from drug date",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -2401,7 +2283,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 )
 myplot <- survfit(mysurv~Radiation_ever, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS Radiation from Dx (general HCT yes/no)",
+           title = "OS Radiation (general HCT yes/no)",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -2434,121 +2316,12 @@ ggsurvplot(myplot, data = germline_patient_surv,
 ```
 </div>
 
-<div class = "col-md-6">
-```{r, fig.height = 7}
-mysurv <- Surv(time = germline_patient_surv$month_at_progression_Dx, event = germline_patient_surv$Progression_event)
-myplot <- survfit(mysurv~pfs_radiation, data = germline_patient_surv)
-# jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS by Radiation from Dx.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS Radiation from Dx (pfs_radiation is when rad <or= germline date)",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "",
-           # # legend.labs = c("No Radiation", "Radiation"),
-           # palette = c("darkred", "darkgreen", "grey"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           censor = TRUE
-)
-myplot <- survfit(mysurv~pfs_radiation+CH_status, data = germline_patient_surv)
-# jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS by Radiation from Dx.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS Radiation from Dx (pfs_radiation is when rad <or= germline date)",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "",
-           # # legend.labs = c("No Radiation", "Radiation"),
-           # palette = c("darkred", "darkgreen", "grey"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           censor = TRUE
-)
-myplot <- survfit(mysurv~Radiation_ever, data = germline_patient_surv)
-## jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS by Radiation.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS Radiation from Dx (general HCT yes/no)",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "",
-           # # legend.labs = c("No Radiation", "Radiation"),
-           # palette = c("darkred", "darkgreen", "grey"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 6,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           censor = TRUE
-)
-```
-</div>
-</div>
-
-### From radiation date
-<div class = "row">
 <div class = "col-md-6">
 ```{r, fig.height = 7}
 mysurv <- Surv(time = germline_patient_surv$month_at_progression_rad, event = germline_patient_surv$rad_progression_event)
 myplot <- survfit(mysurv~pfs_radiation, data = germline_patient_surv)
-# jpeg(paste0(path, "/Figures/Survivals/Treatment/PFS by Radiation from rad date.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS Radiation from rad date (pfs_radiation is when rad <or= germline date)",
+           title = "PFS Radiation from rad (pfs_radiation is when rad <or= germline date)",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -2578,12 +2351,9 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # Censor
            censor = TRUE
 )
-# dev.off()
-
 myplot <- survfit(mysurv~pfs_radiation+CH_status, data = germline_patient_surv)
-# jpeg(paste0(path, "/Figures/Survivals/CHIP/PFS by Radiation CH from rad date.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS Radiation from rad date (pfs_radiation is when rad <or= germline date)",
+           title = "PFS Radiation from rad (pfs_radiation is when rad <or= germline date)",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -2613,14 +2383,9 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # Censor
            censor = TRUE
 )
-```
-</div>
-
-<div class = "col-md-6">
-```{r, fig.height = 7}
 myplot <- survfit(mysurv~Radiation_ever, data = germline_patient_surv)
 ggsurvplot(myplot, data = germline_patient_surv,
-           title = "PFS Radiation from rad date (pfs_radiation is when rad <or= germline date)",
+           title = "PFS Radiation from rad (general HCT yes/no)",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -2653,6 +2418,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 ```
 </div>
 </div>
+
 
 ### Drugs
 <div class = "row">
@@ -2804,8 +2570,7 @@ ggsurvplot(myplot, data = germline_patient_surv,
 <div class = "col-md-6">
 ```{r, fig.height = 7}
 germline_patient_drug_surv <- germline_patient_surv %>% 
-  filter(str_detect(first_regimen_name, "No Drugs|VRd|Bor-Dex|^Rd|CyBorD or VCd|Dexamethasone|Lenalidomide|^Td|^KRd|Bortezomib|Melphalan|VAd|ABCD|D-RVd or dara-RVd|IRD"))
-
+  filter(str_detect(first_regimen_name, common_regimen_name))
 
 mysurv <- Surv(time = germline_patient_drug_surv$month_at_os, event = germline_patient_drug_surv$os_event)
 myplot <- survfit(mysurv~first_regimen_name, data = germline_patient_drug_surv)

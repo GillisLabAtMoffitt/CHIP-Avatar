@@ -1292,33 +1292,33 @@ Progression <-
 Progression_drugs <- Progression # Create 2 df for dates from Dx or drug (will not have the same clean up)
 Progression_rad <- Progression
 Progression_hct <- Progression
-Progression_treat <- Progression # For hct and drugs
+# Progression_treat <- Progression # For hct and drugs
 
 Progression <- Progression %>% # Keep earliest progression_date => For OS
   arrange(progression_date) %>% 
   distinct(avatar_id, .keep_all = TRUE)
 # write.csv(Progression, paste0(path, "/simplified files/Progression simplify.csv"))
 
-Progression_treat <- Progression_treat %>% 
-  left_join(., Treatment %>% select(c("avatar_id", "line_start_date_1")), by = "avatar_id") %>%
-  left_join(., SCT %>% select(c("avatar_id", "date_of_bmt_1")), by = "avatar_id") %>% 
-  mutate(prog_before_treat = case_when(
-    progression_date <= line_start_date_1 &
-      progression_date <= date_of_bmt_1                 ~ "removed",
-    progression_date <= line_start_date_1 &
-      is.na(date_of_bmt_1)                              ~ "removed",
-    progression_date <= date_of_bmt_1 &
-      is.na(line_start_date_1)                          ~ "removed",
-    progression_date > line_start_date_1 |
-      progression_date > date_of_bmt_1 |
-      is.na(line_start_date_1) &
-      is.na(date_of_bmt_1)                              ~ "good"
-  )) %>%
-  filter(prog_before_treat == "good") %>% 
-  select(1:2) %>% 
-  arrange(progression_date) %>% 
-  distinct(avatar_id, .keep_all = TRUE) %>% 
-  rename(progression_treatment_date = "progression_date")
+# Progression_treat <- Progression_treat %>% 
+#   left_join(., Treatment %>% select(c("avatar_id", "line_start_date_1")), by = "avatar_id") %>%
+#   left_join(., SCT %>% select(c("avatar_id", "date_of_bmt_1")), by = "avatar_id") %>% 
+#   mutate(prog_before_treat = case_when(
+#     progression_date <= line_start_date_1 &
+#       progression_date <= date_of_bmt_1                 ~ "removed",
+#     progression_date <= line_start_date_1 &
+#       is.na(date_of_bmt_1)                              ~ "removed",
+#     progression_date <= date_of_bmt_1 &
+#       is.na(line_start_date_1)                          ~ "removed",
+#     progression_date > line_start_date_1 |
+#       progression_date > date_of_bmt_1 |
+#       is.na(line_start_date_1) &
+#       is.na(date_of_bmt_1)                              ~ "good"
+#   )) %>%
+#   filter(prog_before_treat == "good") %>% 
+#   select(1:2) %>% 
+#   arrange(progression_date) %>% 
+#   distinct(avatar_id, .keep_all = TRUE) %>% 
+#   rename(progression_treatment_date = "progression_date")
 
 Progression_drugs <- Progression_drugs %>% # Remove progression < drug and keep earliest progression_drug_date
   left_join(., Treatment %>% select(c("avatar_id", "line_start_date_1")), by = "avatar_id") %>% 
@@ -1471,7 +1471,7 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., Radiation, by = "avatar_id") %>% 
   full_join(., Progression, by= "avatar_id") %>% 
   full_join(., Progression_drugs, by= "avatar_id") %>% 
-  full_join(., Progression_treat, by= "avatar_id") %>% 
+  # full_join(., Progression_treat, by= "avatar_id") %>% 
   full_join(., Progression_rad, by= "avatar_id") %>% 
   full_join(., Progression_hct, by= "avatar_id") %>% 
   full_join(., Last_labs_dates %>% select(c("avatar_id", "labs_last_date")), by = "avatar_id") %>% 

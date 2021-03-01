@@ -56,34 +56,34 @@ sanity_check <- germline_patient_data %>%
       date_of_bmt_1 >= date_of_bmt_2 ~ "not good"
   )) %>% 
   mutate(treat_check = case_when(
-    drug_start_date_1 > drug_start_date_2 |
-      drug_start_date_2 > drug_start_date_3 |
-      drug_start_date_3 > drug_start_date_4 |
-      drug_start_date_4 > drug_start_date_5 |
-      drug_start_date_5 > drug_start_date_6 |
-      drug_start_date_6 > drug_start_date_7 |
-      drug_start_date_7 > drug_start_date_8 |
-      drug_start_date_8 > drug_start_date_9 |
-      drug_start_date_9 > drug_start_date_10 |
-      drug_start_date_10 > drug_start_date_11 |
-      drug_start_date_11 > drug_start_date_12 |
-      drug_start_date_12 > drug_start_date_13 |
-      drug_start_date_13 > drug_start_date_14 |
-      drug_start_date_14 > drug_start_date_15 ~ "not good",
-    drug_start_date_14 <= drug_start_date_15 ~ "OK",
-    drug_start_date_13 <= drug_start_date_14 ~ "OK",
-    drug_start_date_12 <= drug_start_date_13 ~ "OK",
-    drug_start_date_11 <= drug_start_date_12 ~ "OK",
-    drug_start_date_10 <= drug_start_date_11 ~ "OK",
-    drug_start_date_9 <= drug_start_date_10 ~ "OK",
-    drug_start_date_8 <= drug_start_date_9 ~ "OK",
-    drug_start_date_7 <= drug_start_date_8 ~ "OK",
-    drug_start_date_6 <= drug_start_date_7 ~ "OK",
-    drug_start_date_5 <= drug_start_date_6 ~ "OK",
-    drug_start_date_4 <= drug_start_date_5 ~ "OK",
-    drug_start_date_3 <= drug_start_date_4 ~ "OK",
-    drug_start_date_2 <= drug_start_date_3 ~ "OK",
-    drug_start_date_1 <= drug_start_date_2 ~ "OK"
+    line_start_date_1 > line_start_date_2 |
+      line_start_date_2 > line_start_date_3 |
+      line_start_date_3 > line_start_date_4 |
+      line_start_date_4 > line_start_date_5 |
+      line_start_date_5 > line_start_date_6 |
+      line_start_date_6 > line_start_date_7 |
+      line_start_date_7 > line_start_date_8 |
+      line_start_date_8 > line_start_date_9 |
+      line_start_date_9 > line_start_date_10 |
+      line_start_date_10 > line_start_date_11 |
+      line_start_date_11 > line_start_date_12 |
+      line_start_date_12 > line_start_date_13 |
+      line_start_date_13 > line_start_date_14 |
+      line_start_date_14 > line_start_date_15 ~ "not good",
+    line_start_date_14 <= line_start_date_15 ~ "OK",
+    line_start_date_13 <= line_start_date_14 ~ "OK",
+    line_start_date_12 <= line_start_date_13 ~ "OK",
+    line_start_date_11 <= line_start_date_12 ~ "OK",
+    line_start_date_10 <= line_start_date_11 ~ "OK",
+    line_start_date_9 <= line_start_date_10 ~ "OK",
+    line_start_date_8 <= line_start_date_9 ~ "OK",
+    line_start_date_7 <= line_start_date_8 ~ "OK",
+    line_start_date_6 <= line_start_date_7 ~ "OK",
+    line_start_date_5 <= line_start_date_6 ~ "OK",
+    line_start_date_4 <= line_start_date_5 ~ "OK",
+    line_start_date_3 <= line_start_date_4 ~ "OK",
+    line_start_date_2 <= line_start_date_3 ~ "OK",
+    line_start_date_1 <= line_start_date_2 ~ "OK"
   )) %>% 
   mutate(birth_BF_lastdate = case_when(
     last_date_available > Date_of_Birth ~ "OK",
@@ -108,7 +108,7 @@ sanity_check <- germline_patient_data %>%
     date_of_bmt_1 > Dx_date_closest_germline ~ "OK"
   )) %>% 
   mutate(drug_after_diag = case_when(
-    drug_start_date_1 > Dx_date_closest_germline ~ "OK"
+    line_start_date_1 > Dx_date_closest_germline ~ "OK"
   )) %>% 
   mutate(diag_BF_progression = case_when(
     progression_date > Dx_date_closest_germline ~ "OK",
@@ -119,8 +119,9 @@ sanity_check <- germline_patient_data %>%
     progression_date >= date_death ~ "not good"
   )) %>% 
   mutate(drug_bf_bmt = case_when(
-    drug_start_date_1 <= date_of_bmt_1  ~ "OK",
-    drug_start_date_1 > date_of_bmt_1  ~ "not good",
+    line_start_date_1 <= date_of_bmt_1  ~ "OK",
+    line_start_date_1 > date_of_bmt_1  ~ "not good",
+    is.na(line_start_date_1) & !is.na(date_of_bmt_1)  ~ "not good"
   ))
 
 table_sanity_check <- as.data.table(matrix(c("check", "radiation_check", "treatment_check", "diag_check", "rad_check", "sct_check", "treat_check", "birth_BF_lastdate",

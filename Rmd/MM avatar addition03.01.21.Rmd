@@ -1,0 +1,323 @@
+---
+title: "analysis added up after Taiga's comments"
+author: "Christelle Colin-Leitzinger"
+date: '`r Sys.Date()`'
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: false
+    theme: cerulean #darkly
+    highlight: pygments
+    # keep_md: true
+---
+
+<style type="text/css">
+h1.title {
+  font-size: 25px;
+}
+.figure {
+   margin-top: 25px;
+   <!-- margin-bottom: 100px; -->
+}
+
+table {
+    margin-top: 25px;
+    <!-- margin-bottom: 100px !important; -->
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      cache = FALSE,
+                      # fig.width = 7, fig.height = 5, 
+                      fig.align='center'#, fig.show='hold'
+                      )
+options(gtsummary.print_engine = "gt")
+options(gtsummary.as_gt.addl_cmds = "gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1))")
+
+```
+
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(VennDiagram)
+library(viridis)
+library(lubridate)
+library(gtsummary)
+library(survival)
+library(survminer)
+```
+
+```{r load}
+Global_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Global_data.rds")
+germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/germline_patient_data.rds")
+Treatment1 <-  readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Treatment1.rds")
+path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
+patients_removed_nonMM <- c("A000428", "A000456")
+```
+<br>
+<br>
+<!-- Leave a space here -->
+
+***
+# I. Time to treatment or HCT start
+From MM diagnosis so will be for patients who were MM or became MM (list of patients who became MM in IV)
+```{r}
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(time_to_hct, time_to_drug, Ethnicity) %>%
+  tbl_summary(by = Ethnicity, 
+              sort = list(everything() ~ "frequency"),
+              digits = list(c(time_to_hct, time_to_drug) ~ 2)) %>% 
+  bold_labels() %>% add_p()
+
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(time_to_hct, time_to_drug, ISS) %>%
+  tbl_summary(by = ISS, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(c(time_to_hct, time_to_drug) ~ 2)) %>% 
+  bold_labels() %>% add_p()
+```
+
+
+# II. The patient with HCT without drug
+A025764
+
+# III. Drugs
+
+## 1. Summary lines per patients
+The max is 15 regimen
+```{r}
+germline_patient_data %>% 
+  mutate(regimen_count = case_when(
+    !is.na(line_start_date_1) &
+      is.na(line_start_date_2)        ~ "1",
+    !is.na(line_start_date_2) &
+      is.na(line_start_date_3)        ~ "2",
+    !is.na(line_start_date_3) &
+      is.na(line_start_date_4)        ~ "3",
+    !is.na(line_start_date_4) &
+      is.na(line_start_date_5)        ~ "4",
+    !is.na(line_start_date_5) &
+      is.na(line_start_date_6)        ~ "5",
+    !is.na(line_start_date_6) &
+      is.na(line_start_date_7)        ~ "6",
+    !is.na(line_start_date_7) &
+      is.na(line_start_date_8)        ~ "7",
+    !is.na(line_start_date_8) &
+      is.na(line_start_date_9)        ~ "8",
+    !is.na(line_start_date_9) &
+      is.na(line_start_date_10)        ~ "9",
+    !is.na(line_start_date_10) &
+      is.na(line_start_date_11)        ~ "10",
+    !is.na(line_start_date_11) &
+      is.na(line_start_date_12)        ~ "11",
+    !is.na(line_start_date_12) &
+      is.na(line_start_date_13)        ~ "12",
+    !is.na(line_start_date_13) &
+      is.na(line_start_date_14)        ~ "13",
+    !is.na(line_start_date_14) &
+      is.na(line_start_date_15)        ~ "14",
+    !is.na(line_start_date_15)         ~ "15"
+  )) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(regimen_count, Whole) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% add_p()
+```
+
+
+
+## 2.Tables drugs separated by regimen 1,2,3
+Include all germline patients. You can see in IV the drugs that the patients who were Smol and became MM had.
+<div class = "row">
+<div class = "col-md-4">
+```{r, fig.height = 7}
+germline_patient_data %>%
+  mutate(Whole = "All regimen in 1st regimen") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(first_regimen_name, Whole) %>% 
+  tbl_summary(by = Whole,
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No Drugs") %>% bold_labels() %>%  as_gt()
+```
+</div>
+
+<div class = "col-md-4">
+```{r, fig.height = 7}
+germline_patient_data %>%
+  mutate(Whole = "All regimen in 2nd regimen") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(regimen_name_2, Whole) %>% 
+  tbl_summary(by = Whole,
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No regimen_name_2") %>% bold_labels() %>%  as_gt()
+```
+</div>
+
+<div class = "col-md-4">
+```{r, fig.height = 7}
+germline_patient_data %>%
+  mutate(Whole = "All regimen in 3rd regimen") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(regimen_name_3, Whole) %>% 
+  tbl_summary(by = Whole,
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No regimen_name_3") %>% bold_labels() %>%  as_gt()
+```
+</div>
+</div>
+
+
+# IV. How many of the MGUS, Sm progressed to MM
+```{r}
+rmarkdown::paged_table(
+germline_patient_data %>% 
+  select(avatar_id, Disease_Status_germline, Dx_date_closest_germline, date_of_MMonly_diagnosis, first_regimen_name, date_of_bmt_1) %>% 
+  filter(str_detect(Disease_Status_germline, "Mgus|Smoldering")) %>% 
+  arrange(date_of_MMonly_diagnosis, Disease_Status_germline)
+)
+```
+
+I definitely need to remove the non MM patients but I think I need to dig moe into these patients who had HCT but are not MM.
+
+# V. Patients who got HCT by ISS
+```{r}
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(pfs_hct, HCT_ever, ISS) %>%
+  tbl_summary(by = ISS, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric")) %>% 
+  bold_labels() %>% add_p()
+
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(pfs_hct, HCT_ever, ISS_grp) %>%
+  tbl_summary(by = ISS_grp, 
+              sort = list(everything() ~ "frequency", ISS_grp ~ "alphanumeric")) %>% 
+  bold_labels() %>% add_p()
+
+```
+
+# VI. Things I look this morning before the meeting
+
+## 1. Hispanic
+```{r}
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Whole, ISS) %>%
+  tbl_summary(by = Ethnicity, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% 
+  bold_labels() %>% add_p()
+
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Age_at_diagnosis_closest_germline, Ethnicity, Whole, ISS) %>%
+  tbl_summary(by = ISS, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(c(Age_at_diagnosis_closest_germline) ~ 2)) %>% 
+  bold_labels() %>% add_p()
+```
+
+## 2. Does CH status affect PFS in number?
+```{r}
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Age_at_diagnosis_closest_germline, month_at_os, month_at_progression_drug, month_at_progression_hct, month_at_progression_rad, CH_status, ISS) %>%
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(c(Age_at_diagnosis_closest_germline) ~ 2)) %>% 
+  bold_labels() %>% add_p()
+
+tbl1 <- germline_patient_data %>% 
+  filter(CH_status == "CH") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Age_at_diagnosis_closest_germline, month_at_os, month_at_progression_drug, month_at_progression_hct, month_at_progression_rad, CH_status, ISS) %>%
+  tbl_summary(by = ISS, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(c(Age_at_diagnosis_closest_germline) ~ 2)) %>% 
+  bold_labels() %>% add_p()
+
+tbl2 <- germline_patient_data %>% 
+  filter(CH_status == "No_CH") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Age_at_diagnosis_closest_germline, month_at_os, month_at_progression_drug, month_at_progression_hct, month_at_progression_rad, CH_status, ISS) %>%
+  tbl_summary(by = ISS, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(c(Age_at_diagnosis_closest_germline) ~ 2)) %>% 
+  bold_labels() %>% add_p()
+
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**CH**", "**No_CH**"))
+
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(CH_status, ISS) %>%
+  tbl_summary(by = ISS, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric")) %>% 
+  bold_labels() %>% add_p()
+
+tbl1 <- germline_patient_data %>% 
+  filter(ISS == "I") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Age_at_diagnosis_closest_germline, month_at_os, month_at_progression_drug, month_at_progression_hct, month_at_progression_rad, CH_status, ISS) %>%
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(everything() ~ 2)) %>% 
+  bold_labels() %>% add_p()
+
+tbl2 <- germline_patient_data %>% 
+  filter(ISS == "II") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Age_at_diagnosis_closest_germline, month_at_os, month_at_progression_drug, month_at_progression_hct, month_at_progression_rad, CH_status, ISS) %>%
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(everything() ~ 2)) %>% 
+  bold_labels() %>% add_p()
+
+tbl3 <- germline_patient_data %>% 
+  filter(ISS == "III") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Age_at_diagnosis_closest_germline, month_at_os, month_at_progression_drug, month_at_progression_hct, month_at_progression_rad, CH_status, ISS) %>%
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              digits = list(everything() ~ 2)) %>% 
+  bold_labels() %>% add_p()
+
+tbl_merge(list(tbl1, tbl2, tbl3), tab_spanner = c("**ISS I**", "**ISS II**", "**ISS III**"))
+```
+
+<!-- ### -->
+<!-- <div class = "row"> -->
+<!-- <div class = "col-md-6"> -->
+<!-- ```{r, fig.height = 7} -->
+
+<!-- ``` -->
+<!-- </div> -->
+
+<!-- <div class = "col-md-6"> -->
+<!-- ```{r, fig.height = 7} -->
+
+<!-- ``` -->
+<!-- </div> -->
+<!-- </div> -->

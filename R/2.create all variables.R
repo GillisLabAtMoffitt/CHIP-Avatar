@@ -328,9 +328,9 @@ Global_data$month_at_progression_hct <- interval(start= Global_data$pfs_hct_star
   duration(n=1, unit="months")
 Global_data$month_at_progression_hct <- round(Global_data$month_at_progression_hct, 3)
 
-Global_data$month_at_progression_treat <- interval(start= Global_data$pfs_treatment_start_date, end= Global_data$pfs_treatment_progression_date)/                      
-  duration(n=1, unit="months")
-Global_data$month_at_progression_treat <- round(Global_data$month_at_progression_treat, 3)
+# Global_data$month_at_progression_treat <- interval(start= Global_data$pfs_treatment_start_date, end= Global_data$pfs_treatment_progression_date)/                      
+#   duration(n=1, unit="months")
+# Global_data$month_at_progression_treat <- round(Global_data$month_at_progression_treat, 3)
 
 Global_data$month_at_os <- interval(start= Global_data$date_of_diagnosis_1, end= Global_data$os_date_surv)/                      
   duration(n=1, unit="months")
@@ -426,11 +426,11 @@ germline_patient_data <- germline_patient_data %>%
       pfs_hct_progression_date > date_contact_lost          ~ 0,
     TRUE ~ hct_progression_event
   )) %>% 
-  mutate(treatment_progression_event = case_when( 
-    treatment_progression_event == 1 & 
-      pfs_treatment_progression_date > date_contact_lost    ~ 0,
-    TRUE ~ treatment_progression_event
-  )) %>% 
+  # mutate(treatment_progression_event = case_when( 
+  #   treatment_progression_event == 1 & 
+  #     pfs_treatment_progression_date > date_contact_lost    ~ 0,
+  #   TRUE ~ treatment_progression_event
+  # )) %>% 
   
   mutate(os_event = case_when( 
     os_event == 1 & 

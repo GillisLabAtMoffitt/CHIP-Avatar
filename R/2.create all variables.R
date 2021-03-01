@@ -230,7 +230,8 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
       is.na(rad_start_date_1) &
       is.na(date_of_bmt_1) ~ "No Treatment",
     TRUE                   ~ "Treatment Given"
-  ))
+  )) %>% 
+  mutate(ISS_grp = ifelse(str_detect(ISS, "II"), "II-III", ISS))
   
   
   
@@ -340,6 +341,14 @@ Global_data$month_at_os <- round(Global_data$month_at_os, 3)
 Global_data$age_at_os <- interval(start= Global_data$Date_of_Birth, end= Global_data$os_date_surv)/                      
   duration(n=1, unit="years")
 Global_data$age_at_os <- round(Global_data$age_at_os, 3)
+
+Global_data$time_to_hct <- interval(start= Global_data$date_of_MMonly_diagnosis, end= Global_data$date_of_bmt_1)/                      
+  duration(n=1, unit="months")
+Global_data$time_to_hct <- round(Global_data$time_to_hct, 3)
+
+Global_data$time_to_drug <- interval(start= Global_data$date_of_MMonly_diagnosis, end= Global_data$line_start_date_1)/                      
+  duration(n=1, unit="months")
+Global_data$time_to_drug <- round(Global_data$time_to_drug, 3)
 
 # rm(b)
 write_rds(Global_data, path = "Global_data.rds")

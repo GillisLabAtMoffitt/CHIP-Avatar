@@ -9,6 +9,7 @@ output:
     toc_collapsed: false
     theme: cerulean #darkly
     highlight: pygments
+    df_print: paged
     # keep_md: true
 ---
 
@@ -70,10 +71,12 @@ From MM diagnosis so will be for patients who were MM or became MM (list of pati
 germline_patient_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
+  filter(!is.na(Ethnicity)) %>% 
   select(time_to_hct, time_to_drug, Ethnicity) %>%
   tbl_summary(by = Ethnicity, 
               sort = list(everything() ~ "frequency"),
-              digits = list(c(time_to_hct, time_to_drug) ~ 2)) %>% 
+              digits = list(c(time_to_hct, time_to_drug) ~ 2),
+              missing = "no") %>% 
   bold_labels() %>% add_p()
 
 germline_patient_data %>% 
@@ -82,7 +85,18 @@ germline_patient_data %>%
   select(time_to_hct, time_to_drug, ISS) %>%
   tbl_summary(by = ISS, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(time_to_hct, time_to_drug) ~ 2)) %>% 
+              digits = list(c(time_to_hct, time_to_drug) ~ 2),
+              missing = "no") %>% 
+  bold_labels() %>% add_p()
+
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(time_to_hct, time_to_drug, ISS_grp) %>%
+  tbl_summary(by = ISS_grp, 
+              sort = list(everything() ~ "frequency", ISS_grp ~ "alphanumeric"),
+              digits = list(c(time_to_hct, time_to_drug) ~ 2),
+              missing = "no") %>% 
   bold_labels() %>% add_p()
 ```
 
@@ -98,41 +112,42 @@ The max is 15 regimen
 germline_patient_data %>% 
   mutate(regimen_count = case_when(
     !is.na(line_start_date_1) &
-      is.na(line_start_date_2)        ~ "1",
+      is.na(line_start_date_2)        ~ 1,
     !is.na(line_start_date_2) &
-      is.na(line_start_date_3)        ~ "2",
+      is.na(line_start_date_3)        ~ 2,
     !is.na(line_start_date_3) &
-      is.na(line_start_date_4)        ~ "3",
+      is.na(line_start_date_4)        ~ 3,
     !is.na(line_start_date_4) &
-      is.na(line_start_date_5)        ~ "4",
+      is.na(line_start_date_5)        ~ 4,
     !is.na(line_start_date_5) &
-      is.na(line_start_date_6)        ~ "5",
+      is.na(line_start_date_6)        ~ 5,
     !is.na(line_start_date_6) &
-      is.na(line_start_date_7)        ~ "6",
+      is.na(line_start_date_7)        ~ 6,
     !is.na(line_start_date_7) &
-      is.na(line_start_date_8)        ~ "7",
+      is.na(line_start_date_8)        ~ 7,
     !is.na(line_start_date_8) &
-      is.na(line_start_date_9)        ~ "8",
+      is.na(line_start_date_9)        ~ 8,
     !is.na(line_start_date_9) &
-      is.na(line_start_date_10)        ~ "9",
+      is.na(line_start_date_10)        ~ 9,
     !is.na(line_start_date_10) &
-      is.na(line_start_date_11)        ~ "10",
+      is.na(line_start_date_11)        ~ 10,
     !is.na(line_start_date_11) &
-      is.na(line_start_date_12)        ~ "11",
+      is.na(line_start_date_12)        ~ 11,
     !is.na(line_start_date_12) &
-      is.na(line_start_date_13)        ~ "12",
+      is.na(line_start_date_13)        ~ 12,
     !is.na(line_start_date_13) &
-      is.na(line_start_date_14)        ~ "13",
+      is.na(line_start_date_14)        ~ 13,
     !is.na(line_start_date_14) &
-      is.na(line_start_date_15)        ~ "14",
-    !is.na(line_start_date_15)         ~ "15"
+      is.na(line_start_date_15)        ~ 14,
+    !is.na(line_start_date_15)         ~ 15
   )) %>% 
+  mutate(regimen_count = as.factor(regimen_count)) %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(regimen_count, Whole) %>%
-  tbl_summary(by = Whole, 
-              sort = list(everything() ~ "frequency")) %>% 
-  bold_labels() %>% add_p()
+  tbl_summary(by = Whole,
+              missing_text = "No drugs") %>% 
+  bold_labels()
 ```
 
 
@@ -179,13 +194,19 @@ germline_patient_data %>%
 
 
 # IV. How many of the MGUS, Sm progressed to MM
-```{r}
-rmarkdown::paged_table(
+Only the 2 first Smoldering shows MM progression.
+But why does the following shows drugs or HCT?
+```{r rows.print=20}
+
 germline_patient_data %>% 
-  select(avatar_id, Disease_Status_germline, Dx_date_closest_germline, date_of_MMonly_diagnosis, first_regimen_name, date_of_bmt_1) %>% 
+  mutate(diagnosed_MM = ifelse(!is.na(date_of_MMonly_diagnosis), "Yes", "No")) %>% 
   filter(str_detect(Disease_Status_germline, "Mgus|Smoldering")) %>% 
-  arrange(date_of_MMonly_diagnosis, Disease_Status_germline)
-)
+  mutate(Disease_Status_germline = str_replace(Disease_Status_germline, "Smoldering Multiple Myeloma", "SM")) %>% 
+  select(avatar_id, Disease_Status_germline, Dx_date_closest_germline, diagnosed_MM, Drugs_ever, HCT_ever) %>% 
+  filter(diagnosed_MM == "Yes" |
+            (diagnosed_MM == "No" & Drugs_ever == "Drug") | (diagnosed_MM == "No" & HCT_ever == "HCT")) %>% 
+  arrange(desc(diagnosed_MM), Disease_Status_germline)
+
 ```
 
 I definitely need to remove the non MM patients but I think I need to dig moe into these patients who had HCT but are not MM.
@@ -195,7 +216,7 @@ I definitely need to remove the non MM patients but I think I need to dig moe in
 germline_patient_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
-  select(pfs_hct, HCT_ever, ISS) %>%
+  select(HCT_ever, ISS) %>%
   tbl_summary(by = ISS, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric")) %>% 
   bold_labels() %>% add_p()
@@ -203,7 +224,7 @@ germline_patient_data %>%
 germline_patient_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
-  select(pfs_hct, HCT_ever, ISS_grp) %>%
+  select(HCT_ever, ISS_grp) %>%
   tbl_summary(by = ISS_grp, 
               sort = list(everything() ~ "frequency", ISS_grp ~ "alphanumeric")) %>% 
   bold_labels() %>% add_p()
@@ -217,19 +238,22 @@ germline_patient_data %>%
 germline_patient_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
+  filter(!is.na(Ethnicity)) %>% 
   select(Age_at_diagnosis_closest_germline, Gender, Race, Ethnicity, Whole, ISS) %>%
   tbl_summary(by = Ethnicity, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% 
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2),
+              missing = "no") %>% 
   bold_labels() %>% add_p()
 
 germline_patient_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
-  select(Age_at_diagnosis_closest_germline, Ethnicity, Whole, ISS) %>%
+  select(Age_at_diagnosis_closest_germline, Ethnicity, ISS) %>%
   tbl_summary(by = ISS, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(Age_at_diagnosis_closest_germline) ~ 2)) %>% 
+              digits = list(c(Age_at_diagnosis_closest_germline) ~ 2),
+              missing = "no") %>% 
   bold_labels() %>% add_p()
 ```
 
@@ -241,7 +265,8 @@ germline_patient_data %>%
   select(Age_at_diagnosis_closest_germline, month_at_os, month_at_progression_drug, month_at_progression_hct, month_at_progression_rad, CH_status, ISS) %>%
   tbl_summary(by = CH_status, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(Age_at_diagnosis_closest_germline) ~ 2)) %>% 
+              digits = list(c(Age_at_diagnosis_closest_germline) ~ 2),
+              missing = "no") %>% 
   bold_labels() %>% add_p()
 
 tbl1 <- germline_patient_data %>% 
@@ -251,7 +276,8 @@ tbl1 <- germline_patient_data %>%
   select(Age_at_diagnosis_closest_germline, month_at_os, month_at_progression_drug, month_at_progression_hct, month_at_progression_rad, CH_status, ISS) %>%
   tbl_summary(by = ISS, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(Age_at_diagnosis_closest_germline) ~ 2)) %>% 
+              digits = list(c(Age_at_diagnosis_closest_germline) ~ 2),
+              missing = "no") %>% 
   bold_labels() %>% add_p()
 
 tbl2 <- germline_patient_data %>% 
@@ -261,7 +287,8 @@ tbl2 <- germline_patient_data %>%
   select(Age_at_diagnosis_closest_germline, month_at_os, month_at_progression_drug, month_at_progression_hct, month_at_progression_rad, CH_status, ISS) %>%
   tbl_summary(by = ISS, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(Age_at_diagnosis_closest_germline) ~ 2)) %>% 
+              digits = list(c(Age_at_diagnosis_closest_germline) ~ 2),
+              missing = "no") %>% 
   bold_labels() %>% add_p()
 
 tbl_merge(list(tbl1, tbl2), tab_spanner = c("**CH**", "**No_CH**"))
@@ -270,8 +297,9 @@ germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(CH_status, ISS) %>%
-  tbl_summary(by = ISS, 
-              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric")) %>% 
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              missing = "no") %>% 
   bold_labels() %>% add_p()
 
 tbl1 <- germline_patient_data %>% 
@@ -281,7 +309,8 @@ tbl1 <- germline_patient_data %>%
   select(Age_at_diagnosis_closest_germline, month_at_os, month_at_progression_drug, month_at_progression_hct, month_at_progression_rad, CH_status, ISS) %>%
   tbl_summary(by = CH_status, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(everything() ~ 2)) %>% 
+              digits = list(everything() ~ 2),
+              missing = "no") %>% 
   bold_labels() %>% add_p()
 
 tbl2 <- germline_patient_data %>% 
@@ -291,7 +320,8 @@ tbl2 <- germline_patient_data %>%
   select(Age_at_diagnosis_closest_germline, month_at_os, month_at_progression_drug, month_at_progression_hct, month_at_progression_rad, CH_status, ISS) %>%
   tbl_summary(by = CH_status, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(everything() ~ 2)) %>% 
+              digits = list(everything() ~ 2),
+              missing = "no") %>% 
   bold_labels() %>% add_p()
 
 tbl3 <- germline_patient_data %>% 
@@ -301,7 +331,8 @@ tbl3 <- germline_patient_data %>%
   select(Age_at_diagnosis_closest_germline, month_at_os, month_at_progression_drug, month_at_progression_hct, month_at_progression_rad, CH_status, ISS) %>%
   tbl_summary(by = CH_status, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(everything() ~ 2)) %>% 
+              digits = list(everything() ~ 2),
+              missing = "no") %>% 
   bold_labels() %>% add_p()
 
 tbl_merge(list(tbl1, tbl2, tbl3), tab_spanner = c("**ISS I**", "**ISS II**", "**ISS III**"))

@@ -119,11 +119,17 @@ gg <- ggplot()
 ggg <- gg + geom_line(data = events_period, aes(x=date, y=avatar_id, color=event, group = avatar_id))
 gggg <- ggg + geom_point(data = events_dates, aes(x=date, y=avatar_id, color=event))
 
-#### Without date of birth
+#### Plot with age
 
 events_dates1 <- events_dates %>% 
-  filter(!str_detect(event, "Birth"))
+  group_by(avatar_id) %>% 
+  mutate(age = date - lag(date)) %>% 
+  mutate(int =  interval(start = diagnosisdate, end = followupdate)/ duration(n=1, units = "years")) %>% 
+  mutate(aage = as.POSIXct(age), )
+  # mutate(lag1_within.consecutive = lag(date, 1,time.step = "within"))
 
+  
+  
 gg_ev <- ggg + geom_point(data = events_dates1, aes(x=date, y=avatar_id, color=event), size=1, alpha=0.3) +
   theme(legend.position='top')
 

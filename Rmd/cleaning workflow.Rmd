@@ -1,0 +1,85 @@
+---
+title: "MM Avatar cleaning"
+author: "Christelle Colin-Leitzinger"
+date: '`r Sys.Date()`'
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: false
+    theme: cerulean #darkly
+    highlight: pygments
+    df_print: paged
+---
+
+<style type="text/css">
+h1.title {
+  font-size: 25px;
+}
+.figure {
+   margin-top: 25px;
+   <!-- margin-bottom: 100px; -->
+}
+
+table {
+    margin-top: 25px;
+    <!-- margin-bottom: 100px !important; -->
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      cache = FALSE,
+                      # fig.width = 7, fig.height = 5, 
+                      fig.align='center'#, fig.show='hold'
+                      )
+options(gtsummary.print_engine = "gt")
+options(gtsummary.as_gt.addl_cmds = "gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1))")
+
+```
+
+<style>
+div.blue { background-color:#0099CC; border-radius: 5px; padding: 20px; font-size: 38px}
+</style>
+<div class = "blue">
+
+<span style="color: white;">Workflow through the MM Avatar data cleaning</span>
+
+</div>
+<br>
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(lubridate)
+```
+
+***
+# I.Clinical data
+
+```{r load}
+
+```
+
+In total, we have 4 version of the clinical data.
+V1 has `r ` patients and was sent by Raghu on Feb, 07 2020.
+V2 has `r ` patients and was sent by Raghu on Feb, 10 2020.
+V4 has `r ` patients and was sent by Raghu on April, 21 2020. 
+A V4.1 data added `r ` patients to V4 on August, 03 2020.
+V12 has `r ` patients and was sent by Raghu on Sept, 04 2020. This data overlap V1 and V2 patients with some patients data which were updated by CIOX and reformatted to a V4 format, and patients for who the data were only reformatted to a V4 format but not verified.
+We learned in Feb 2021 that CIOX contract was stopped.
+
+
+
+
+
+
+
+
+
+
+
+
+

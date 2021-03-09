@@ -610,9 +610,89 @@ The ISS staging was calculated by Raghu and sent on Sept 14th 2020. It doesn't u
 The IMIDS maintenance file was sent by Raghu on Dec 29th 2020 that he queried from raw datasets of Avatar legacy v4 MM cases which matched to our patient list. There are about 135 cases (from v045) that are awaiting qc of migration(clinical data), follow up data. I have not used these cases for querying and about 90 cases of these patients list are v1 cases where forms were not designed to capture maintenance regimen data.  
 Comments: Raghu said that "Original data (regimen line variable) comes as numbers with different values in V4 form. There is some missing data and some values are not very relevant to Myeloma since V4 forms are not disease specific, so Dr. Shain recommended me to reformat the variable."  
 
+## Germline
+```{r}
+Germline <- Germline %>% 
+  distinct()
+
+Sequencing <-
+  full_join(
+    Sequencing,
+    WES_tumor,
+    by = "moffitt_sample_id_tumor")
+# Bind Sequencing
+Seq_WES <- bind_rows(Seq_WES_Raghu, Sequencing2, Seq_WES_Raghu2, Sequencing, .id = "vers") %>% 
+  arrange(collectiondt_germline) %>% 
+  distinct(SLID_tumor, moffitt_sample_id_tumor, SLID_germline, .keep_all = TRUE)
+
+Seq_WES <- Seq_WES[order(Seq_WES$collectiondt_tumor), ]
+# pivot wider
+WES_seq <-
+  dcast(setDT(Seq_WES), avatar_id+SLID_germline+moffitt_sample_id_germline+collectiondt_germline ~ rowid(avatar_id),
+        value.var = c(
+          "SLID_tumor",
+          "moffitt_sample_id_tumor",
+          "collectiondt_tumor",
+          "BaitSet"
+        )
+  )
+
+# Merge all
+Germline <- left_join(WES_seq, Germline, by = "avatar_id") %>% 
+  filter(SLID_germline.x == SLID_germline.y | is.na(SLID_germline.x == SLID_germline.y)) %>% 
+  rename(SLID_germline = "SLID_germline.x", collectiondt_germline = "collectiondt_germline.x") %>% 
+  # distinct(avatar_id, SLID_germline, .keep_all = TRUE) %>% 
+  mutate(collectiondt_germline = coalesce(collectiondt_germline, collectiondt_germline.y)) %>% 
+  select(-SLID_germline.y, -collectiondt_germline.y)
+```
+
+## Demographics
+```{r}
+
+```
 
 
+## MM history cleaning
+```{r}
+mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, MM_historyV4.1, .id = "versionMM") %>%
+  drop_na("date_of_diagnosis") %>%
+  distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
+  # Create date of diagnosis closest to germline date
+  left_join(., Germline %>% distinct(avatar_id, .keep_all = TRUE) %>% select("avatar_id", "collectiondt_germline"), # For only 1 date of Dx when multiple germline collection
+            by = "avatar_id") %>% 
+  mutate(interval = (interval(start= .$collectiondt_germline, end= .$date_of_diagnosis)/duration(n=1, unit="days"))) %>% 
+  mutate(interval1 = if_else(interval>100, NA_real_, interval)) %>% 
+  mutate(interval1 = abs(interval1)) %>% 
+  arrange(interval1) %>% 
+  group_by(avatar_id) %>% mutate(id = 1:n()) %>% ungroup() %>%
+  mutate(Dx_date_closest_germline = if_else(id == 1, date_of_diagnosis, NA_POSIXct_)) %>% 
+  distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
+  group_by(avatar_id) %>% fill(Dx_date_closest_germline, .direction = "updown") %>% 
+  arrange(avatar_id, date_of_diagnosis) %>% 
+  ungroup()
 
+MM_history <- dcast(setDT(mm_history), avatar_id+Dx_date_closest_germline ~ rowid(avatar_id), 
+                    value.var = c("date_of_diagnosis", "disease_stage")) %>% 
+  mutate(date_of_MMonly_diagnosis = case_when(
+    disease_stage_1 == "active"          ~ date_of_diagnosis_1,
+    disease_stage_2 == "active"          ~ date_of_diagnosis_2,
+    disease_stage_3 == "active"          ~ date_of_diagnosis_3,
+    disease_stage_4 == "active"          ~ date_of_diagnosis_4,
+  )) %>% 
+  mutate(date_of_MMSMMGUSdiagnosis = coalesce(date_of_MMonly_diagnosis, date_of_diagnosis_1)) %>% 
+  select(c("avatar_id", "Dx_date_closest_germline", "date_of_MMonly_diagnosis", "date_of_MMSMMGUSdiagnosis", everything()))
+```
+All MM history are bind together and duplicated rows are removed.
+The date of diagnosis are multiple for each patients. It could be the first time they got a Mgus, Smoldering or MM diagnosis. It can also be when the patient become MM or when he relapse. The `disease_stage` associated with the `date_of_diagnosis` tells us if the patient is within this 4 conditions.  
+`r table(MM_history$disease_stage_1)`
+By binding with the `collectiondt_germline` I was able to calculate an interval between the later and the multiple `date_of_diagnosis`.
+We choose to take the date closest to germline (with closest absolut interval as long as it is not nore than 100 days after the germline) as the `Dx_date_closest_germline`. <span style='color: red;'>The problem can be when the disease stage is not recorded.</span>  
+I also created a `date_of_MMonly_diagnosis` variable which take the first diagnosis date where the disease status is active (MM diagnosis). Comment: it doesn't take the relapse diagnosis...<span style='color: red;'>Should it?</span>  
+`date_of_MMSMMGUSdiagnosis` takes `date_of_MMonly_diagnosis` and NA are filled with the very first diagnosis date of non-active disease in the data.
+```{r}
+mm_history
+MM_history
+```
 
 
 

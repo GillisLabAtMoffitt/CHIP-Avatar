@@ -77,27 +77,6 @@ Germline <- readxl::read_xlsx(paste0(path,
                                      "/Raghu MM/Germline data/Moffitt_Germl_v0.4.5_Disease_Classification_12082020.xlsx")) %>% 
   select(c("avatar_id", "SLID_germline", "collectiondt_germline", 
            "moffittSampleId_germline", Disease_Status_germline = "Disease_Status"))
-# uid <- paste(unique(Germline$avatar_id), collapse = '|')
-# Germ <- 
-#   readxl::read_xlsx(paste0(path, 
-#                            "/Raghu MM/Germline data/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
-#   select(c("avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status"))
-# Germ <- Germ[(!grepl(uid, Germ$avatar_id)),]
-# Germ2 <-
-#   readxl::read_xlsx(paste0(path,
-#                            "/Raghu MM/Germline data/Moffitt_Germl_Disease_Classification_2patient_from_2nd_sequencingfile.xlsx")) %>%
-#   select(-moffitt_sample_id)
-# Germ2 <- Germ2[(!grepl(uid, Germ2$avatar_id)),]
-# Germ3 <-
-#   readxl::read_xlsx(paste0(path,
-#                            "/Raghu MM/Germline data/Germline_MM_Disease_Status_05052020_OUT .xlsx")) %>% 
-#   select(c(avatar_id = "Avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status"))
-# Germ3 <- Germ3[(!grepl(uid, Germ3$avatar_id)),]
-# Germ4 <-
-#   readxl::read_xlsx(paste0(path,
-#                            "/Raghu MM/Germline data/Moffitt_Germl_v0.4.5_Disease_Classification_OUT_07272020.xlsx")) %>% 
-#   select(c("avatar_id", "SLID_germline", "Disease_Status"))
-# Germ4 <- Germ4[(!grepl(uid, Germ4$avatar_id)),]
 # 1.3.Load Sequencing data ---------------------------------------------------------------------------------------
 WES_tumor <-
   readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/Moffitt_WES_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
@@ -112,8 +91,6 @@ Sequencing <-
     "SLID_tumor" , "moffitt_sample_id_tumor", 
     "moffitt_sample_id_germline",
     "BaitSet"))
-# Sequencing$moffitt_sample_id_tumor == Sequencing$moffitt_sample_id # yes so remove one var
-# Sequencing$subject == Sequencing$avatar_id # yes so remove one var
 #---
 Seq_WES_Raghu <- 
   readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/MM_Metadata_WES_V044.xlsx")) %>% 
@@ -121,12 +98,6 @@ Seq_WES_Raghu <-
            "SLID_germline", "moffitt_sample_id_germline", "collectiondt_germline", 
            "SLID_tumor" , "moffitt_sample_id_tumor", "collectiondt_tumor", 
            "BaitSet"))
-# Keep
-# Seq_WES_Raghu$moffitt_sample_id_tumor == Seq_WES_Raghu$moffitt_sample_id # yes so rename and remove one var
-# Seq_WES_Raghu$SLID_tumor == Seq_WES_Raghu$ClinicalSpecimenLinkage_WES # yes
-# Seq_WES_Raghu$SLID_tumor == Seq_WES_Raghu$SLID # yes
-# Seq_WES_Raghu$subject == Seq_WES_Raghu$ClinicalSpecimenLinkage_subject # yes
-# Seq_WES_R$collectiondt_germline == Seq_WES_R$collectiondt_tumor # No -> That's good
 #---
 Sequencing2 <- # warning message due to a TRUE added in a num var by Raghu (he copy paste an extra patient)
   readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/MM_Metadata_WES_V0441.xlsx")) %>% 
@@ -153,7 +124,7 @@ ClinicalCap_V12 <-
     "V1V2 verified by CIOX in V4 format"
   )
 #---
-Vitals_V12 <-
+Vitals_V12 <- Vitals_colnames <- 
   readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Vitals") %>%
   select(c("avatar_id","vital_status","date_death", date_last_follow_up = "date_of_last_contact"))
@@ -166,13 +137,13 @@ Alc_Smo_V12 <-
   select(c("avatar_id","smoking_status", "alcohol_use"))
 uid_A <- paste(unique(Alc_Smo_V12$avatar_id), collapse = '|')
 #---
-MM_history_V12 <-
+MM_history_V12 <- MM_history_colnames <- 
   readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Myeloma_Disease_History") %>%
   select(c("avatar_id", "date_of_diagnosis"))
 uid_MM <- paste(unique(MM_history_V12$avatar_id), collapse = '|')
 #---
-Treatment_V12 <-
+Treatment_V12 <- Treatment_colnames <- 
   readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Treatment") %>%
   select(c("mrn", "avatar_id", "treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date",
@@ -191,7 +162,7 @@ Progr_V12 <-
   select(c("avatar_id", progression_date = "relapse_date", "QC")) # For the qc'd
 uid_P <- paste(c(unique(Progression_V12$avatar_id), unique(Progr_V12$avatar_id)), collapse = '|')
 #---
-SCT_V12 <-
+SCT_V12 <- SCT_colnames <- 
   readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "SCT") %>%
   select(c("avatar_id","date_of_bmt")) %>%
@@ -266,11 +237,6 @@ MM_history <-
   select(c("avatar_id", "date_of_diagnosis", "disease_stage"))
 MM_history <- MM_history[(!grepl(uid_MM, MM_history$avatar_id)),]
 #---
-# Comorbidities <-
-#   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
-#                     sheet = "Comorbidities") #%>% 
-#select(c("avatar_id","smoking_status", "alcohol_use"))
-#---
 Treatment <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
                     sheet = "Treatment") %>%
@@ -303,11 +269,6 @@ RadiationV1 <- readxl::read_xlsx(paste0(ClinicalCap_V1, "/Radiation_Version1_Pat
   select(c("Avatar_ID", "Radiation Start Date", "Radiation End Date")) %>% 
   `colnames<-`(c("avatar_id", "rad_start_date", "rad_stop_date"))
 RadiationV1 <- RadiationV1[(!grepl(uid_R, RadiationV1$avatar_id)),]
-#---
-# Cytogenetic <-
-#   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
-#                     sheet = "QC'd_Cytogenetics") %>%
-#   select(c("avatar_id","date_bonemarrow_biopsy_results"))
 #---
 Biopsy <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
@@ -430,10 +391,6 @@ MM_historyV4 <-
                     sheet = "Myeloma_Disease_History") %>%
   select(c("avatar_id", "date_of_diagnosis"))
 #---
-# ComorbiditiesV4 <-
-#   readxl::read_xlsx((paste0(ClinicalCap_V4,"/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
-#                     sheet = "Comorbidities") %>%
-#   select(c("avatar_id", ))
 Alc_SmoV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                     sheet = "Comorbidities") %>%
@@ -445,7 +402,6 @@ TreatmentV4 <-
   select(c("avatar_id", "treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date",
            "drug_name_other")) %>% 
   unite(drug_name_, c(drug_name_,drug_name_other), sep = ": ", na.rm = TRUE, remove = TRUE)# %>% 
-# rename(drug_other = "drug_name_other")
 #---
 Progression_V4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
@@ -457,8 +413,6 @@ SCTV4 <-
                     sheet = "SCT") %>%
   select(c("avatar_id", "date_of_bmt")) %>%  # can be different than first if duplicated from v1 or v2
   drop_na("date_of_bmt")
-# SCTV4 <- dcast(setDT(SCTV4), avatar_id ~ rowid(avatar_id), value.var = c("date_of_bmt")) %>% 
-#   rename("date_of_first_bmt" = "1", "date_of_second_bmt" = "2")
 #---
 RadiationV4 <- 
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
@@ -534,8 +488,6 @@ SCTV4.1 <-
                     sheet = "SCT") %>%
   select(c("avatar_id", "date_of_bmt")) %>%  # can be different than first if duplicated from v1 or v2
   drop_na("date_of_bmt")
-# SCTV4.1 <- dcast(setDT(SCTV4), avatar_id ~ rowid(avatar_id), value.var = c("date_of_bmt")) %>% 
-#   rename("date_of_first_bmt" = "1", "date_of_second_bmt" = "2")
 #
 RadiationV4.1 <- 
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
@@ -602,8 +554,9 @@ In total, we have 4 versions of the clinical data.
 V1 has `r MM_history %>% distinct(avatar_id) %>% NROW()` patients and was sent by Raghu on Feb, 07th 2020.  
 V2 has `r MM_historyV2 %>% distinct(avatar_id) %>% NROW()` patients and was sent by Raghu on Feb, 10th 2020.  
 V4 has `r MM_historyV4 %>% distinct(avatar_id) %>% NROW()` patients and was sent by Raghu on April, 21st 2020.  
-A V4.1 data added `r MM_historyV4.1 %>% distinct(avatar_id) %>% NROW()` patients to V4 on August, 03rd 2020.  
-V12 has `r MM_history_V12 %>% distinct(avatar_id) %>% NROW()` patients and was sent by Raghu on Sept, 04th 2020. This data overlap V1 and V2 patients with some patients data which were updated by CIOX and reformatted to a V4 format, and patients for who the data were only reformatted to a V4 format but not verified.  
+A V4.1, a complementary data, added `r MM_historyV4.1 %>% distinct(avatar_id) %>% NROW()` patients to V4 on August, 03rd 2020.  
+V12 (which is V4 legacy) has `r MM_history_V12 %>% distinct(avatar_id) %>% NROW()` patients and was sent by Raghu on Sept, 04th 2020. This data overlap V1 and V2 patients with some patients data which were updated by CIOX and reformatted to a V4 format, and patients for who the data were only reformatted to a V4 format but not verified.  
+For that reason, before I bind all the version, I removed all the ids present in V12 from V1 and V2 to avoid duplicate. I prefer to do that before the binding because all the variable present in V1 or V2 are not present in V12 and vice versa, so I may not be able to use the distinct function to remove the duplicated rows.
 We learned in Feb 2021 that CIOX contract was stopped.  
 Radiation data are not present in V1 so Raghu sent me another file with them pulled from HRI on March 14th 2020.  
 The ISS staging was calculated by Raghu and sent on Sept 14th 2020. It doesn't use cytogenetics features. The ISS is calculated on all patients MM, Smoldering and Mgus, a later cleaning only kept the ISS for the patients who are MM ("Pre Treatment Newly Diagnosed Multiple Myeloma","Post Treatment Newly Diagnosed Multiple Myeloma","Early Relapse Multiple Myeloma","Late Relapse Multiple Myeloma") at the time of germline collection.  
@@ -652,7 +605,7 @@ Germline <- left_join(WES_seq, Germline, by = "avatar_id") %>%
 ```
 
 
-## MM history cleaning
+## MM history
 ```{r}
 mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, MM_historyV4.1, .id = "versionMM") %>%
   drop_na("date_of_diagnosis") %>%
@@ -684,15 +637,412 @@ MM_history <- dcast(setDT(mm_history), avatar_id+Dx_date_closest_germline ~ rowi
 ```
 All MM history are bind together and duplicated rows are removed.
 The date of diagnosis are multiple for each patients. It could be the first time they got a Mgus, Smoldering or MM diagnosis. It can also be when the patient become MM or when he relapse. The `disease_stage` associated with the `date_of_diagnosis` tells us if the patient is within this 4 conditions.  
+The data is pivoted wider to have 1 patient per row.
 `r table(MM_history$disease_stage_1)`
 By binding with the `collectiondt_germline` I was able to calculate an interval between the later and the multiple `date_of_diagnosis`.
-We choose to take the date closest to germline (with closest absolut interval as long as it is not nore than 100 days after the germline) as the `Dx_date_closest_germline`. <span style='color: red;'>The problem can be when the disease stage is not recorded.</span>  
+We choose to take the date closest to germline (with closest absolute interval as long as it is not nore than 100 days after the germline) as the `Dx_date_closest_germline`. <span style='color: red;'>The problem can be when the disease stage is not recorded.</span>  
 I also created a `date_of_MMonly_diagnosis` variable which take the first diagnosis date where the disease status is active (MM diagnosis). Comment: it doesn't take the relapse diagnosis...<span style='color: red;'>Should it?</span>  
 `date_of_MMSMMGUSdiagnosis` takes `date_of_MMonly_diagnosis` and NA are filled with the very first diagnosis date of non-active disease in the data.
+
+FYI, I give all the variable names but I am using only few of them for now.
 ```{r}
+colnames(MM_history_colnames)
 mm_history
 MM_history
 ```
+
+## Vitals
+```{r}
+Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
+  distinct() %>% 
+  arrange(vital_status, date_death, date_last_follow_up)
+
+# Create a separate df to bind after cleaning to Vitals for tracking lost of contact
+Contact_lost <- Vitals %>% 
+  filter(vital_status == 3) %>% 
+  mutate(was_contact_lost = "Loss of contact") %>% 
+  distinct(.) %>% 
+  select(c("avatar_id", "was_contact_lost", date_contact_lost = "date_last_follow_up"))
+
+# Pivot wider
+Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id), 
+                value.var = c("vital_status", "date_death", 
+                              "date_last_follow_up")) %>% 
+  purrr::keep(~!all(is.na(.))) %>%
+  mutate(date_last_follow_up = coalesce(!!! select(., last_col():"date_last_follow_up_1"))) %>%
+  mutate(date_death = coalesce(!!! select(., starts_with("date_death_")))) %>% 
+  select(c("avatar_id", "date_death", "date_last_follow_up"))
+
+Vitals <- full_join(Vitals, Contact_lost, by= "avatar_id") %>% 
+  # Remove the last date of follow up when is contact lost, otherwise would have doubled `last_date_available` in the future
+  mutate(date_last_follow_up = case_when( 
+    !is.na(date_contact_lost)   ~ NA_POSIXct_,
+    is.na(date_contact_lost)    ~ date_last_follow_up
+  )) 
+```
+All Vitals are bind together and duplicated rows are removed.
+I created a variable `date_contact_lost` for when `was_contact_lost` is "Loss of contact".
+It can have multiple `date_last_follow_up` so I kept the latest one only.
+
+```{r}
+colnames(Vitals_colnames)
+Vitals
+```
+
+## SCT
+```{r}
+SCT <- SCT %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt, date_of_third_bmt),
+                             values_to = "date_of_bmt", values_drop_na = TRUE)
+SCTV2 <- SCTV2 %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt, date_of_third_bmt),
+                             values_to = "date_of_bmt", values_drop_na = TRUE)
+
+sct <- bind_rows(SCT_V12, SCT, SCTV2, SCTV4, SCTV4.1, .id = "versionSCT") %>% 
+  distinct(avatar_id, date_of_bmt) %>% 
+  arrange(date_of_bmt)
+SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), 
+             value.var = "date_of_bmt") %>% 
+  `colnames<-`(c("avatar_id", "date_of_bmt_1", "date_of_bmt_2", "date_of_bmt_3"))
+```
+Version 1 and 2 are wide (1 patient per row) and V4 format is in a long version so I first pivoted longer 1 and 2 before binding them. Then I remove the duplicated rows and finally pivot wider this time to have 1 patient per row.
+
+
+```{r}
+colnames(SCT_colnames)
+SCT
+```
+
+## Treatment
+
+```{r}
+IMIDS_maintenance <- IMIDS_maintenance %>% 
+  unite(drug_name_, drug_name_:drug_name_other, sep = ": ", remove = FALSE, na.rm = TRUE) %>%
+  mutate(imids_maintenance = case_when(
+    str_detect(drug_name_, "lidomide")    ~ "IMIDs as maintenance",
+    TRUE                                  ~ "no IMIDs as maintenance"
+  )) %>% 
+  full_join(migration_patients, ., by = "avatar_id") %>% 
+  mutate(imids_maintenance = ifelse(is.na(imids_maintenance), "not qc'd", imids_maintenance)) %>% 
+  arrange(imids_maintenance) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select("avatar_id", "imids_maintenance")
+
+# remove NA row in QC'd data
+Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
+Qcd_TreatmentV2 <- Qcd_TreatmentV2 %>% drop_na("drug_start_date", "drug_name_") %>%
+  arrange(drug_start_date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(treatment_line_1 = as.character(dense_rank(interaction(avatar_id, drug_start_date)))) %>% 
+  mutate(treatment_line_ = coalesce(treatment_line, treatment_line_1)) %>% select(-treatment_line, -treatment_line_1)
+# remove the Ids found in Qc'd from the Treatment 
+uid <- paste(unique(Qcd_Treatment$avatar_id), collapse = '|')
+Treatment <- Treatment[(!grepl(uid, Treatment$avatar_id)),]
+uid <- paste(unique(Qcd_TreatmentV2$avatar_id), collapse = '|')
+TreatmentV2 <- TreatmentV2[(!grepl(uid, TreatmentV2$avatar_id)),]
+
+Treatment <- bind_rows(Qcd_Treatment, Treatment) %>% 
+  filter(drug_name_ != "Non-MM drugs") %>% 
+  group_by(avatar_id) %>% 
+  arrange(drug_start_date) %>% 
+  mutate(treatment_line_ = as.character(row_number())) %>% 
+  # mutate_at(("drug_name_"), ~ str_replace_all(., "/", ": ")) %>% 
+  separate(col = drug_name_, paste("drug_name_", 1:10, sep=""), sep = "; |;", extra = "warn", 
+           fill = "right") %>% 
+  purrr::keep(~!all(is.na(.))) %>%
+  pivot_longer(cols = starts_with("drug_name_"),
+               names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
+
+
+TreatmentV2 <- TreatmentV2 %>% 
+  group_by(avatar_id, drug_start_date) %>% 
+  arrange(drug_start_date, treatment_line_) %>% 
+  fill(treatment_line_, .direction = "updown") %>% 
+ 
+  ungroup() %>% 
+  bind_rows(Qcd_TreatmentV2, .) %>% 
+  separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "; |;", extra = "warn", 
+           fill = "right") %>% 
+  purrr::keep(~!all(is.na(.))) %>%
+  pivot_longer(cols = starts_with("drug_name_"),
+               names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
+
+Treatment_V12 <- Treatment_V12 %>% 
+  separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "\\+", extra = "warn", # Just for 1 row
+           fill = "right") %>% 
+  purrr::keep(~!all(is.na(.))) %>%
+  pivot_longer(cols = starts_with("drug_name_"),
+               names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
+
+# ready to bind
+treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, TreatmentV4.1, .id = "versionTreat") %>%
+  mutate(treatment_line_ = case_when(
+    str_detect(treatment_line_, "Tenth|10") ~ 10,
+    str_detect(treatment_line_, "Eleventh|11") ~ 11,
+    str_detect(treatment_line_, "Twelth|12") ~ 12,
+    str_detect(treatment_line_, "Thirteenth|13") ~ 13,
+    str_detect(treatment_line_, "Fourteenth|14") ~ 14,
+    str_detect(treatment_line_, "Fifteenth|15") ~ 15,
+    str_detect(treatment_line_, "Sixteenth|16") ~ 16,
+    str_detect(treatment_line_, "First|1") ~ 1,
+    str_detect(treatment_line_, "Second|2") ~ 2,
+    str_detect(treatment_line_, "Third|3") ~ 3,
+    str_detect(treatment_line_, "Fourth|4") ~ 4,
+    str_detect(treatment_line_, "Fifth|5") ~ 5,
+    str_detect(treatment_line_, "Sixth|6") ~ 6,
+    str_detect(treatment_line_, "Seventh|7") ~ 7,
+    str_detect(treatment_line_, "Eighth|8") ~ 8,
+    str_detect(treatment_line_, "Ninth|9") ~ 9,
+    treatment_line_ == "Maintenance"             ~ 90,
+    treatment_line_ == "Palliative"              ~ 91,
+    str_detect(treatment_line_, "Unknown")       ~ 99
+  )) %>% 
+  select(mrn, avatar_id, treatment_line_, drug_start_date, drug_stop_date, drug_name_) %>% 
+  mutate(drug_name_ = tolower(drug_name_)) %>%
+  mutate(drug_name_ = 
+           str_remove_all(drug_name_, 
+          "given with |investigational agent: |investigational therapy: |investigational therapy : |clinical trial: |clinical trial-|clinical trial | sulfate|clinical trial/|other: |  ")) %>%
+  mutate(drug_name_ = case_when(
+    drug_name_ == "cafilzomib"                                             ~ "carfilzomib",
+    drug_name_ == "daratumuab"                                             ~ "daratumumab",
+    str_detect(drug_name_, "^dex")                                         ~ "dexamethasone",
+    str_detect(drug_name_, "^lena|revlimid")                               ~ "lenalidomide",
+    str_detect(drug_name_, "^mel")                                         ~ "melphalan",
+    str_detect(drug_name_, "velcade")                                      ~ "bortezomib",
+    drug_name_ == "vinicristine"                                           ~ "vincristine",
+    drug_name_ %in% c("anastrozole", "azacitidine", "carmustine", 
+                      "cytarabine", "decitabine", "denosumab", 
+                      "docetaxel", "hydrocortisone", "methotrexate",
+                      "methylprednisolone", "pegfilgrastim", "prednisone", 
+                      "rapamycin", "rituxan", "rituximab", 
+                      "sorafenib tosylate", "tamoxifen citrate", 
+                      "zoledronic acid", "prevnar", "ruxolitinib")         ~ "non-mm drugs",
+    TRUE                                                                   ~ drug_name_
+  )) %>% 
+  mutate(drug_name_ = str_replace_all(drug_name_, "liposomal doxorubicin", "doxil")) %>% 
+  mutate(drug_name_ = str_replace_all(drug_name_, "-doxorubicin", "doxorubicin")) %>% 
+  mutate(drug_name_ = str_replace_all(drug_name_, "cyclophosphomide: dex", "cyclophosphomide; dexamethasone")) %>% 
+  filter(!is.na(avatar_id) & drug_name_ != "non-mm drugs") %>% 
+  distinct() %>%
+
+  arrange(avatar_id, treatment_line_, drug_name_, drug_start_date, drug_stop_date)
+
+# Make sure that the same drug in 1 line is counted once with the earliest start date and latest stop date
+treatment1 <- treatment %>% group_by(mrn, avatar_id, treatment_line_, drug_name_) %>%
+  summarise_at(vars(drug_start_date, drug_stop_date), c(paste), collapse = ";") %>% 
+  separate(drug_start_date, "drug_start_date", sep = ";", extra = "drop", fill = "right") %>% 
+  separate(drug_stop_date, paste("drug_stop_date", 1:10, sep = ""), sep = ";", remove = FALSE, extra = "warn", fill = "left") %>% 
+  select("mrn", "avatar_id", "treatment_line_", "drug_name_", "drug_start_date", drug_stop_date = "drug_stop_date10") %>% 
+  group_by(avatar_id, treatment_line_) %>% 
+  mutate(line_start_date = min(drug_start_date)) %>% 
+  mutate(line_stop_date = max(drug_stop_date))
+
+# Summarize by regimen/line
+Treatment1 <- treatment1 %>% 
+  group_by(mrn, avatar_id, treatment_line_, line_start_date, line_stop_date) %>%
+  arrange(avatar_id, treatment_line_, drug_name_) %>% 
+  summarise_at(vars(drug_name_, drug_start_date, drug_stop_date), paste, collapse = "; ") %>%
+  mutate(drug_count = sapply(strsplit(drug_name_, ";"), length)) %>% 
+
+  mutate(line_start_date = as.POSIXct(line_start_date, format = "%Y-%m-%d")) %>% 
+  mutate(line_stop_date = as.POSIXct(line_stop_date, format = "%Y-%m-%d")) %>% 
+  mutate(regimen_name = case_when(
+    drug_count == 7 &
+      str_detect(drug_name_, "bort") &
+      str_detect(drug_name_, "thalidomide") &
+      str_detect(drug_name_, "cyclophosphamide") &
+      str_detect(drug_name_, "cisplatin") &
+      str_detect(drug_name_, "etoposide") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "doxo")                ~ "VDT-PACE",
+    drug_count == 4 &
+      str_detect(drug_name_, "bortezomib") &
+      str_detect(drug_name_, "cyclophos") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "doxil")               ~ "ABCD",
+    drug_count == 4 &
+      str_detect(drug_name_, "daratumumab") &
+      str_detect(drug_name_, "lena") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "carfilzomib")         ~ "Dara-KRd",
+    drug_count == 4 &
+      str_detect(drug_name_, "vincristine") &
+      str_detect(drug_name_, "cyclophos") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "doxo")                ~ "C-VAD",
+    drug_count == 4 &
+      str_detect(drug_name_, "thalidomide") &
+      str_detect(drug_name_, "vincristine") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "doxil")               ~ "T-VAD doxil",
+    drug_count == 4 &
+      str_detect(drug_name_, "bortezomib") &
+      str_detect(drug_name_, "daratumumab") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "lena")                ~ "D-RVd or dara-RVd",
+    drug_count == 4 &
+      str_detect(drug_name_, "bortezomib") &
+      str_detect(drug_name_, "cyclophosphamide") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "doxo")                ~ "D-RVd or dara-RVd",
+    drug_count == 4 &
+      str_detect(drug_name_, "bortezomib") &
+      str_detect(drug_name_, "cyclophosphamide") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "lena")                ~ "VDCR",
+    drug_count == 3 &
+      str_detect(drug_name_, "bortezomib") &
+      str_detect(drug_name_, "busulfan") &
+      str_detect(drug_name_, "melphalan")           ~ "BuMelVel",
+    drug_count == 3 &
+      str_detect(drug_name_, "cyclophos") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "lena")                ~ "CRd",
+    drug_count == 3 &
+      str_detect(drug_name_, "cyclophos") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "bort")                ~ "CyBorD or VCd",
+    drug_count == 3 &
+      str_detect(drug_name_, "doxil") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "lena")                ~ "Dd-R",
+    (drug_count == 3 &
+       str_detect(drug_name_, "daratu") &
+       str_detect(drug_name_, "lena") &
+       str_detect(drug_name_, "dex")) |
+      str_detect(drug_name_, "ddr")                 ~ "DRd",
+    drug_count == 3 &
+      str_detect(drug_name_, "vincristine") &
+      str_detect(drug_name_, "doxil") &
+      str_detect(drug_name_, "dex")                 ~ "DVd",
+    drug_count == 3 &
+      str_detect(drug_name_, "ixazomib") &
+      str_detect(drug_name_, "lena") &
+      str_detect(drug_name_, "dex")                 ~ "IRd",
+    drug_count == 3 &
+      str_detect(drug_name_, "cyclophosphamide") &
+      str_detect(drug_name_, "carfilzomib") &
+      str_detect(drug_name_, "dex")                 ~ "KCd",
+    drug_count == 3 &
+      str_detect(drug_name_, "lena") &
+      str_detect(drug_name_, "carfilzomib") &
+      str_detect(drug_name_, "dex")                 ~ "KRd",
+    drug_count == 3 &
+      str_detect(drug_name_, "lena") &
+      str_detect(drug_name_, "oprozomib") &
+      str_detect(drug_name_, "dex")                 ~ "ORd",
+    drug_count == 3 &
+      str_detect(drug_name_, "bortezomib") &
+      str_detect(drug_name_, "doxil") &
+      str_detect(drug_name_, "dex")                 ~ "PDd",
+    drug_count == 3 &
+      str_detect(drug_name_, "bortezomib") &
+      str_detect(drug_name_, "doxo") &
+      str_detect(drug_name_, "dex")                 ~ "PAd",
+    drug_count == 3 &
+      str_detect(drug_name_, "lena") &
+      str_detect(drug_name_, "doxo") &
+      str_detect(drug_name_, "dex")                 ~ "RAd",
+    (drug_count == 3 &
+       str_detect(drug_name_, "bortezomib") &
+       str_detect(drug_name_, "lena") &
+       str_detect(drug_name_, "dex")) |
+      str_detect(drug_name_, "rvd")                 ~ "VRd", # bmt ctn 0702 (mcc 16529) rvd) # A022592
+    drug_count == 3 &
+      str_detect(drug_name_, "vincristine") &
+      str_detect(drug_name_, "doxo") &
+      str_detect(drug_name_, "dex")                 ~ "VAd",
+    drug_count == 3 &
+      str_detect(drug_name_, "bortezomib") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "melph")               ~ "VMd",
+    drug_count == 3 &
+      str_detect(drug_name_, "bortezomib") &
+      str_detect(drug_name_, "dex") &
+      str_detect(drug_name_, "thalidomide")         ~ "VTd",
+    drug_count == 2 &
+      str_detect(drug_name_, "carfilzomib") &
+      str_detect(drug_name_, "dex")                  ~ "Kd",
+    drug_count == 2 &
+      str_detect(drug_name_, "thal") &
+      str_detect(drug_name_, "dex")                  ~ "Td",
+    drug_count == 2 &
+      str_detect(drug_name_, "lena") &
+      str_detect(drug_name_, "dex")                 ~ "Rd",
+    drug_count == 2 &
+      str_detect(drug_name_, "bortezomib") &
+      str_detect(drug_name_, "dex")                 ~ "Bor-Dex",
+    drug_count == 1 &
+      str_detect(drug_name_, "lenalidomide")        ~ "Lenalidomide",
+    drug_count == 1 &
+      str_detect(drug_name_, "dex")                 ~ "Dexamethasone",
+    drug_count == 1 &
+      str_detect(drug_name_, "doxo")                ~ "Doxorubicin",
+    drug_count == 1 &
+      str_detect(drug_name_, "doxil")               ~ "Doxil",
+    drug_count == 1 &
+      str_detect(drug_name_, "bortezomib")          ~ "Bortezomib",
+    drug_count == 1 &
+      str_detect(drug_name_, "melph")               ~ "Melphalan",
+    drug_count == 1 &
+      str_detect(drug_name_, "carfilzomib")         ~ "Carfilzomib",
+    drug_count == 1 &
+      str_detect(drug_name_, "cyclo")               ~ "Cyclophosphamide",
+    drug_count == 1 &
+      str_detect(drug_name_, "thalidomide")         ~ "Thalidomide",
+    drug_count == 1 &
+      str_detect(drug_name_, "vincristine")         ~ "Vincristine",
+    TRUE                                                    ~ drug_name_
+  )) %>% 
+  mutate(regimen_name = str_replace_na(regimen_name, replacement = "No Drugs"))
+
+# Summarize by avatar_id
+Treatment <- dcast(setDT(Treatment1), mrn+avatar_id ~ rowid(avatar_id), 
+                   value.var = c("treatment_line_", "line_start_date", "drug_name_", "regimen_name", 
+                                 "line_stop_date", "drug_start_date", "drug_stop_date"))
+
+regimen_changed_id <- c("A000180", "A000414", "A014308", "A014310", "A015461", "A022588", "A025760")
+Treatment <- Treatment %>% 
+  purrr::keep(~!all(is.na(.))) %>% 
+  mutate(received_IMIDs = case_when(
+    str_detect(drug_name__1, "lidomide") |
+      str_detect(drug_name__2, "lidomide") |
+      str_detect(drug_name__3, "lidomide") |
+      str_detect(drug_name__4, "lidomide") |
+      str_detect(drug_name__5, "lidomide") |
+      str_detect(drug_name__6, "lidomide") |
+      str_detect(drug_name__7, "lidomide") |
+      str_detect(drug_name__8, "lidomide") |
+      str_detect(drug_name__9, "lidomide") |
+      str_detect(drug_name__10, "lidomide") |
+      str_detect(drug_name__11, "lidomide") |
+      str_detect(drug_name__12, "lidomide") |
+      str_detect(drug_name__13, "lidomide") |
+      str_detect(drug_name__14, "lidomide") |
+      str_detect(drug_name__15, "lidomide")    ~ "IMIDs",
+    TRUE ~ "No IMIDs"
+  )) %>% 
+  full_join(., IMIDS_maintenance, by = "avatar_id") %>% 
+  rename(first_regimen_name = regimen_name_1) %>% 
+  mutate(first_regimen_name = ifelse((str_detect(avatar_id, paste0(regimen_changed_id, collapse = "|"))), "VRd", first_regimen_name))
+```
+
+I cleaned the Treatment data in a lot of different way, this is the last one.  
+V1 and V2 has a Qcd_Treatment tab in the data for some patients who were reviewed and qc'd by Raghu. So I first took the IDs in these tab and remove them from the original Treatment tab (which would be less correct).  
+Version 1 is "wide" (1 regimen per row but multiple rows per patient) and V2-V4 format is in a long version. So I first bind V1 and Qc'd V1 together, created a treatment_line_ and pivoted longer.  
+Qc'd V2 doesn't have `treatment_line_` so Brianna and Nancy checked them and I added them on my file as "First", "Second", etc like it is in V2. After binding V2 and Qc'd V2, I had to pivot longer as one patient was recorded as in V1 format. :||||||||||||||  
+Have one patient like that in V12, so do the same :||||||||||||||||  
+We are finally ready to bind all versions!!  
+The drugs name have some "given with", "investigational agent", "clinical trial and more. Plus correct some typo in drug names. Plus recode some drug names as "non-MM drugs" to be removed.  
+To pivot wider the data, need to do 2 steps: 1- pivot by treatment_line to keep the drugs within the same line together. I created `line_start_date` and `line_stop_date` variables by taking the earliest `drug_start_date` and the latest `drug_stop_date` per line. Code the regimen name. Example if find a line with 2 drug names and find "thal" and "dex", the regimen name is "Td". 2- pivot by patients to have 1 patient by row.  
+I had to make sure that a drug name is not repeated in the same line (if start ABC, stop ABC then restart AB then stop = same line) before both step.  
+
+```{r}
+
+```
+
+
+
+
+
 
 
 

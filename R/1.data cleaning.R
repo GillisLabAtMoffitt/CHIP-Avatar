@@ -736,7 +736,9 @@ mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, 
   group_by(avatar_id) %>% mutate(id = 1:n()) %>% ungroup() %>%
   mutate(Dx_date_closest_germline = if_else(id == 1, date_of_diagnosis, NA_POSIXct_)) %>% 
   distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
-  arrange(date_of_diagnosis)
+  group_by(avatar_id) %>% fill(Dx_date_closest_germline, .direction = "updown") %>% 
+  arrange(avatar_id, date_of_diagnosis) %>% 
+  ungroup()
 
 # diagn_data <- Global_data %>%
 #   # distinct(avatar_id, .keep_all = TRUE) %>% 
@@ -749,11 +751,11 @@ mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, 
 #   select("avatar_id", Dx_date_closest_germline = "date")
 # # write.csv(diagn_data, paste0(path, "/diagnosis data with germline and interval.csv"))
 
-MM_history <- dcast(setDT(mm_history), avatar_id+collectiondt_germline ~ rowid(avatar_id), 
-                    value.var = c("Dx_date_closest_germline", "date_of_diagnosis", "disease_stage")) %>% 
-  unite(Dx_date_closest_germline, starts_with("Dx_date_closest_germline"), na.rm = TRUE, remove = TRUE) %>% 
-  mutate(Dx_date_closest_germline = as.POSIXct(.$Dx_date_closest_germline, format = "%Y-%m-%d")) %>% 
-  select(-collectiondt_germline) %>% 
+MM_history <- dcast(setDT(mm_history), avatar_id+Dx_date_closest_germline ~ rowid(avatar_id), 
+                    value.var = c("date_of_diagnosis", "disease_stage")) %>% 
+  # unite(Dx_date_closest_germline, starts_with("Dx_date_closest_germline"), na.rm = TRUE, remove = TRUE) %>% 
+  # mutate(Dx_date_closest_germline = as.POSIXct(.$Dx_date_closest_germline, format = "%Y-%m-%d")) %>% 
+  # select(-collectiondt_germline) %>% 
   # Create var = first date of Dx for MM diagnostic aka "active" (not for mgus or smoldering)
   # Then when not "active" take the first date of Dx available (mgus or smoldering or NA without regarding order- 
   # usually mgus before smoldering)
@@ -764,7 +766,7 @@ MM_history <- dcast(setDT(mm_history), avatar_id+collectiondt_germline ~ rowid(a
     disease_stage_4 == "active"          ~ date_of_diagnosis_4,
   )) %>% 
   mutate(date_of_MMSMMGUSdiagnosis = coalesce(date_of_MMonly_diagnosis, date_of_diagnosis_1)) %>% 
-  select(c("avatar_id", "date_of_MMonly_diagnosis", "date_of_MMSMMGUSdiagnosis", everything()))
+  select(c("avatar_id", "Dx_date_closest_germline", "date_of_MMonly_diagnosis", "date_of_MMSMMGUSdiagnosis", everything()))
 
 # write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
 
@@ -776,7 +778,8 @@ Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "v
   #   vital_status == 1         ~ "Alive",
   #   vital_status == 3         ~ "Lost"
   # )) %>% 
-  arrange(vital_status, date_death, date_last_follow_up) 
+  distinct() %>% 
+  arrange(vital_status, date_death, date_last_follow_up)
 
 # Create a separate df to bind after cleaning to Vitals for tracking lost of contact
 Contact_lost <- Vitals %>% 
@@ -807,7 +810,8 @@ Vitals <- dcast(setDT(Vitals), avatar_id ~ rowid(avatar_id),
   select(c("avatar_id", "date_death", "date_last_follow_up"))
 
 Vitals <- full_join(Vitals, Contact_lost, by= "avatar_id") %>% 
-  mutate(date_last_follow_up = case_when( # just to remove the last date of follow up when is contact lost
+  # Remove the last date of follow up when is contact lost, otherwise would have doubled `last_date_available` in the future
+  mutate(date_last_follow_up = case_when( 
     !is.na(date_contact_lost)   ~ NA_POSIXct_,
     is.na(date_contact_lost)    ~ date_last_follow_up
   )) # %>% Cannot use that when doing PFS, need to keep date of last follow up even before death 
@@ -904,23 +908,23 @@ Treatment <- bind_rows(Qcd_Treatment, Treatment) %>%
 
 
 TreatmentV2 <- TreatmentV2 %>% 
-  mutate(treatment_line_ = case_when(
-    str_detect(treatment_line_, "First") ~ "1",
-    str_detect(treatment_line_, "Second") ~ "2",
-    str_detect(treatment_line_, "Third") ~ "3",
-    str_detect(treatment_line_, "Fourth") ~ "4",
-    str_detect(treatment_line_, "Fifth") ~ "5",
-    str_detect(treatment_line_, "Sixth") ~ "6",
-    str_detect(treatment_line_, "Seventh") ~ "7",
-    str_detect(treatment_line_, "Eighth") ~ "8",
-    str_detect(treatment_line_, "Ninth") ~ "9",
-    str_detect(treatment_line_, "Tenth") ~ "10",
-    str_detect(treatment_line_, "Eleventh") ~ "11",
-    str_detect(treatment_line_, "Maint") ~ "90"
-    )) %>% 
+  # mutate(treatment_line_ = case_when(
+  #   str_detect(treatment_line_, "First") ~ "1",
+  #   str_detect(treatment_line_, "Second") ~ "2",
+  #   str_detect(treatment_line_, "Third") ~ "3",
+  #   str_detect(treatment_line_, "Fourth") ~ "4",
+  #   str_detect(treatment_line_, "Fifth") ~ "5",
+  #   str_detect(treatment_line_, "Sixth") ~ "6",
+  #   str_detect(treatment_line_, "Seventh") ~ "7",
+  #   str_detect(treatment_line_, "Eighth") ~ "8",
+  #   str_detect(treatment_line_, "Ninth") ~ "9",
+  #   str_detect(treatment_line_, "Tenth") ~ "10",
+  #   str_detect(treatment_line_, "Eleventh") ~ "11",
+  #   str_detect(treatment_line_, "Maint") ~ "90"
+  #   )) %>% 
   group_by(avatar_id, drug_start_date) %>% 
   arrange(drug_start_date, treatment_line_) %>% 
-  fill(treatment_line_, .direction = "down") %>% 
+  fill(treatment_line_, .direction = "updown") %>% 
   # group_by(avatar_id) %>% 
   # # mutate(treatment_line = dense_rank(interaction(avatar_id, drug_start_date))) %>% 
   # fill(treatment_line, .direction = "downup") %>%  # is not the best way, could do a 30 days rule

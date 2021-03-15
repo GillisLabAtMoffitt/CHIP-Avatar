@@ -495,7 +495,7 @@ draw.triple.venn(nrow(germline_patient_data),
 
 rm(bmtINgerm, drugINgerm, had_GERM_BMT_DRUGS)
 
-###################################################################################################  I  ## Treatment
+###################################################################################################  I  ## Treatment----
 
 ################### Radiation / BMT
 
@@ -597,6 +597,142 @@ a <- germline_patient_data %>% #select(first_regimen_name) %>%
 
 paste0(a$first_regimen_name, 
        collapse = "|")
+
+# Tables drugs separated by regimen 1,2,3 by CH
+tbl <- germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(first_regimen_name, CH_status) %>% 
+  tbl_summary(by = CH_status,
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No Drugs") %>% bold_labels() %>% add_p() %>% as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen namen 1st regimen by CHIP.pdf"))
+
+tbl <- germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(regimen_name_2, CH_status) %>% 
+  tbl_summary(by = CH_status,
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No regimen_name_2") %>% bold_labels() %>% add_p() %>% as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen namen 2nd regimen by CHIP.pdf"))
+
+tbl <- germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(regimen_name_3, CH_status) %>% 
+  tbl_summary(by = CH_status,
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No regimen_name_3") %>% bold_labels() %>% add_p() %>% as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen namen 3rd regimen by CHIP.pdf"))
+
+# Tables drugs by overall regimen by CH
+tbl <- germline_patient_data %>%
+  select(avatar_id, starts_with("treatment_line_"), CH_status) %>% 
+  pivot_longer(cols = starts_with("treatment_line_"),
+               names_to = "regimen_number", values_to = "treatment_line_", values_drop_na = TRUE) %>% 
+  filter(treatment_line_ < 90) %>% 
+  arrange(desc(treatment_line_)) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(treatment_line_ = as.factor(treatment_line_)) %>% 
+  select(treatment_line_, CH_status) %>% 
+  tbl_summary(by = CH_status,
+              missing_text = "No Drugs") %>% bold_labels() %>% add_p() %>% as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Overall regimen number by CHIP.pdf"))
+
+tbl <- germline_patient_data %>%
+  select(avatar_id, starts_with("treatment_line_"), CH_status) %>% 
+  pivot_longer(cols = starts_with("treatment_line_"),
+               names_to = "regimen_number", values_to = "treatment_line_", values_drop_na = TRUE) %>% 
+  filter(treatment_line_ < 90) %>% 
+  arrange(desc(treatment_line_)) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(treatment_line_ = case_when(
+    treatment_line_ > 5         ~ "more than 5",
+    TRUE                        ~ as.character(treatment_line_)
+  )) %>% 
+  select(treatment_line_, CH_status) %>% 
+  tbl_summary(by = CH_status,
+              missing_text = "No Drugs") %>% bold_labels() %>% add_p() %>% as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Overall grouped regimen number by CHIP.pdf"))
+
+tbl <- germline_patient_data %>%
+  select(avatar_id, starts_with("regimen_name_"), CH_status) %>% 
+  pivot_longer(cols = starts_with("regimen_name_"),
+               names_to = "regimen_number", values_to = "regimen_name_", values_drop_na = TRUE) %>% 
+  select(regimen_name_, CH_status) %>% 
+  tbl_summary(by = CH_status,
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No Drugs") %>% bold_labels() %>% add_p() %>% as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Overall regimen name by CHIP.pdf"))
+
+
+# Same for patients sequenced
+patient <- readxl::read_xlsx(paste0(path, "/Nancy's working files/MM Avatar_Sequenced subset.xlsx"),
+                             sheet = "Sequenced") %>%
+  select(avatar_id) %>% distinct()
+id <- paste(patient$avatar_id, collapse = "|")
+
+tbl <- germline_patient_data[ grepl(id, germline_patient_data$avatar_id) , ] %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(first_regimen_name, CH_status) %>% 
+  tbl_summary(by = CH_status,
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No Drugs") %>% bold_labels() %>% add_p() %>% as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen namen 1st regimen by CHIP sequenced patients.pdf"))
+
+tbl <- germline_patient_data[ grepl(id, germline_patient_data$avatar_id) , ] %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(regimen_name_2, CH_status) %>% 
+  tbl_summary(by = CH_status,
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No regimen_name_2") %>% bold_labels() %>% add_p() %>% as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen namen 2nd regimen by CHIP sequenced patients.pdf"))
+
+tbl <- germline_patient_data[ grepl(id, germline_patient_data$avatar_id) , ] %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(regimen_name_3, CH_status) %>% 
+  tbl_summary(by = CH_status,
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No regimen_name_3") %>% bold_labels() %>% add_p() %>% as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen namen 3rd regimen by CHIP sequenced patients.pdf"))
+
+# Tables drugs by overall regimen by CH
+tbl <- germline_patient_data[ grepl(id, germline_patient_data$avatar_id) , ] %>%
+  select(avatar_id, starts_with("treatment_line_"), CH_status) %>% 
+  pivot_longer(cols = starts_with("treatment_line_"),
+               names_to = "regimen_number", values_to = "treatment_line_", values_drop_na = TRUE) %>% 
+  filter(treatment_line_ < 90) %>% 
+  arrange(desc(treatment_line_)) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(treatment_line_ = as.factor(treatment_line_)) %>% 
+  select(treatment_line_, CH_status) %>% 
+  tbl_summary(by = CH_status,
+              missing_text = "No Drugs") %>% bold_labels() %>% add_p() %>% as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Overall regimen number by CHIP sequenced patients.pdf"))
+
+tbl <- germline_patient_data[ grepl(id, germline_patient_data$avatar_id) , ] %>%
+  select(avatar_id, starts_with("treatment_line_"), CH_status) %>% 
+  pivot_longer(cols = starts_with("treatment_line_"),
+               names_to = "regimen_number", values_to = "treatment_line_", values_drop_na = TRUE) %>% 
+  filter(treatment_line_ < 90) %>% 
+  arrange(desc(treatment_line_)) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(treatment_line_ = case_when(
+    treatment_line_ > 5         ~ "more than 5",
+    TRUE                        ~ as.character(treatment_line_)
+  )) %>% 
+  select(treatment_line_, CH_status) %>% 
+  tbl_summary(by = CH_status,
+              missing_text = "No Drugs") %>% bold_labels() %>% add_p() %>% as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Overall grouped regimen number by CHIP sequenced patients.pdf"))
+
+tbl <- germline_patient_data[ grepl(id, germline_patient_data$avatar_id) , ] %>%
+  select(avatar_id, starts_with("regimen_name_"), CH_status) %>% 
+  pivot_longer(cols = starts_with("regimen_name_"),
+               names_to = "regimen_number", values_to = "regimen_name_", values_drop_na = TRUE) %>% 
+  select(regimen_name_, CH_status) %>% 
+  tbl_summary(by = CH_status,
+              sort = list(everything() ~ "frequency"),
+              missing_text = "No Drugs") %>% bold_labels() %>% add_p() %>% as_gt()
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Overall regimen name by CHIP sequenced patients.pdf"))
 
 
 # What are the duration between start data of regimen?
@@ -1227,6 +1363,19 @@ regimen1 <- regimen1 %>%
 drug_table_4 <- as.data.table(table(regimen1$drug_name_)) %>% 
   arrange(desc(N))
 # write.csv(drug_table_4, paste0(path, "/table drugs single used per patient in first regimen.csv"))
+
+# Smoldering eho progressed but no drugs or didn't progressed and have treatment
+a <- germline_patient_data %>% 
+  filter((is.na(date_of_MMonly_diagnosis) & Drugs_ever == "Drug") | (is.na(date_of_MMonly_diagnosis) & HCT_ever == "HCT")) %>% 
+  filter(str_detect(Disease_Status_germline, "Mgus|Smoldering")) %>% 
+  select(avatar_id, Disease_Status_germline, Dx_date_closest_germline, 
+         Drugs_ever, line_start_date_1, drug_name__1, HCT_ever, date_of_bmt_1) %>% 
+  arrange(Disease_Status_germline)
+a <- left_join(a, mrn, by = "avatar_id")
+
+
+write.csv(a, paste0(path, "/list SM and MGUS who got drugs and or hct.csv"))
+
 
 
 

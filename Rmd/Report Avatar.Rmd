@@ -1101,7 +1101,7 @@ germline_patient_data %>%
 ```{r}
 Treatment1 %>%
   mutate(Whole = "All regimen in ALL regimen for ALL patients!!!!") %>% 
-  distinct(avatar_id, .keep_all = TRUE) %>% 
+  # distinct(avatar_id, .keep_all = TRUE) %>% 
   select(regimen_name, Whole) %>% 
   tbl_summary(by = Whole,
               sort = list(everything() ~ "frequency")) %>% bold_labels() %>%  as_gt() %>%  

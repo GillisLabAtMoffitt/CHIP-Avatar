@@ -119,6 +119,7 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
       is.na(pfs_line_start_date)                         ~ "No"
   )) %>% 
   
+  mutate(rad_bf_germline = if_else(rad_start_date < collectiondt_germline, "Radiation before Germline", "No")) %>% 
   # PFS FROM RAD DATE
   mutate(pfs_rad_progression_date = coalesce(progression_rad_date, pfs_date_death)) %>% 
   mutate(rad_progression_event = case_when(

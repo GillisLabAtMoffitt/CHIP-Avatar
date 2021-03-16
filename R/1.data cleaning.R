@@ -683,7 +683,8 @@ WES_seq <-
 
 # Merge all
 Germline <- left_join(WES_seq, Germline, by = "avatar_id") %>% 
-  filter(SLID_germline.x == SLID_germline.y | is.na(SLID_germline.x == SLID_germline.y)) %>% 
+  # To eliminate the duplicate with 2 slid and date for A108 patient
+  filter(SLID_germline.x == SLID_germline.y | is.na(SLID_germline.x == SLID_germline.y)) %>%
   rename(SLID_germline = "SLID_germline.x", collectiondt_germline = "collectiondt_germline.x") %>% 
   # distinct(avatar_id, SLID_germline, .keep_all = TRUE) %>% 
   mutate(collectiondt_germline = coalesce(collectiondt_germline, collectiondt_germline.y)) %>% 
@@ -1245,10 +1246,10 @@ radiation <- bind_rows(Radiation_V12, RadiationV1, RadiationV2, RadiationV4, Rad
   drop_na("rad_start_date") %>% 
   filter(!str_detect(rad_start_date, "3013")) %>% 
   filter(!str_detect(rad_stop_date, "2300")) %>% 
-  left_join(., Germline %>% select(c("avatar_id", "collectiondt_germline")), by = "avatar_id") %>% 
-  mutate(rad_bf_germline = if_else(rad_start_date < collectiondt_germline, "Radiation before Germline", "No")) %>% 
+  # left_join(., Germline %>% select(c("avatar_id", "collectiondt_germline")), by = "avatar_id") %>% 
+  # mutate(rad_bf_germline = if_else(rad_start_date < collectiondt_germline, "Radiation before Germline", "No")) %>% 
   distinct(avatar_id, rad_start_date, rad_stop_date, collectiondt_germline, .keep_all = TRUE) %>% 
-  select(-collectiondt_germline) %>% 
+  # select(-collectiondt_germline) %>% 
   arrange(rad_start_date)
 Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
                      c("rad_start_date", "rad_stop_date", "rad_bf_germline"))
@@ -1288,9 +1289,11 @@ Progression <-
   )) %>%
   filter(prog_before_death == "good") %>% 
   select(1:2)
-Progression_drugs <- Progression # Create 2 df for dates from Dx or drug (will not have the same clean up)
-Progression_rad <- Progression
-Progression_hct <- Progression
+
+# Create different df for dates from Dx or drug, hct, rad (will not have the same clean up)
+Progression_hct <- Progression_rad <- Progression_drugs <- Progression 
+# Progression_rad <- Progression
+# Progression_hct <- Progression
 # Progression_treat <- Progression # For hct and drugs
 
 Progression <- Progression %>% # Keep earliest progression_date => For OS

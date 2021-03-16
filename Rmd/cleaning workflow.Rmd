@@ -550,20 +550,47 @@ migration_patients <- readxl::read_xlsx(paste0(path, "/Raghu MM/Avatar List For 
 path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
 ```
 
-In total, we have 4 versions of the clinical data.  
+-In total, we have 4 versions of the clinical data.  
 V1 has `r MM_history %>% distinct(avatar_id) %>% NROW()` patients and was sent by Raghu on Feb, 07th 2020.  
 V2 has `r MM_historyV2 %>% distinct(avatar_id) %>% NROW()` patients and was sent by Raghu on Feb, 10th 2020.  
 V4 has `r MM_historyV4 %>% distinct(avatar_id) %>% NROW()` patients and was sent by Raghu on April, 21st 2020.  
 A V4.1, a complementary data, added `r MM_historyV4.1 %>% distinct(avatar_id) %>% NROW()` patients to V4 on August, 03rd 2020.  
 V12 (which is V4 legacy) has `r MM_history_V12 %>% distinct(avatar_id) %>% NROW()` patients and was sent by Raghu on Sept, 04th 2020. This data overlap V1 and V2 patients with some patients data which were updated by CIOX and reformatted to a V4 format, and patients for who the data were only reformatted to a V4 format but not verified.  
 For that reason, before I bind all the version, I removed all the ids present in V12 from V1 and V2 to avoid duplicate. I prefer to do that before the binding because all the variable present in V1 or V2 are not present in V12 and vice versa, so I may not be able to use the distinct function to remove the duplicated rows.
-We learned in Feb 2021 that CIOX contract was stopped.  
-Radiation data are not present in V1 so Raghu sent me another file with them pulled from HRI on March 14th 2020.  
-The ISS staging was calculated by Raghu and sent on Sept 14th 2020. It doesn't use cytogenetics features. The ISS is calculated on all patients MM, Smoldering and Mgus, a later cleaning only kept the ISS for the patients who are MM ("Pre Treatment Newly Diagnosed Multiple Myeloma","Post Treatment Newly Diagnosed Multiple Myeloma","Early Relapse Multiple Myeloma","Late Relapse Multiple Myeloma") at the time of germline collection.  
-The IMIDS maintenance file was sent by Raghu on Dec 29th 2020 that he queried from raw datasets of Avatar legacy v4 MM cases which matched to our patient list. There are about 135 cases (from v045) that are awaiting qc of migration(clinical data), follow up data. I have not used these cases for querying and about 90 cases of these patients list are v1 cases where forms were not designed to capture maintenance regimen data.  
-Comments: Raghu said that "Original data (regimen line variable) comes as numbers with different values in V4 form. There is some missing data and some values are not very relevant to Myeloma since V4 forms are not disease specific, so Dr. Shain recommended me to reformat the variable."  
+-We learned in Feb 2021 that CIOX contract was stopped.  
+-Radiation data are not present in V1 so Raghu sent me another file with them pulled from HRI on March 14th 2020.  
+-The ISS staging was calculated by Raghu and sent on Sept 14th 2020. It doesn't use cytogenetics features. The ISS is calculated on all patients MM, Smoldering and Mgus, a later cleaning only kept the ISS for the patients who are MM ("Pre Treatment Newly Diagnosed Multiple Myeloma","Post Treatment Newly Diagnosed Multiple Myeloma","Early Relapse Multiple Myeloma","Late Relapse Multiple Myeloma") at the time of germline collection.  
+-The IMIDS maintenance file was sent by Raghu on Dec 29th 2020 that he   *"queried from raw datasets of Avatar legacy v4 MM cases which matched to our patient list. There are about 135 cases (from v045) that are awaiting qc of migration(clinical data), follow up data. I have not used these cases for querying and about 90 cases of these patients list are v1 cases where forms were not designed to capture maintenance regimen data."*  
+-Comments on tretment line: Raghu said that *"Original data (regimen line variable) comes as numbers with different values in V4 form. There is some missing data and some values are not very relevant to Myeloma since V4 forms are not disease specific, so Dr. Shain recommended me to reformat the variable."*  
 
 ## Germline
+We received many files.  
+
+First set data:  
+WES_tumor = Moffitt_WES_v0.4.3_Disease_Classification_OUT**01312020**.xlsx from Raghu has the `collectiondt_tumor` and `moffitt_sample_id_tumor`
+Sequencing = v0.4.3.MM.samples.WESdata**01.31.20**.txt" from Jamie have `SLID_germline`, `SLID_tumor`, `moffitt_sample_id_tumor`, `moffitt_sample_id_germline` but no date associated.
+Join them together using `moffitt_sample_id_tumor`
+
+Second set data:  
+Seq_WES_Raghu = MM_Metadata_WES_V044.xlsx 03/31/2020 from Raghu has `SLID_germline`, `moffitt_sample_id_germline`,
+`collectiondt_germline`, `SLID_tumor`, `moffitt_sample_id_tumor`, `collectiondt_tumor`.
+
+Third set data:  
+Sequencing2 = MM_Metadata_WES_V0441.xlsx" 05/05/202 from Raghu has `SLID_germline`, `moffitt_sample_id_germline`,
+`collectiondt_germline`, `SLID_tumor`, `moffitt_sample_id_tumor`, `collectiondt_tumor`.
+Fourth set data:  
+Seq_WES_Raghu2 = MM_Metadata_WES_V045.xlsx 07/20/2020 from Raghu has `SLID_germline`, `moffitt_sample_id_germline`,
+`collectiondt_germline`, `SLID_tumor`, `moffitt_sample_id_tumor`, `collectiondt_tumor`.
+
+Take the 4 sets, bind and pivot to have 1 patient/germline per row.
+Then join that new data to `Germline`.  
+Germline = Moffitt_Germl_v0.4.5_Disease_Classification_**12082020**.xlsx which has `SLID_germline`,
+`collectiondt_germline`, `moffittSampleId_germline`, `Disease_Status_germline.` but no tumor info. That was the last update that Raghu has on germline info (3 patients have missing collection date in the 4 set-data which is filled by the newest version).
+
+The data created will have all tumor and germline info (1 patient per row).
+  
+Sometimes no date of collection? -> Not really, it is the 2 patients who will be removed at the end.
+
 ```{r}
 Germline <- Germline %>% 
   distinct()
@@ -597,11 +624,38 @@ Germline <- left_join(WES_seq, Germline, by = "avatar_id") %>%
   # distinct(avatar_id, SLID_germline, .keep_all = TRUE) %>% 
   mutate(collectiondt_germline = coalesce(collectiondt_germline, collectiondt_germline.y)) %>% 
   select(-SLID_germline.y, -collectiondt_germline.y)
+Germline
 ```
 
 ## Demographics
+Demographics only has 3 versions that can be join together. Some cleaning is done : recode "African American" as "Black" or "Spanish; Hispanic" as "Hispanic" for example.
 ```{r}
-
+Demo_HRI <- full_join(Demo_linkage, Demo_HRI, by= "MRN") %>% 
+  distinct(.) %>% 
+  mutate(MRN = as.character(MRN))
+Demo_HRI$Date_of_Birth <- as.POSIXct(strptime(Demo_HRI$Date_of_Birth, 
+                                                  format = "%m/%d/%Y", tz = "UTC"))
+uid <- paste(unique(Demo_RedCap_V4ish$avatar_id), collapse = '|')
+Demo_HRI <- Demo_HRI[(!grepl(uid, Demo_HRI$avatar_id)),]
+Demo_RedCap_V4ish <- bind_rows(Demo_RedCap_V4ish, Demo_HRI, .id = "versionDemo")
+Demo_RedCap_V4ish <- Demo_RedCap_V4ish %>% 
+  mutate(Race = case_when(
+    Race %in% c("African American")                           ~ "Black",
+    Race %in% c("Other")                                      ~ "Others",
+    Race %in% c("More Than One Race")                         ~ "More than one race",
+    Race %in% c("Other Asian including Asian and Oriental")   ~ "Asian",
+    Race %in% c("PT Not Present")                             ~ "Unknown",
+    Race %in% c("AM INDIAN")                                  ~ "Am Indian",
+    TRUE                                                      ~ Race
+  )) %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black", "Am Indian", "Asian", "More than one race", "Others", "Unknown"))) %>% 
+  mutate(Ethnicity = case_when(
+    Ethnicity %in% c("Spanish; Hispanic")                                   ~ "Hispanic",
+    Ethnicity %in% c("Non- Hispanic", "Non-Spanish; non-Hispanic")          ~ "Non-Hispanic",
+    Ethnicity %in% c("Unknown", "Prefer not to answer", "PT Not Present")   ~ "Unknown",
+    TRUE                                                                    ~ Ethnicity
+  ))
+Demo_RedCap_V4ish
 ```
 
 
@@ -738,7 +792,9 @@ uid <- paste(unique(Qcd_Treatment$avatar_id), collapse = '|')
 Treatment <- Treatment[(!grepl(uid, Treatment$avatar_id)),]
 uid <- paste(unique(Qcd_TreatmentV2$avatar_id), collapse = '|')
 TreatmentV2 <- TreatmentV2[(!grepl(uid, TreatmentV2$avatar_id)),]
-
+# Bind QC'd and Treatment for each version
+# Need to pivot longer Treatment from V1 (and V2) because not same formatting
+# Having one drug per row will help to remove duplicate in drugs after binding all version together
 Treatment <- bind_rows(Qcd_Treatment, Treatment) %>% 
   filter(drug_name_ != "Non-MM drugs") %>% 
   group_by(avatar_id) %>% 
@@ -756,7 +812,9 @@ TreatmentV2 <- TreatmentV2 %>%
   group_by(avatar_id, drug_start_date) %>% 
   arrange(drug_start_date, treatment_line_) %>% 
   fill(treatment_line_, .direction = "updown") %>% 
- 
+  # group_by(avatar_id) %>% 
+  # # mutate(treatment_line = dense_rank(interaction(avatar_id, drug_start_date))) %>% 
+  # fill(treatment_line, .direction = "downup") %>%  # is not the best way, could do a 30 days rule
   ungroup() %>% 
   bind_rows(Qcd_TreatmentV2, .) %>% 
   separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "; |;", extra = "warn", 
@@ -799,7 +857,7 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
   mutate(drug_name_ = tolower(drug_name_)) %>%
   mutate(drug_name_ = 
            str_remove_all(drug_name_, 
-          "given with |investigational agent: |investigational therapy: |investigational therapy : |clinical trial: |clinical trial-|clinical trial | sulfate|clinical trial/|other: |  ")) %>%
+          "given with |investigational agent: |investigational therapy: |investigational therapy : |clinical trial: |clinical trial; |clinical trial-|clinical trial | sulfate|clinical trial/|other: |  |clinical trial|oral proteasome inhibitor = ")) %>%
   mutate(drug_name_ = case_when(
     drug_name_ == "cafilzomib"                                             ~ "carfilzomib",
     drug_name_ == "daratumuab"                                             ~ "daratumumab",
@@ -819,11 +877,25 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
   )) %>% 
   mutate(drug_name_ = str_replace_all(drug_name_, "liposomal doxorubicin", "doxil")) %>% 
   mutate(drug_name_ = str_replace_all(drug_name_, "-doxorubicin", "doxorubicin")) %>% 
+  
+  mutate(drug_name_ = case_when(
+    str_detect(drug_name_, "kpt") &
+      str_detect(drug_name_, "300")            ~ "kpt300",
+    str_detect(drug_name_, "kpt") &
+      str_detect(drug_name_, "8602")           ~ "kpt8602",
+    TRUE                                       ~ drug_name_
+  )) %>% 
+  
   mutate(drug_name_ = str_replace_all(drug_name_, "cyclophosphomide: dex", "cyclophosphomide; dexamethasone")) %>% 
   filter(!is.na(avatar_id) & drug_name_ != "non-mm drugs") %>% 
   distinct() %>%
-
+  # group_by(avatar_id, drug_start_date) %>%
+  # arrange(drug_name_) %>%
+  # ungroup() %>%
   arrange(avatar_id, treatment_line_, drug_name_, drug_start_date, drug_stop_date)
+
+# treatment1 <- dcast(setDT(treatment), mrn+avatar_id+treatment_line_+drug_name_ ~ rowid(avatar_id), ## Old code
+#                    value.var = c("drug_start_date", "drug_stop_date"))
 
 # Make sure that the same drug in 1 line is counted once with the earliest start date and latest stop date
 treatment1 <- treatment %>% group_by(mrn, avatar_id, treatment_line_, drug_name_) %>%
@@ -842,6 +914,19 @@ Treatment1 <- treatment1 %>%
   summarise_at(vars(drug_name_, drug_start_date, drug_stop_date), paste, collapse = "; ") %>%
   mutate(drug_count = sapply(strsplit(drug_name_, ";"), length)) %>% 
 
+# Treatment <- dcast(setDT(treatment1), mrn+avatar_id+treatment_line_ ~ rowid(avatar_id), ## Old code
+#                   value.var = c("drug_name_","drug_start_date", "drug_stop_date")) %>% 
+#   unite(drug_name_, starts_with("drug_name_"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  
+  # unite(drug_start_date, starts_with("drug_start_date"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  # separate(drug_start_date, paste("drug_start_date", 1:max(.$drug_count), sep = ""), sep = "; ", remove = FALSE,
+  #          extra = "warn", fill = "right") %>% 
+  # mutate(max = max(drug_start_date1:drug_start_date, na.rm = TRUE))
+  # 
+  # select(c(mrn, avatar_id, treatment_line_, "drug_name_", drug_start_date, ncol(.):drug_stop_date_1)) %>% 
+  # unite(drug_stop_date, starts_with("drug_stop_date"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+  # separate(drug_stop_date, "drug_stop_date", sep = "; ",
+  #          extra = "warn", fill = "right") %>% 
   mutate(line_start_date = as.POSIXct(line_start_date, format = "%Y-%m-%d")) %>% 
   mutate(line_stop_date = as.POSIXct(line_stop_date, format = "%Y-%m-%d")) %>% 
   mutate(regimen_name = case_when(
@@ -994,6 +1079,28 @@ Treatment1 <- treatment1 %>%
   )) %>% 
   mutate(regimen_name = str_replace_na(regimen_name, replacement = "No Drugs"))
 
+# Now can dcast to have line of drug_name_ for each line/regimen ## Old code
+# 1st for regimen with same start and end date
+# Treatment <- treatment %>% 
+#   reshape2::dcast(mrn+avatar_id+treatment_line_+drug_start_date+drug_stop_date ~ rowid(avatar_id),
+#                   value.var = c("drug_name_")) %>% 
+#   unite(drug_name_, -mrn:-drug_stop_date, sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+#   arrange(drug_start_date, drug_stop_date)
+# # 2nd for regimen with same start, I separated it to have the different end date in case
+# Treatment <- dcast(setDT(Treatment), mrn+avatar_id+drug_start_date ~ rowid(avatar_id), 
+#                    value.var = c("treatment_line_", "drug_name_", "drug_stop_date")) %>%
+#   unite(treatment_line_, starts_with("treatment_line_"), sep = "; ", na.rm = TRUE, remove = TRUE) %>%
+#   separate(treatment_line_, "treatment_line_", sep = "; ",
+#            extra = "warn", fill = "right") %>% 
+#   unite(drug_name_, starts_with("drug_name_"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+#   unite(drug_stop_date, starts_with("drug_stop_date"), sep = "; ", na.rm = TRUE, remove = TRUE) %>% 
+#   separate(drug_stop_date, paste("drug_stop_date", 1:3, sep="_"), sep = "; ",
+#            extra = "warn", fill = "right") %>% 
+#   arrange(drug_start_date)
+# Treatment$drug_stop_date_1 <- as.POSIXct(Treatment$drug_stop_date_1, format = "%Y-%m-%d")
+# Treatment$drug_stop_date_2 <- as.POSIXct(Treatment$drug_stop_date_2, format = "%Y-%m-%d")
+# Treatment$drug_stop_date_3 <- as.POSIXct(Treatment$drug_stop_date_3, format = "%Y-%m-%d")
+
 # Summarize by avatar_id
 Treatment <- dcast(setDT(Treatment1), mrn+avatar_id ~ rowid(avatar_id), 
                    value.var = c("treatment_line_", "line_start_date", "drug_name_", "regimen_name", 
@@ -1023,27 +1130,234 @@ Treatment <- Treatment %>%
   full_join(., IMIDS_maintenance, by = "avatar_id") %>% 
   rename(first_regimen_name = regimen_name_1) %>% 
   mutate(first_regimen_name = ifelse((str_detect(avatar_id, paste0(regimen_changed_id, collapse = "|"))), "VRd", first_regimen_name))
+
+colnames(Treatment)
+Treatment
 ```
 
 I cleaned the Treatment data in a lot of different way, this is the last one.  
 V1 and V2 has a Qcd_Treatment tab in the data for some patients who were reviewed and qc'd by Raghu. So I first took the IDs in these tab and remove them from the original Treatment tab (which would be less correct).  
 Version 1 is "wide" (1 regimen per row but multiple rows per patient) and V2-V4 format is in a long version. So I first bind V1 and Qc'd V1 together, created a treatment_line_ and pivoted longer.  
-Qc'd V2 doesn't have `treatment_line_` so Brianna and Nancy checked them and I added them on my file as "First", "Second", etc like it is in V2. After binding V2 and Qc'd V2, I had to pivot longer as one patient was recorded as in V1 format. :||||||||||||||  
-Have one patient like that in V12, so do the same :||||||||||||||||  
+Qc'd V2 doesn't have `treatment_line_` so Brianna and Nancy checked them and I added them on my file as "First", "Second", etc like it is in V2. After binding V2 and Qc'd V2, I had to pivot longer as one patient was recorded as in V1 format. `r emo::ji("neutral_face")`  
+Have one patient like that in V12 too, so do the same `r emo::ji("no_mouth")`  
 We are finally ready to bind all versions!!  
-The drugs name have some "given with", "investigational agent", "clinical trial and more. Plus correct some typo in drug names. Plus recode some drug names as "non-MM drugs" to be removed.  
+The drugs name have some "given with", "investigational agent", "clinical trial" and more. Plus correct some typo in drug names. Plus recode some drug names as "non-MM drugs" to be removed.  
 To pivot wider the data, need to do 2 steps: 1- pivot by treatment_line to keep the drugs within the same line together. I created `line_start_date` and `line_stop_date` variables by taking the earliest `drug_start_date` and the latest `drug_stop_date` per line. Code the regimen name. Example if find a line with 2 drug names and find "thal" and "dex", the regimen name is "Td". 2- pivot by patients to have 1 patient by row.  
 I had to make sure that a drug name is not repeated in the same line (if start ABC, stop ABC then restart AB then stop = same line) before both step.  
+Another thing :  
+Ss I said before, I had to remove "given with", "investigational agent", "clinical trial" to code regimen name but we verified some when we found a strange drug date or regimen name (example: I removed "clinical trial:" but not "clinical trial") so we have a lot more we didn't check.
+<span style='color: red;'>Should I create that list?</span>
 
+## Radiation
 ```{r}
+RadiationV1$rad_start_date <- as.POSIXct(strptime(RadiationV1$rad_start_date, 
+                                                  format = "%m/%d/%Y", tz = "UTC"))
+RadiationV1$rad_stop_date <- as.POSIXct(strptime(RadiationV1$rad_stop_date, 
+                                                 format = "%m/%d/%Y", tz = "UTC"))
 
+radiation <- bind_rows(Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1, .id = "versionRad") %>% 
+  drop_na("rad_start_date") %>% 
+  filter(!str_detect(rad_start_date, "3013")) %>% 
+  filter(!str_detect(rad_stop_date, "2300")) %>% 
+  distinct(avatar_id, rad_start_date, rad_stop_date, .keep_all = TRUE) %>% 
+  arrange(rad_start_date)
+Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
+                     c("rad_start_date", "rad_stop_date"))
+colnames(Radiation)
+Radiation
+```
+Radiation is easy to bind as they are formatted in the same way. 2 patients have strange date in 3013 and 2300.
+
+## Progression
+```{r}
+Progr_V12 <- Progr_V12 %>% 
+  filter(QC == "Yes") %>% 
+  drop_na(progression_date) %>% 
+  distinct() %>% 
+  select(-QC)
+uid_P12 <- paste(unique(Progr_V12$avatar_id), collapse = '|')
+Progression_V12 <- Progression_V12[(!grepl(uid_P12, Progression_V12$avatar_id)),] %>%  # Remove ID QC'd in Prog_V12
+  #Progression_V12 <- Progression_V12 %>% 
+  drop_na(progression_date) %>% 
+  distinct()
+
+Progression <- 
+  bind_rows(Progr_V12, Progression_V12, 
+            Progression, ProgressionV2, Progression_V4, Progression_V4.1) %>%
+  distinct() %>% drop_na(progression_date) %>% 
+  # Taking the dates of progression after the first Dx_date_closest_germline => For OS
+  # (either if are MM and progressed or if are MGUS/SM and progressed to MM)
+  left_join(., MM_history %>% select(c("avatar_id", "Dx_date_closest_germline")), by = "avatar_id") %>% 
+  mutate(prog_after_diag = case_when(
+    progression_date <= Dx_date_closest_germline         ~ "removed", # 7 are removed as they become MM
+    progression_date > Dx_date_closest_germline          ~ "good" # No NA in date of Dx
+  )) %>% 
+  filter(prog_after_diag == "good") %>% 
+  select(1:2) %>% 
+  # Taking only the dates of progression before date_death (it's a sanity check-like)
+  left_join(., Vitals %>% select(c("avatar_id", "date_death")), by = "avatar_id") %>% 
+  mutate(prog_before_death = case_when(
+    progression_date > date_death                 ~ "removed", # 0 patient removed :)
+    progression_date < date_death |
+      is.na (date_death)                          ~ "good"
+  )) %>%
+  filter(prog_before_death == "good") %>% 
+  select(1:2)
+
+# Create different df for dates from Dx or drug, hct, rad (will not have the same clean up)
+Progression_hct <- Progression_rad <- Progression_drugs <- Progression 
+
+Progression <- Progression %>% # Keep earliest progression_date => For OS
+  arrange(progression_date) %>% 
+  distinct(avatar_id, .keep_all = TRUE)
+# write.csv(Progression, paste0(path, "/simplified files/Progression simplify.csv"))
+
+Progression_drugs <- Progression_drugs %>% # Remove progression < drug and keep earliest progression_drug_date
+  left_join(., Treatment %>% select(c("avatar_id", "line_start_date_1")), by = "avatar_id") %>% 
+  mutate(prog_before_drug = case_when(
+    progression_date <= line_start_date_1               ~ "removed", # 0 patient removed :)
+    progression_date > line_start_date_1 |
+      is.na(line_start_date_1)                          ~ "good" # progression have to be strictly > drug
+  )) %>%
+  filter(prog_before_drug == "good") %>% 
+  select(1:2) %>% 
+  arrange(progression_date) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  rename(progression_drug_date = "progression_date")
+# write.csv(Progression_drugs, paste0(path, "/simplified files/Progression used for survivals from drugs date.csv"))
+
+Progression_rad <- Progression_rad %>% # Remove progression < rad and keep earliest progression_rad_date
+  left_join(., Radiation %>% select(c("avatar_id", "rad_start_date_1")), by = "avatar_id") %>% 
+  mutate(prog_before_rad = case_when(
+    progression_date <= rad_start_date_1                ~ "removed", # 93 dates removed
+    progression_date > rad_start_date_1 |
+      is.na(rad_start_date_1)                           ~ "good" # progression have to be strictly > rad
+  )) %>%
+  filter(prog_before_rad == "good") %>% 
+  select(1:2) %>% 
+  arrange(progression_date) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  rename(progression_rad_date = "progression_date")
+
+Progression_hct <- Progression_hct %>% # Remove progression < hct and keep earliest progression_hct_date
+  left_join(., SCT %>% select(c("avatar_id", "date_of_bmt_1")), by = "avatar_id") %>% 
+  mutate(prog_before_hct = case_when(
+    progression_date <= date_of_bmt_1                  ~ "removed", # 75 dates removed
+    progression_date > date_of_bmt_1 |
+      is.na(date_of_bmt_1)                             ~ "good" # progression have to be strictly > hct
+  )) %>%
+  filter(prog_before_hct == "good") %>% 
+  select(1:2) %>% 
+  arrange(progression_date) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  rename(progression_hct_date = "progression_date")
 ```
 
+In V4 legacy, it is 2 way I used to get progression date. In the Treatment_Outcomes tab is `initial_1_pd_date_1` which are non qc'd date, in the "Treatment" tab is `relapse_date` which are qc'd date. In the later it is also a `QC` which says if the dates in `relapse_date` are qc'd. So for legacy, a pre step is to take the date which are qc'd `QC` == "yes' and fill the missing patients with the date from `initial_1_pd_date_1`.
+V1 and V2 has `relapse_date` when V4 has `initial_1_pd_date_1`.
+All versions are then bound together.  
+A first step is then to remove the dates happening before the `Dx_date_closest_germline`. Warning it is not always the first diagnosis date! When I ran that code at the time I removed 7 dates so a later date after `Dx_date_closest_germline` was selected.  
+I also have a code to remove any date which would be after death. I kept this code even if didn't remove dates just in case a later version happen to have some.  
+Then I sort all dates by increasing order to select the first one happening.
+`Progression` have the first date of progression after diagnosis.  
+`Progression_drugs` have the first date of progression after `line_start_date_1`.  
+`Progression_rad` have the first date of progression after `rad_start_date_1`.  
+`Progression_hct` have the first date of progression after `date_of_bmt_1`.
+I checked, all patients who received HCT had drugs before.....................
 
+## Prep for the last date available for each patient
+```{r Last_labs_dates}
+LabsV1 <- gather(LabsV1, key = "event", value = "labs_last_date", 2:ncol(LabsV1)) %>% 
+  drop_na(labs_last_date)
+LabsV2 <- gather(LabsV2, key = "event", value = "labs_last_date", 2:ncol(LabsV2)) %>% 
+  drop_na(labs_last_date)
+Labs_V12 <- gather(Labs_V12, key = "event", value = "labs_last_date", 2) %>% 
+  drop_na(labs_last_date)
+LabsV4 <- gather(LabsV4, key = "event", value = "labs_last_date", 2) %>% 
+  drop_na(labs_last_date)
+LabsV4.1 <- gather(LabsV4.1, key = "event", value = "labs_last_date", 2) %>% 
+  drop_na(labs_last_date)
+labs_dates <- bind_rows(LabsV1, LabsV2, Labs_V12, LabsV4, LabsV4.1)
+rm(LabsV1, LabsV2, Labs_V12, LabsV4, LabsV4.1)
 
+biopsy <- bind_rows(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1) %>% 
+  drop_na(biopsy_date) %>% 
+  gather(., key = "event", value = "labs_last_date", 2)
+imaging <- bind_rows(Imaging, Imaging_V12, ImagingV2, ImagingV4, ImagingV4.1) %>% 
+  drop_na() %>% 
+  gather(., key = "event", value = "labs_last_date", 2)
+metastasis <- bind_rows(Metastasis_V12, MetastasisV4, MetastasisV4.1) %>% 
+  drop_na() %>% 
+  gather(., key = "event", value = "labs_last_date", 2)
+performance <- bind_rows(Performance_V12, PerformanceV2, PerformanceV4, PerformanceV4.1) %>% 
+  drop_na() %>% 
+  gather(., key = "event", value = "labs_last_date", 2)
+staging <- bind_rows(Staging, Staging_V12, StagingV2, StagingV4, StagingV4.1) %>% 
+  drop_na() %>% 
+  gather(., key = "event", value = "labs_last_date", 2)
+tumormarker <- bind_rows(TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1) %>% 
+  drop_na() %>% 
+  gather(., key = "event", value = "labs_last_date", 2)
+rm(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1,
+   Imaging, Imaging_V12, ImagingV2, ImagingV4, ImagingV4.1,
+   Metastasis_V12, MetastasisV4, MetastasisV4.1,
+   Performance_V12, PerformanceV2, PerformanceV4, PerformanceV4.1,
+   Staging, Staging_V12, StagingV2, StagingV4, StagingV4.1,
+   TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1)
 
+Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker) %>% 
+  filter(!str_detect(labs_last_date, "9999|2816|2077")) %>% # Remove mistakes and missing dates
+  # remove if its <= to date_of_diagnosis (before MM diagnosis)
+  # remove if its => to date_contact_lost 
+  left_join(., MM_history %>% select(c("avatar_id", "Dx_date_closest_germline")), by = "avatar_id") %>% 
+  # left_join(., Contact_lost %>% select(c("avatar_id", "date_contact_lost")), by = "avatar_id") %>% 
+  left_join(., Vitals %>% select(c("avatar_id", "date_contact_lost", "date_last_follow_up")), by = "avatar_id") %>% 
+  mutate(labs_before_diag = case_when(
+    labs_last_date <= Dx_date_closest_germline             ~ "removed",
+    labs_last_date >= date_contact_lost               ~ "removed",
+    labs_last_date >= date_last_follow_up             ~ "removed"
+  )) %>% 
+  filter(is.na(labs_before_diag)) %>% 
+  arrange(desc(labs_last_date)) %>% 
+  distinct(avatar_id, .keep_all = TRUE)
+```
 
+For that I imported all labs, biopsy, imaging, metastasis, performance, staging, tumormarker, bind them, remove the ones before diagnosis and after contact lost or last date of follow up. I then keep the last one happening for each patient as a last lab date.
 
+## Final join
+```{r}
+patients_removed_nonMM <- c("A000428", "A000456")
+Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_germline", "SLID_germline",
+                             "collectiondt_germline", "Disease_Status_germline", 
+                             starts_with("SLID_tumor"), starts_with("collectiondt_tumor_", 
+                             starts_with("moffitt_sample_id_tumor")))),
+               MM_history, by = "avatar_id") %>% 
+  full_join(., Vitals, by = "avatar_id") %>% 
+  full_join(., SCT, by = "avatar_id") %>% 
+  full_join(., Treatment, by = "avatar_id") %>% 
+  full_join(., Radiation, by = "avatar_id") %>% 
+  full_join(., Progression, by= "avatar_id") %>% 
+  full_join(., Progression_drugs, by= "avatar_id") %>% 
+  # full_join(., Progression_treat, by= "avatar_id") %>% 
+  full_join(., Progression_rad, by= "avatar_id") %>% 
+  full_join(., Progression_hct, by= "avatar_id") %>% 
+  full_join(., Last_labs_dates %>% select(c("avatar_id", "labs_last_date")), by = "avatar_id") %>% 
+  full_join(., OS_data, by = "avatar_id") %>% 
+  full_join(., Staging_ISS, by = c("avatar_id", "collectiondt_germline")) %>% 
+  full_join(Demo_RedCap_V4ish %>% select(-TCC_ID), ., by = "avatar_id")
+# # write.csv(Global_data, paste0(path, "/Global_data.csv"))
+Global_data <- left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id")) %>% 
+  filter(!str_detect(avatar_id, paste0(patients_removed_nonMM, collapse = "|")))
+
+colnames(Global_data)
+Global_data
+```
+
+All the  data produced were set to have one row for each patient as if I had join 1 row of demographic with multiple rows of drugs with multiple row of hct with... I would have have so many repeat of each (drugs for 1 hct as an example).
+So here it is easy to bind Germline, MM_history, Vitals, SCT, Treatment, Radiation, Progression, Progression_drugs, Progression_rad, Progression_hct, Last_labs_dates, OS_data, Staging_ISS, Demo_RedCap_V4ish and CHIP_status.  
+2 patients , `r patients_removed_nonMM`, are removed from this finale `Global_data` (Raghu said they were mis-classified as MM).
+
+# Creating new variables and create a germline only patient data
 
 
 

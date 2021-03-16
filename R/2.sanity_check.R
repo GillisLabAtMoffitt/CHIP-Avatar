@@ -203,17 +203,26 @@ rm(sanity_check, table_sanity_check, wrong_date, wrong_date_bmt,
 ######## Check long drug name
 
 trial_reg_name <- germline_patient_data %>% 
-  select(avatar_id, starts_with("regimen_name_")) %>% 
+  select(avatar_id, starts_with("regimen_name_"), starts_with("drug_start_date_"), 
+         starts_with("drug_stop_date_"),
+         starts_with("line_start_date_"), starts_with("line_stop_date_")) %>% 
   pivot_longer(cols = starts_with("regimen_name_"),
                names_to = "regimen_number", values_to = "regimen_name_", values_drop_na = TRUE) %>% 
   filter(str_detect(regimen_name_, "clinical"))
 trial_reg_name <- left_join(trial_reg_name, mrn, by = "avatar_id")
 write_csv(trial_reg_name, paste0(path, "/sanity check output/clinical trial as reg_name.csv"))
 
+# trial_reg_name <- germline_patient_data %>% 
+#   select(avatar_id, starts_with("regimen_name_"), starts_with("drug_start_date_"), 
+#          starts_with("drug_stop_date_"),
+#          starts_with("line_start_date_"), starts_with("line_stop_date_")) %>% 
+#   filter(.vars == vars(starts_with("regimen_name_") ) , 
+#          .vars_predicate == any_vars(str_detect(. , "clinical")))
+  
 
-
-
-
+trial_reg_name <- treatment %>% 
+  filter(str_detect(drug_name_, "clinical")) %>% left_join(., mrn, by = "avatar_id")
+write_csv(trial_reg_name, paste0(path, "/sanity check output/clinical trial as reg_name.csv"))
 
 
 

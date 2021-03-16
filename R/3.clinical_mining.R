@@ -605,7 +605,7 @@ tbl <- germline_patient_data %>%
   tbl_summary(by = CH_status,
               sort = list(everything() ~ "frequency"),
               missing_text = "No Drugs") %>% bold_labels() %>% add_p() %>% as_gt()
-gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen namen 1st regimen by CHIP.pdf"))
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen name 1st regimen by CHIP.pdf"))
 
 tbl <- germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
@@ -613,7 +613,7 @@ tbl <- germline_patient_data %>%
   tbl_summary(by = CH_status,
               sort = list(everything() ~ "frequency"),
               missing_text = "No regimen_name_2") %>% bold_labels() %>% add_p() %>% as_gt()
-gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen namen 2nd regimen by CHIP.pdf"))
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen name 2nd regimen by CHIP.pdf"))
 
 tbl <- germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
@@ -621,7 +621,7 @@ tbl <- germline_patient_data %>%
   tbl_summary(by = CH_status,
               sort = list(everything() ~ "frequency"),
               missing_text = "No regimen_name_3") %>% bold_labels() %>% add_p() %>% as_gt()
-gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen namen 3rd regimen by CHIP.pdf"))
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen name 3rd regimen by CHIP.pdf"))
 
 # Tables drugs by overall regimen by CH
 tbl <- germline_patient_data %>%
@@ -676,7 +676,7 @@ tbl <- germline_patient_data[ grepl(id, germline_patient_data$avatar_id) , ] %>%
   tbl_summary(by = CH_status,
               sort = list(everything() ~ "frequency"),
               missing_text = "No Drugs") %>% bold_labels() %>% add_p() %>% as_gt()
-gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen namen 1st regimen by CHIP sequenced patients.pdf"))
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen name 1st regimen by CHIP sequenced patients.pdf"))
 
 tbl <- germline_patient_data[ grepl(id, germline_patient_data$avatar_id) , ] %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
@@ -684,7 +684,7 @@ tbl <- germline_patient_data[ grepl(id, germline_patient_data$avatar_id) , ] %>%
   tbl_summary(by = CH_status,
               sort = list(everything() ~ "frequency"),
               missing_text = "No regimen_name_2") %>% bold_labels() %>% add_p() %>% as_gt()
-gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen namen 2nd regimen by CHIP sequenced patients.pdf"))
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen name 2nd regimen by CHIP sequenced patients.pdf"))
 
 tbl <- germline_patient_data[ grepl(id, germline_patient_data$avatar_id) , ] %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
@@ -692,7 +692,7 @@ tbl <- germline_patient_data[ grepl(id, germline_patient_data$avatar_id) , ] %>%
   tbl_summary(by = CH_status,
               sort = list(everything() ~ "frequency"),
               missing_text = "No regimen_name_3") %>% bold_labels() %>% add_p() %>% as_gt()
-gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen namen 3rd regimen by CHIP sequenced patients.pdf"))
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/CHIP/Regimen name 3rd regimen by CHIP sequenced patients.pdf"))
 
 # Tables drugs by overall regimen by CH
 tbl <- germline_patient_data[ grepl(id, germline_patient_data$avatar_id) , ] %>%
@@ -1072,93 +1072,6 @@ gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/regimen_name in se
 
 
 
-
-
-
-
-
-
-# How many time patients had KRd, VRd, Rd, DRd, Len, Len+dex in the first regimen by disease status?
-# germline_patient_treat <- germline_patient_data %>%
-#   mutate(drug_name__1 = 
-#            str_remove_all(drug_name__1, "given with investigational therapy: |clinical trial: |investigational agent: clinical trial|investigational agent: | -|-|; $| sulfate|liposomal ")) %>% 
-#   mutate(drugs_first_regimen_ = case_when(
-#     str_detect(drug_name__1, "car") &
-#       str_detect(drug_name__1, "lena") &
-#       str_detect(drug_name__1, "dex")                  ~ NA_character_,
-#     
-#     str_detect(drug_name__1, "daratu") &
-#       str_detect(drug_name__1, "lena") &
-#       str_detect(drug_name__1, "dex")                  ~ NA_character_,
-# 
-#     str_detect(drug_name__1, "bortezomib") &
-#       str_detect(drug_name__1, "lena") &
-#       str_detect(drug_name__1, "dex")                  ~ NA_character_,
-#     str_detect(drug_name__1, "vincristine") &
-#       str_detect(drug_name__1, "cyclophos") &
-#       str_detect(drug_name__1, "doxo") &
-#       str_detect(drug_name__1, "dex")                  ~ "ViCXd",
-#     str_detect(drug_name__1, "vincristine") &
-#       str_detect(drug_name__1, "doxo") &
-#       str_detect(drug_name__1, "dex")                  ~ "ViXd",
-# 
-#     str_detect(drug_name__1, "bortezomib") &
-#       str_detect(drug_name__1, "lena") &
-#       str_detect(drug_name__1, "dex")                  ~ NA_character_,
-#     str_detect(drug_name__1, "lena") &
-#       str_detect(drug_name__1, "dex")                  ~ "Rd",
-#     str_detect(drug_name__1, "lenalidomide")           ~ "Len",
-#     
-#     str_detect(drug_name__1, "bortezomib") &
-#       str_detect(drug_name__1, "cyclophos") &
-#       str_detect(drug_name__1, "dex")                  ~ NA_character_,
-#     str_detect(drug_name__1, "bortezomib") &
-#       str_detect(drug_name__1, "doxo") &
-#       str_detect(drug_name__1, "dex")                  ~ NA_character_,
-#     str_detect(drug_name__1, "bortezomib") &
-#       str_detect(drug_name__1, "thal") &
-#       str_detect(drug_name__1, "dex")                  ~ "Vtd",
-#     str_detect(drug_name__1, "bortezomib") &
-#         str_detect(drug_name__1, "dex")                ~ "Vd",
-#     str_detect(drug_name__1, "thal") &
-#         str_detect(drug_name__1, "dex")                ~ "Td",
-#     str_detect(drug_name__1, "dex")                    ~ "Dex",
-#     str_detect(drug_name__1, "bortezomib") &
-#       str_detect(drug_name__1, "melph")                ~ "Vm",
-#     str_detect(drug_name__1, "bortezomib")             ~ "V",
-#     str_detect(drug_name__1, "melph")                  ~ "M"
-#   )) %>% 
-#   mutate(drugs_first_regimen_KRd = case_when(
-#     str_detect(drug_name__1, "car") &
-#       str_detect(drug_name__1, "lena") &
-#       str_detect(drug_name__1, "dex")                  ~ "KRd"
-#   )) %>% 
-#   mutate(drugs_first_regimen_DRd = case_when(
-#     str_detect(drug_name__1, "daratu") &
-#       str_detect(drug_name__1, "lena") &
-#       str_detect(drug_name__1, "dex")                  ~ "DRd"
-#   )) %>% 
-#   mutate(drugs_first_regimen_VRd = case_when(
-#     str_detect(drug_name__1, "bortezomib") &
-#       str_detect(drug_name__1, "lena") &
-#       str_detect(drug_name__1, "dex")                  ~ "VRd"
-#   )) %>% 
-#   mutate(drugs_first_regimen_VCd = case_when(
-#     str_detect(drug_name__1, "bortezomib") &
-#       str_detect(drug_name__1, "cyclophos") &
-#       str_detect(drug_name__1, "dex")                  ~ "VCd"
-#   )) %>%
-#   mutate(drugs_first_regimen_VXd = case_when(
-#     str_detect(drug_name__1, "bortezomib") &
-#       str_detect(drug_name__1, "doxo") &
-#       str_detect(drug_name__1, "dex")                  ~ "VXd"
-#   )) %>% 
-#   
-#   unite("drugs_first_regimen", starts_with("drugs_first_regimen_"), sep = ", ", remove = FALSE, na.rm = TRUE) %>% 
-#   mutate(Drugs = ifelse(!is.na(drug_start_date_1), "Other Regimen", "No Regimen")) %>%
-#   mutate(drugs_first_regimen = na_if(drugs_first_regimen, "")) %>% 
-#   mutate(drugs_first_regimen = coalesce(drugs_first_regimen, Drugs))
-
 # What are the drugs in the first regimen?
 # tbl <- 
   germline_patient_data %>% select(`Drug name` = "drug_name__1") %>% 
@@ -1376,6 +1289,16 @@ a <- left_join(a, mrn, by = "avatar_id")
 
 write.csv(a, paste0(path, "/list SM and MGUS who got drugs and or hct.csv"))
 
+
+# III. HCT----
+tbl <- germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Sequenced patients") %>% 
+  select(HCT_ever, CH_status) %>%
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% add_p() %>% as_gt()
+gt::gtsave(tbl, paste0(path, "/Figures/CHIP/HCT by CH.pdf"))
 
 
 

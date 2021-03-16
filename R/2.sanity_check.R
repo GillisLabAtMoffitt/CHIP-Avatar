@@ -195,12 +195,29 @@ drug_bf_bmt <- as.data.table(sanity_check[which(sanity_check$drug_bf_bmt == "not
   left_join(., mrn, by = c("avatar_id"))
 write.csv(drug_bf_bmt, paste0(path, "/sanity check output/drugs start before bmt.csv"))
 
-drug_bf_bmt
-
-
-
-
-
 
 rm(sanity_check, table_sanity_check, wrong_date, wrong_date_bmt, 
    wrong_date_drug, wrong_date_rad, wrong_diag_or_lastdate, missing_diag)
+
+
+######## Check long drug name
+
+trial_reg_name <- germline_patient_data %>% 
+  select(avatar_id, starts_with("regimen_name_")) %>% 
+  pivot_longer(cols = starts_with("regimen_name_"),
+               names_to = "regimen_number", values_to = "regimen_name_", values_drop_na = TRUE) %>% 
+  filter(str_detect(regimen_name_, "clinical"))
+trial_reg_name <- left_join(trial_reg_name, mrn, by = "avatar_id")
+write_csv(trial_reg_name, paste0(path, "/sanity check output/clinical trial as reg_name.csv"))
+
+
+
+
+
+
+
+
+
+
+
+

@@ -908,20 +908,6 @@ Treatment <- bind_rows(Qcd_Treatment, Treatment) %>%
 
 
 TreatmentV2 <- TreatmentV2 %>% 
-  # mutate(treatment_line_ = case_when(
-  #   str_detect(treatment_line_, "First") ~ "1",
-  #   str_detect(treatment_line_, "Second") ~ "2",
-  #   str_detect(treatment_line_, "Third") ~ "3",
-  #   str_detect(treatment_line_, "Fourth") ~ "4",
-  #   str_detect(treatment_line_, "Fifth") ~ "5",
-  #   str_detect(treatment_line_, "Sixth") ~ "6",
-  #   str_detect(treatment_line_, "Seventh") ~ "7",
-  #   str_detect(treatment_line_, "Eighth") ~ "8",
-  #   str_detect(treatment_line_, "Ninth") ~ "9",
-  #   str_detect(treatment_line_, "Tenth") ~ "10",
-  #   str_detect(treatment_line_, "Eleventh") ~ "11",
-  #   str_detect(treatment_line_, "Maint") ~ "90"
-  #   )) %>% 
   group_by(avatar_id, drug_start_date) %>% 
   arrange(drug_start_date, treatment_line_) %>% 
   fill(treatment_line_, .direction = "updown") %>% 
@@ -970,7 +956,7 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
   mutate(drug_name_ = tolower(drug_name_)) %>%
   mutate(drug_name_ = 
            str_remove_all(drug_name_, 
-          "given with |investigational agent: |investigational therapy: |investigational therapy : |clinical trial: |clinical trial-|clinical trial | sulfate|clinical trial/|other: |  ")) %>%
+          "given with |investigational agent: |investigational therapy: |investigational therapy : |clinical trial: |clinical trial; |clinical trial-|clinical trial | sulfate|clinical trial/|other: |  |clinical trial|oral proteasome inhibitor = ")) %>%
   mutate(drug_name_ = case_when(
     drug_name_ == "cafilzomib"                                             ~ "carfilzomib",
     drug_name_ == "daratumuab"                                             ~ "daratumumab",
@@ -990,6 +976,15 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
   )) %>% 
   mutate(drug_name_ = str_replace_all(drug_name_, "liposomal doxorubicin", "doxil")) %>% 
   mutate(drug_name_ = str_replace_all(drug_name_, "-doxorubicin", "doxorubicin")) %>% 
+  
+  mutate(drug_name_ = case_when(
+    str_detect(drug_name_, "kpt") &
+      str_detect(drug_name_, "300")            ~ "kpt300",
+    str_detect(drug_name_, "kpt") &
+      str_detect(drug_name_, "8602")           ~ "kpt8602",
+    TRUE                                       ~ drug_name_
+  )) %>% 
+  
   mutate(drug_name_ = str_replace_all(drug_name_, "cyclophosphomide: dex", "cyclophosphomide; dexamethasone")) %>% 
   filter(!is.na(avatar_id) & drug_name_ != "non-mm drugs") %>% 
   distinct() %>%

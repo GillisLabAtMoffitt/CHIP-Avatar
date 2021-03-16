@@ -681,3 +681,21 @@ rm(germ_stricBF_bmt1_mgus, germ_stricBF_bmt1_MM, germ_stricBF_bmt1_smoldering, g
 #   select(avatar_id, versionMM_1, collectiondt_germline, Disease_Status_germline, drug_start_date_1, drug_name__1, progression_date) %>%
 #   filter(!is.na(drug_start_date_1))
 # write.csv(a, paste0(path, "/list smoldering patients who had drugs.csv"))
+
+a <- germline_patient_data %>% select(avatar_id, Disease_Status_germline, starts_with("SLID") )
+write.csv(a, paste0(path, "/list germline patients with slid id.csv"))
+
+
+
+patient <- readxl::read_xlsx(paste0(path, "/Nancy's working files/MM Avatar_Sequenced subset.xlsx"),
+                             sheet = "Sequenced") %>%
+  select(avatar_id) %>% distinct()
+id <- paste(patient$avatar_id, collapse = "|")
+b <- a[ grepl(id, a$avatar_id) , ]
+write.csv(b, paste0(path, "/list sequenced patients with slid id.csv"))
+
+
+
+
+
+

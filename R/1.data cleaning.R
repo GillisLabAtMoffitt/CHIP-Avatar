@@ -1005,13 +1005,16 @@ treatment1 <- treatment %>% group_by(mrn, avatar_id, treatment_line_, drug_name_
   select("mrn", "avatar_id", "treatment_line_", "drug_name_", "drug_start_date", drug_stop_date = "drug_stop_date10") %>% 
   group_by(avatar_id, treatment_line_) %>% 
   mutate(line_start_date = min(drug_start_date)) %>% 
-  mutate(line_stop_date = max(drug_stop_date))
+  mutate(line_stop_date = max(drug_stop_date)) %>% 
+  arrange(avatar_id, drug_start_date, drug_stop_date) %>% 
+  ungroup()
+  
 
 # Summarize by regimen/line
 Treatment1 <- treatment1 %>% 
   group_by(mrn, avatar_id, treatment_line_, line_start_date, line_stop_date) %>%
-  arrange(avatar_id, treatment_line_, drug_name_) %>% 
   summarise_at(vars(drug_name_, drug_start_date, drug_stop_date), paste, collapse = "; ") %>%
+  arrange(avatar_id, line_start_date, line_stop_date, drug_start_date) %>% 
   mutate(drug_count = sapply(strsplit(drug_name_, ";"), length)) %>% 
 
 # Treatment <- dcast(setDT(treatment1), mrn+avatar_id+treatment_line_ ~ rowid(avatar_id), ## Old code
@@ -1248,11 +1251,11 @@ radiation <- bind_rows(Radiation_V12, RadiationV1, RadiationV2, RadiationV4, Rad
   filter(!str_detect(rad_stop_date, "2300")) %>% 
   # left_join(., Germline %>% select(c("avatar_id", "collectiondt_germline")), by = "avatar_id") %>% 
   # mutate(rad_bf_germline = if_else(rad_start_date < collectiondt_germline, "Radiation before Germline", "No")) %>% 
-  distinct(avatar_id, rad_start_date, rad_stop_date, collectiondt_germline, .keep_all = TRUE) %>% 
+  distinct(avatar_id, rad_start_date, rad_stop_date, .keep_all = TRUE) %>% 
   # select(-collectiondt_germline) %>% 
   arrange(rad_start_date)
 Radiation <- dcast(setDT(radiation), avatar_id ~ rowid(avatar_id), value.var = 
-                     c("rad_start_date", "rad_stop_date", "rad_bf_germline"))
+                     c("rad_start_date", "rad_stop_date"))
 # write.csv(Radiation,paste0(path, "/simplified files/Radiation simplify.csv"))
 
 # Progression----

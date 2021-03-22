@@ -119,20 +119,62 @@ gg <- ggplot()
 ggg <- gg + geom_line(data = events_period, aes(x=date, y=avatar_id, color=event, group = avatar_id))
 gggg <- ggg + geom_point(data = events_dates, aes(x=date, y=avatar_id, color=event))
 
-#### Plot with age
+############################################### Plot with age
+events_dates <- all_dates
 
 events_dates1 <- events_dates %>% 
+  filter(!str_starts(event, "progression|date_of_MM|Date_of_Birth")) %>% 
+  arrange(avatar_id, date) %>% 
+  # mutate(date = as.Date(date)) %>% 
   group_by(avatar_id) %>% 
-  mutate(age = date - lag(date)) %>% 
-  mutate(int =  interval(start = diagnosisdate, end = followupdate)/ duration(n=1, units = "years")) %>% 
-  mutate(aage = as.POSIXct(age), )
-  # mutate(lag1_within.consecutive = lag(date, 1,time.step = "within"))
+  mutate(age = interval(start = min(date), end = date)/duration(n = 1, units = "years"))
+  # mutate(diff_date = c(0,diff(date))) %>% 
+  # # mutate(change = diff_date*dyears(1)) %>% 
+  # mutate(year = round(as.numeric(difftime(date, lag(date), unit="weeks"))/52.25, 2))
+  # mutate(diff = date - lag(date, default = first(date))) %>%
 
-  
-  
-gg_ev <- ggg + geom_point(data = events_dates1, aes(x=date, y=avatar_id, color=event), size=1, alpha=0.3) +
-  theme(legend.position='top')
+# next_year <- today() + years(1)
+# (today() %--% next_year) / ddays(1)
+# #> [1] 365
+library(plotly)
+library(viridis)
 
+events_point <- events_dates1 %>% 
+  filter(!str_starts(event, "line|rad|labs")) %>%
+  left_join(., germline_patient_data %>% select(avatar_id, Disease_Status_germline),
+            by = "avatar_id") %>% 
+  mutate(text = paste("Patient: ", avatar_id, "\nEvent: ", event, "\nAge at event: ",
+                      round(age, 2), "\nDisease Status: ", Disease_Status_germline, sep="")) %>% 
+  mutate(event = 
+           gsub('[[:digit:]]+', '', event))
+
+events_period <- events_dates1 %>% 
+  filter(str_starts(event, "line|rad")) %>% 
+  left_join(., germline_patient_data %>% select(avatar_id, Disease_Status_germline),
+            by = "avatar_id") %>% 
+  mutate(text = paste("Patient: ", avatar_id, "\nEvent: ", event, "\nAge at event: ",
+                      round(age, 2), "\nDisease Status: ", Disease_Status_germline, sep="")) %>%
+  # mutate(status = case_when(
+  #   str_detect(event, "start") ~ "start",
+  #   str_detect(event, "stop") ~ "stop"
+  # )) %>% 
+  mutate(event = 
+           gsub('[[:digit:]]+', '', event)) %>% 
+  mutate(event = 
+           gsub('stop|start', '', event)) # %>% 
+  # arrange(avatar_id, Disease_Status_germline, event, age)
+
+gg <- ggplot()+
+  geom_line(data = events_period, aes(x=age, y=avatar_id, color=event, group = avatar_id, text=text))+
+  geom_point(data = events_point, aes(x=age, y=avatar_id, color=event, text=text), size = 1, alpha = .5)+
+  scale_color_viridis(discrete=TRUE, guide=FALSE)
+
+gint <- ggplotly(gg, tooltip="text")
+gint
+
+
+# gg_ev <- ggg + geom_point(data = events_dates1, aes(x=date, y=avatar_id, color=event), size=1, alpha=0.3) +
+#   theme(legend.position='top')
 
 
 

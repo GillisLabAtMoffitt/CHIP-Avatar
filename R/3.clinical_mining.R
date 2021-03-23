@@ -1293,14 +1293,20 @@ write.csv(a, paste0(path, "/list SM and MGUS who got drugs and or hct.csv"))
 # III. HCT----
 tbl <- germline_patient_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(Whole = "Sequenced patients") %>% 
+  mutate(Whole = "Germline patients") %>% 
   select(HCT_ever, CH_status) %>%
   tbl_summary(by = CH_status, 
               sort = list(everything() ~ "frequency")) %>% 
   bold_labels() %>% add_p() %>% as_gt()
 gt::gtsave(tbl, paste0(path, "/Figures/CHIP/HCT by CH.pdf"))
 
-
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(ISS, pfs_hct, pfs_radiation) %>%
+  tbl_summary(by = ISS, 
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% add_p() %>% as_gt()
 
 
 # Cleaning

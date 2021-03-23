@@ -351,6 +351,178 @@ ggsurvplot(myplot, data = germline_patient_surv,
            # censor = TRUE
 )
 # dev.off()
+
+# Cox prop hazard----
+germline_patient_surv %>% select(pfs_hct) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = germline_patient_surv$month_at_os, 
+                             event = germline_patient_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+
+tbl1 <- germline_patient_surv %>% select(pfs_hct, ISS) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = germline_patient_surv$month_at_os, 
+                             event = germline_patient_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+
+# model <- coxph(Surv(time = germline_patient_surv$month_at_os, 
+#                     event = germline_patient_surv$os_event) ~ pfs_hct + ISS, data =  germline_patient_surv)
+# summary(model)
+# coxph(Surv(time = germline_patient_surv$month_at_os, 
+#            event = germline_patient_surv$os_event) ~ pfs_hct, data =  germline_patient_surv) %>%
+#   tbl_regression(exponentiate = TRUE)
+tbl2 <- coxph(Surv(time = germline_patient_surv$month_at_os, 
+             event = germline_patient_surv$os_event) ~ pfs_hct + ISS, data =  germline_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+
+
+tbl1 <- germline_patient_surv %>% select(pfs_hct, ISS_grp) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = germline_patient_surv$month_at_os, 
+                             event = germline_patient_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = germline_patient_surv$month_at_os, 
+           event = germline_patient_surv$os_event) ~ pfs_hct + ISS_grp, data =  germline_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+
+
+coxph(Surv(time = germline_patient_surv$month_at_os, 
+           event = germline_patient_surv$os_event) ~ pfs_hct + CH_status + ISS_grp, data =  germline_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE)
+coxph(Surv(time = germline_patient_surv$month_at_os, 
+           event = germline_patient_surv$os_event) ~ pfs_hct + CH_status + ISS_grp, data =  germline_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE)
+
+
+tbl1 <- germline_patient_surv %>% select(CH_status, ISS) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = germline_patient_surv$month_at_os, 
+                             event = germline_patient_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = germline_patient_surv$month_at_os, 
+           event = germline_patient_surv$os_event) ~ CH_status + ISS, data =  germline_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+
+
+
+coxph(Surv(time = germline_patient_surv$month_at_os, 
+           event = germline_patient_surv$os_event) ~ HCT_ever, data =  germline_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE)
+coxph(Surv(time = germline_patient_surv$month_at_os, 
+           event = germline_patient_surv$os_event) ~ HCT_ever + ISS, data =  germline_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE)
+coxph(Surv(time = germline_patient_surv$month_at_os, 
+           event = germline_patient_surv$os_event) ~ HCT_ever + ISS_grp, data =  germline_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE)
+
+coxph(Surv(time = germline_patient_surv$month_at_os, 
+           event = germline_patient_surv$os_event) ~ HCT_ever + CH_status + ISS_grp, data =  germline_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE)
+
+# Regression
+model <- glm(os_event ~ 
+               pfs_hct + ISS, 
+             data = germline_patient_surv, family = binomial)
+tbl1 <- tbl_regression(model)
+tbl2 <- tbl_regression(model, exponentiate = TRUE)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Estimate**", "**Exp**"))
+
+model <- glm(os_event ~ 
+               pfs_hct + CH_status, 
+             data = germline_patient_surv, family = binomial)
+tbl1 <- tbl_regression(model)
+tbl2 <- tbl_regression(model, exponentiate = TRUE)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Estimate**", "**Exp**"))
+
+### Sequenced patients
+# patient <- readxl::read_xlsx(paste0(path, "/Nancy's working files/MM Avatar_Sequenced subset.xlsx"),
+#                              sheet = "Sequenced") %>% 
+#   select(avatar_id) %>% distinct()
+# id <- paste(patient$avatar_id, collapse = "|")
+# seq_germline_patient_surv <- germline_patient_surv[ grepl(id, germline_patient_surv$avatar_id) , ]
+# 
+# tbl1 <- seq_germline_patient_surv %>% select(pfs_hct, ISS) %>% 
+#   tbl_uvregression(method = survival::coxph, 
+#                    y = (Surv(time = seq_germline_patient_surv$month_at_os, 
+#                              event = seq_germline_patient_surv$os_event)),
+#                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+#   bold_labels() %>% italicize_levels()
+# 
+# tbl2 <- coxph(Surv(time = seq_germline_patient_surv$month_at_os, 
+#                    event = seq_germline_patient_surv$os_event) ~ pfs_hct + ISS, data = seq_germline_patient_surv) %>%
+#   tbl_regression(exponentiate = TRUE)
+# tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+# 
+# 
+# tbl1 <- seq_germline_patient_surv %>% select(pfs_hct, ISS_grp) %>% 
+#   tbl_uvregression(method = survival::coxph, 
+#                    y = (Surv(time = seq_germline_patient_surv$month_at_os, 
+#                              event = seq_germline_patient_surv$os_event)),
+#                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+#   bold_labels() %>% italicize_levels()
+# tbl2 <- coxph(Surv(time = seq_germline_patient_surv$month_at_os, 
+#                    event = seq_germline_patient_surv$os_event) ~ pfs_hct + ISS_grp, data =  seq_germline_patient_surv) %>%
+#   tbl_regression(exponentiate = TRUE)
+# tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+# 
+# 
+# coxph(Surv(time = seq_germline_patient_surv$month_at_os, 
+#            event = seq_germline_patient_surv$os_event) ~ pfs_hct + CH_status + ISS_grp, data =  seq_germline_patient_surv) %>%
+#   tbl_regression(exponentiate = TRUE)
+# coxph(Surv(time = seq_germline_patient_surv$month_at_os, 
+#            event = seq_germline_patient_surv$os_event) ~ pfs_hct + CH_status + ISS_grp, data =  seq_germline_patient_surv) %>%
+#   tbl_regression(exponentiate = TRUE)
+# 
+# 
+# tbl1 <- seq_germline_patient_surv %>% select(CH_status, ISS) %>% 
+#   tbl_uvregression(method = survival::coxph, 
+#                    y = (Surv(time = seq_germline_patient_surv$month_at_os, 
+#                              event = seq_germline_patient_surv$os_event)),
+#                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+#   bold_labels() %>% italicize_levels()
+# tbl2 <- coxph(Surv(time = seq_germline_patient_surv$month_at_os, 
+#                    event = seq_germline_patient_surv$os_event) ~ CH_status + ISS, data =  seq_germline_patient_surv) %>%
+#   tbl_regression(exponentiate = TRUE)
+# tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+# 
+# 
+# 
+# coxph(Surv(time = seq_germline_patient_surv$month_at_os, 
+#            event = seq_germline_patient_surv$os_event) ~ HCT_ever, data =  seq_germline_patient_surv) %>%
+#   tbl_regression(exponentiate = TRUE)
+# coxph(Surv(time = seq_germline_patient_surv$month_at_os, 
+#            event = seq_germline_patient_surv$os_event) ~ HCT_ever + ISS, data =  seq_germline_patient_surv) %>%
+#   tbl_regression(exponentiate = TRUE)
+# coxph(Surv(time = seq_germline_patient_surv$month_at_os, 
+#            event = seq_germline_patient_surv$os_event) ~ HCT_ever + ISS_grp, data =  seq_germline_patient_surv) %>%
+#   tbl_regression(exponentiate = TRUE)
+# 
+# coxph(Surv(time = seq_germline_patient_surv$month_at_os, 
+#            event = seq_germline_patient_surv$os_event) ~ HCT_ever + CH_status + ISS_grp, data =  seq_germline_patient_surv) %>%
+#   tbl_regression(exponentiate = TRUE)
+# 
+# # Regression
+# model <- glm(os_event ~ 
+#                pfs_hct + ISS, 
+#              data = seq_germline_patient_surv, family = binomial)
+# tbl1 <- tbl_regression(model)
+# tbl2 <- tbl_regression(model, exponentiate = TRUE)
+# tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Estimate**", "**Exp**"))
+# 
+# model <- glm(os_event ~ 
+#                pfs_hct + CH_status, 
+#              data = seq_germline_patient_surv, family = binomial)
+# tbl1 <- tbl_regression(model)
+# tbl2 <- tbl_regression(model, exponentiate = TRUE)
+# tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Estimate**", "**Exp**"))
+
 ################################################################################### II ### PFS/OS treatment date by general treatment----
 # From Dx
 mysurv <- Surv(time = germline_patient_surv$month_at_progression_Dx, event = germline_patient_surv$Progression_event)

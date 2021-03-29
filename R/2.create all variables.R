@@ -134,10 +134,10 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
     TRUE                                           ~ rad_start_date_1
   )) %>%
   mutate(Radiation_ever = ifelse(!is.na(rad_start_date_1), "Radiation", "No Radiation")) %>% 
-  mutate(interval_radiation_vs_germ = interval(start = rad_start_date_1, collectiondt_germline)/
+  mutate(interval_radiation_germline = interval(start = pfs_rad_start_date, collectiondt_germline)/
            duration(n=1, units = "days")) %>% 
-  mutate(pfs_radiation = case_when(
-    pfs_rad_start_date < collectiondt_germline          ~ "Radiation before germline",
+  mutate(radiation_before_germline = case_when(
+    pfs_rad_start_date < collectiondt_germline           ~ "Radiation before germline",
     pfs_rad_start_date >= collectiondt_germline |
       is.na(pfs_rad_start_date)                          ~ "No Radiation or after germline"
   )) %>% 
@@ -157,11 +157,18 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
     TRUE                                           ~ date_of_bmt_1
   )) %>%
   mutate(HCT_ever = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT")) %>% 
-  mutate(pfs_hct = case_when(
+  mutate(HCT_before_germline = case_when(
     pfs_hct_start_date < collectiondt_germline          ~ "Yes",
     pfs_hct_start_date >= collectiondt_germline |
-      is.na(pfs_hct_start_date)                          ~ "No"
+      is.na(pfs_hct_start_date)                         ~ "No"
   )) %>%
+  mutate(HCT_vs_germline = case_when(
+    pfs_hct_start_date < collectiondt_germline          ~ "upfront HCT",
+    pfs_hct_start_date >= collectiondt_germline         ~ "upfront germline",
+      is.na(pfs_hct_start_date)                         ~ "No HCT"
+  )) %>%
+  mutate(interval_HCT_germline = interval(start = pfs_hct_start_date, end = collectiondt_germline)/
+         duration(n= 1, units = 'days')) %>% 
   
   # # PFS FROM Drugs/HCT DATE
   # mutate(pfs_treatment_progression_date = coalesce(progression_treatment_date, pfs_date_death)) %>% 
@@ -232,7 +239,9 @@ Global_data <- Global_data %>% # Add date_death as progression_date when no prev
       is.na(date_of_bmt_1) ~ "No Treatment",
     TRUE                   ~ "Treatment Given"
   )) %>% 
-  mutate(ISS_grp = ifelse(str_detect(ISS, "II"), "II-III", ISS))
+  mutate(ISS_grp = ifelse(str_detect(ISS, "II"), "II-III", ISS)) %>% 
+  mutate(delay_to_treatment = interval(start = date_of_MMonly_diagnosis, end = line_start_date_1)/
+           duration(n=1, units = "days"))
   
   
   
@@ -334,7 +343,7 @@ Global_data$month_at_progression_hct <- round(Global_data$month_at_progression_h
 #   duration(n=1, unit="months")
 # Global_data$month_at_progression_treat <- round(Global_data$month_at_progression_treat, 3)
 
-Global_data$month_at_os <- interval(start= Global_data$date_of_diagnosis_1, end= Global_data$os_date_surv)/                      
+Global_data$month_at_os <- interval(start= Global_data$date_of_MMSMMGUSdiagnosis, end= Global_data$os_date_surv)/                      
   duration(n=1, unit="months")
 Global_data$month_at_os <- round(Global_data$month_at_os, 3)
 # b <- Global_data[,c("avatar_id", "month_at_os", "date_death", "date_of_diagnosis_1", "os_date_surv", "os_event", "last_date_available"

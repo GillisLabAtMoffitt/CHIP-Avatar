@@ -80,7 +80,14 @@ id <- paste(unique( Global_data$avatar_id[which(!is.na(Global_data$was_contact_l
 # write.csv(last_event, paste0(path, "/last_event.csv"))
 
 
-Global_data <- Global_data %>% # Add date_death as progression_date when no previous progression_date
+Global_data <- Global_data %>% 
+  mutate(diagnosis_MM_year = year(date_of_MMonly_diagnosis)) %>% 
+  mutate(diagnosis_MM_year = case_when(
+    diagnosis_MM_year < 2013     ~ "previous 2013",
+    TRUE                         ~ as.character(diagnosis_MM_year)
+  )) %>% 
+  
+  # Add date_death as progression_date when no previous progression_date
   mutate(pfs_date_death= case_when(
     date_death > date_last_follow_up |
       is.na(date_death)                          ~ NA_POSIXct_,
@@ -343,7 +350,7 @@ Global_data$month_at_progression_hct <- round(Global_data$month_at_progression_h
 #   duration(n=1, unit="months")
 # Global_data$month_at_progression_treat <- round(Global_data$month_at_progression_treat, 3)
 
-Global_data$month_at_os <- interval(start= Global_data$date_of_MMSMMGUSdiagnosis, end= Global_data$os_date_surv)/                      
+Global_data$month_at_os <- interval(start= Global_data$date_of_MMonly_diagnosis, end= Global_data$os_date_surv)/                      
   duration(n=1, unit="months")
 Global_data$month_at_os <- round(Global_data$month_at_os, 3)
 # b <- Global_data[,c("avatar_id", "month_at_os", "date_death", "date_of_diagnosis_1", "os_date_surv", "os_event", "last_date_available"

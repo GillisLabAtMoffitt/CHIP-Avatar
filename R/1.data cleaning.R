@@ -121,7 +121,7 @@ uid_A <- paste(unique(Alc_Smo_V12$avatar_id), collapse = '|')
 MM_history_V12 <-
   readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Myeloma_Disease_History") %>%
-  select(c("avatar_id", "date_of_diagnosis"))
+  select(c("avatar_id", "date_of_diagnosis", "hematological_malignancy_phase"))
 uid_MM <- paste(unique(MM_history_V12$avatar_id), collapse = '|')
 #---
 Treatment_V12 <-
@@ -219,7 +219,7 @@ Alc_Smo <- Alc_Smo[(!grepl(uid_A, Alc_Smo$avatar_id)),]
 MM_history <-
   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
                     sheet = "Myeloma_Disease_History") %>%
-  select(c("avatar_id", "date_of_diagnosis", "disease_stage"))
+  select(c("avatar_id", "date_of_diagnosis", hematological_malignancy_phase = "disease_stage"))
 MM_history <- MM_history[(!grepl(uid_MM, MM_history$avatar_id)),]
 #---
 # Comorbidities <-
@@ -313,7 +313,7 @@ Alc_Smo_V2 <- Alc_Smo_V2[(!grepl(uid_A, Alc_Smo_V2$avatar_id)),]
 MM_historyV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "Myeloma_Disease_History") %>%
-  select(c("avatar_id",  "date_of_diagnosis"))
+  select(c("avatar_id",  "date_of_diagnosis", hematological_malignancy_phase = "disease_state"))
 MM_historyV2 <- MM_historyV2[(!grepl(uid_MM, MM_historyV2$avatar_id)),]
 #---
 TreatmentV2 <-
@@ -392,7 +392,7 @@ VitalsV4 <-
 MM_historyV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                     sheet = "Myeloma_Disease_History") %>%
-  select(c("avatar_id", "date_of_diagnosis"))
+  select(c("avatar_id", "date_of_diagnosis", "hematological_malignancy_phase"))
 #---
 # ComorbiditiesV4 <-
   #   readxl::read_xlsx((paste0(ClinicalCap_V4,"/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
@@ -473,7 +473,7 @@ VitalsV4.1 <-
 MM_historyV4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
                     sheet = "Myeloma_Disease_History") %>%
-  select(c("avatar_id", "date_of_diagnosis"))
+  select(c("avatar_id", "date_of_diagnosis", "hematological_malignancy_phase"))
 #
 Alc_SmoV4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
@@ -724,6 +724,19 @@ Demo_RedCap_V4ish <- Demo_RedCap_V4ish %>%
   ))
 
 # Patient history ----
+MM_history <- MM_history %>% 
+  mutate(hematological_malignancy_phase = case_when(
+    hematological_malignancy_phase == "active"               ~ 1,
+    hematological_malignancy_phase == "smoldering"           ~ 2,
+    TRUE                                                     ~ NA_real_
+    ))
+MM_historyV2 <- MM_historyV2 %>% 
+  mutate(hematological_malignancy_phase = case_when(
+    hematological_malignancy_phase == "Active"               ~ 1,
+    hematological_malignancy_phase == "Smoldering"           ~ 2,
+    TRUE                                                     ~ NA_real_
+  ))
+
 mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, MM_historyV4.1, .id = "versionMM") %>%
   drop_na("date_of_diagnosis") %>%
   distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 

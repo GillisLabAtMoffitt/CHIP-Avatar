@@ -10,6 +10,8 @@ output:
     theme: cerulean #darkly
     highlight: pygments
     # keep_md: true
+editor_options: 
+  chunk_output_type: console
 ---
 
 <style type="text/css">
@@ -132,7 +134,7 @@ p + geom_jitter(shape=16, position=position_jitter(0.2)) +
 germline_patient_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
-  select(Age_at_diagnosis_closest_germline, date_of_MMonly_diagnosis, date_of_diagnosis_1, 
+  select(Age_at_diagnosis_closest_germline, Age_at_MMonly_diagnosis, diagnosis_MM_year,
          delay_to_treatment, Drugs_ever, Gender, Race, Ethnicity, ISS, CH_status) %>%
   tbl_summary(by = Ethnicity, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),

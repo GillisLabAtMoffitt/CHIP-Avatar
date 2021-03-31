@@ -83,9 +83,14 @@ id <- paste(unique( Global_data$avatar_id[which(!is.na(Global_data$was_contact_l
 Global_data <- Global_data %>% 
   mutate(diagnosis_MM_year = year(date_of_MMonly_diagnosis)) %>% 
   mutate(diagnosis_MM_year = case_when(
-    diagnosis_MM_year < 2013     ~ "previous 2013",
+    diagnosis_MM_year < 2009     ~ "previous 2009",
+    diagnosis_MM_year >= 2009 &
+      diagnosis_MM_year <= 2011  ~ "2009-2011",
+    diagnosis_MM_year >= 2015 &
+      diagnosis_MM_year <= 2016  ~ "2015-2016",
+    diagnosis_MM_year >= 2017    ~ "later of 2017",
     TRUE                         ~ as.character(diagnosis_MM_year)
-  )) %>% 
+  )) %>%
   
   # Add date_death as progression_date when no previous progression_date
   mutate(pfs_date_death= case_when(
@@ -165,13 +170,13 @@ Global_data <- Global_data %>%
   )) %>%
   mutate(HCT_ever = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT")) %>% 
   mutate(HCT_before_germline = case_when(
-    pfs_hct_start_date < collectiondt_germline          ~ "Yes",
+    pfs_hct_start_date < collectiondt_germline          ~ "HCT before germline",
     pfs_hct_start_date >= collectiondt_germline |
-      is.na(pfs_hct_start_date)                         ~ "No"
+      is.na(pfs_hct_start_date)                         ~ "No HCT or after germline"
   )) %>%
   mutate(HCT_vs_germline = case_when(
-    pfs_hct_start_date < collectiondt_germline          ~ "upfront HCT",
-    pfs_hct_start_date >= collectiondt_germline         ~ "upfront germline",
+    pfs_hct_start_date < collectiondt_germline          ~ "HCT before germline",
+    pfs_hct_start_date >= collectiondt_germline         ~ "HCT after germline",
       is.na(pfs_hct_start_date)                         ~ "No HCT"
   )) %>%
   mutate(interval_HCT_germline = interval(start = pfs_hct_start_date, end = collectiondt_germline)/

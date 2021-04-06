@@ -311,6 +311,10 @@ Global_data$Age_at_firstbmt <- interval(start= Global_data$Date_of_Birth, end= G
 Global_data$Age_at_firstbmt <- round(Global_data$Age_at_firstbmt, 3)
 # summary(Global_data$Age_at_firstbmt, na.rm = TRUE)
 
+Global_data$days_at_firsthct <- interval(start= Global_data$date_of_MMonly_diagnosis, end= Global_data$date_of_bmt_1)/                      
+  duration(n=1, unit="days")
+Global_data$days_at_firsthct <- round(Global_data$days_at_firsthct, 3)
+
 Global_data$Age_at_firstrad <- interval(start= Global_data$Date_of_Birth, end= Global_data$rad_start_date_1)/                      
   duration(n=1, unit="years")
 Global_data$Age_at_firstrad <- round(Global_data$Age_at_firstrad, 3)
@@ -467,7 +471,20 @@ germline_patient_data <- germline_patient_data %>%
     os_event == 1 & 
       date_death > date_contact_lost                        ~ 0,
     TRUE ~ os_event
-  ))
+  )) %>% 
+  mutate(days_at_firsthct = ifelse(days_at_firsthct < 0, NA_real_, days_at_firsthct)) %>% 
+  mutate(days_hct_cat = case_when(
+    days_at_firsthct >= 800            ~ "> 800",
+    # days_at_firsthct > 800 &
+    #   days_at_firsthct < 1500          ~ "> 800-1500",
+    # days_at_firsthct > 300 &
+    #   days_at_firsthct < 800           ~ "> 300-800",
+    days_at_firsthct > 0 &
+      days_at_firsthct < 800           ~ "> 0-800"
+  )) %>% 
+  mutate(ntile_at_firsthct = ntile(days_at_firsthct, 2)) %>% 
+  group_by(ntile_at_firsthct) %>% 
+  mutate(min_ntile = min(days_at_firsthct)) %>% ungroup()
 
 write_rds(germline_patient_data, file = "germline_patient_data.rds")
 # # write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))

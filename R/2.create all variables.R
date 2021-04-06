@@ -125,10 +125,10 @@ Global_data <- Global_data %>%
     TRUE                                            ~ line_start_date_1
   )) %>%
   mutate(Drugs_ever = ifelse(!is.na(line_start_date_1), "Drug", "No Drug")) %>% 
-  mutate(pfs_drugs = case_when(
-    pfs_line_start_date < collectiondt_germline         ~ "Yes",
+  mutate(drugs_before_germline = case_when(
+    pfs_line_start_date < collectiondt_germline         ~ "Drugs before germline",
     pfs_line_start_date >= collectiondt_germline |
-      is.na(pfs_line_start_date)                         ~ "No"
+      is.na(pfs_line_start_date)                         ~ "Drugs after germline"
   )) %>% 
   
   mutate(rad_bf_germline = if_else(rad_start_date_1 < collectiondt_germline, "Radiation before Germline", "No")) %>% 

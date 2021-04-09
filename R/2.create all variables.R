@@ -377,7 +377,7 @@ Global_data$time_to_drug <- interval(start= Global_data$date_of_MMonly_diagnosis
 Global_data$time_to_drug <- round(Global_data$time_to_drug, 3)
 
 # rm(b)
-write_rds(Global_data, path = "Global_data.rds")
+write_rds(Global_data, file = "Global_data.rds")
 
 ################################################################################################## III ## Germline ----
 # Create dataframe for only the patients who had germline sequenced

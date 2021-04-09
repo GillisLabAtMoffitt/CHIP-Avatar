@@ -28,7 +28,7 @@ tbl <- germline_patient_data %>%
 
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Disease status in germline MM Avatar patients.pdf"))
 
-jpeg(paste0(path, "/Figures/Moffitt Symposium/Disease_Status_germline.jpeg"), height = 600, width = 600)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/Disease_Status_germline.jpeg"), height = 350, width = 600)
 germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>%
   group_by(Disease_Status_germline) %>% count(Disease_Status_germline) %>% 
@@ -36,12 +36,31 @@ germline_patient_data %>%
   arrange(n) %>% 
   ggplot(aes(x="", y=n, fill=Disease_Status_germline)) +
   geom_bar(stat="identity", width=1) +
-  scale_fill_manual("Disease Status at \ngermline", values = c("hotpink", "orchid1", "mediumorchid1", "mediumpurple1", "slateblue1", "lightskyblue1", "pink", "mistyrose", "seashell", "moccasin", "khaki", "yellow")) +
-  theme_minimal() +
+  scale_fill_manual("Disease Status at \ngermline", values = c("hotpink", "orchid1", "mediumorchid1", "mediumpurple1", "lemonchiffon", "peachpuff", 
+                                                               "lightcyan", "lightblue", "cyan", "steelblue1", "blue", "darkblue")) +
+  theme_void() +
+  theme(plot.title = element_text(hjust = 0.5))+
   coord_polar("y", start=0, direction=-1) +
-  labs(x="", y="", title="Disease Status germline in MM Avatar data")
+  labs(x=NULL, y=NULL, title="Disease Status at germline collection in MM Avatar data")
 dev.off()
 
+jpeg(paste0(path, "/Figures/Moffitt Symposium/Age at diagnosis repartition in MM Avatar.jpeg"), height = 400, width = 600)
+p <- qplot(x =Age_at_MMonly_diagnosis, data=subset(germline_patient_data,!is.na(Age_at_MMonly_diagnosis)), fill=..count.., geom="histogram") 
+p + scale_fill_viridis_c(
+  alpha = 1,
+  begin = 0,
+  end = 1,
+  direction = 1,
+  option = "D",
+  values = NULL,
+  space = "Lab",
+  na.value = "grey50",
+  guide = "colourbar",
+  aesthetics = "fill"
+) +
+  theme_minimal() +
+  labs(x="Age at Diagnosis", y="Number of Patient", title="Repartition of Age at Diagnosis in MM Avatar")
+dev.off()
 
 # CH 
 tbl <- analysis_data %>% 
@@ -366,7 +385,7 @@ ggsurvplot(myplot, data = ethnicity_surv,
            xlab = "Time in months", 
            legend = "top",
            legend.title = "",
-           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           legend.labs = c("Hipanic", "Non-Hispanic"),
            palette = c("darkred", "darkgreen"),
            xlim = c(-25, 400),
            pval = TRUE,
@@ -419,7 +438,7 @@ ggsurvplot(myplot, data = ethnicity_surv,
            xlab = "Time in months", 
            legend = "top",
            legend.title = "",
-           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           legend.labs = c("Hipanic", "Non-Hispanic"),
            palette = c("darkred", "darkgreen"),
            xlim = c(-25, 400),
            pval = TRUE,
@@ -575,7 +594,7 @@ ggsurvplot(myplot, data = race_surv,
            xlab = "Time in months", 
            legend = "top",
            legend.title = "",
-           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           legend.labs = c("White", "Black"),
            palette = c("blue", "lightsalmon1"),
            pval = TRUE,
            conf.int = FALSE,
@@ -627,7 +646,7 @@ ggsurvplot(myplot, data = race_surv,
            xlab = "Time in months", 
            legend = "top",
            legend.title = "",
-           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           legend.labs = c("White", "Black"),
            palette = c("blue", "lightsalmon1"),
            pval = TRUE,
            conf.int = FALSE,
@@ -653,7 +672,7 @@ tbl1 <- race_surv %>% select(Race1, Age_at_MMonly_diagnosis, Gender, ISS, HCT_ev
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = race_surv$month_at_progression_drug, 
-                   event = race_surv$drug_progression_event) ~ Race1 + Age_at_MMonly_diagnosis + Gender + ISS + Drugs_ever + HCT_ever, data =  race_surv) %>%
+                   event = race_surv$drug_progression_event) ~ Race1 + Age_at_MMonly_diagnosis + Gender + ISS + HCT_ever, data =  race_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 tbl <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**")) %>% as_gt() %>% 
   gt::tab_source_note(gt::md("*ISS calculated for active MM patients only*")) %>% 
@@ -679,7 +698,7 @@ ggsurvplot(myplot, data = race_surv,
            legend.title = "",
            color = "Race1",
            linetype = "CH_status",
-           palette = c("blue", "lightsalmon1"),
+           palette = c("lightsalmon1", "blue"),
            xlim = c(-25, 400),
            pval = TRUE,
            conf.int = FALSE,
@@ -715,7 +734,7 @@ ggsurvplot(myplot, data = race_surv,
            legend.title = "",
            color = "Race1",
            linetype = c("CH_status"),
-           palette = c("blue", "lightsalmon1"),
+           palette = c("lightsalmon1", "blue"),
            pval = TRUE,
            conf.int = FALSE,
            xlim = c(-25, 400),

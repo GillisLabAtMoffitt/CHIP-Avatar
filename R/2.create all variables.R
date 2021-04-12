@@ -369,11 +369,11 @@ Global_data$age_at_os <- interval(start= Global_data$Date_of_Birth, end= Global_
 Global_data$age_at_os <- round(Global_data$age_at_os, 3)
 
 Global_data$time_to_hct <- interval(start= Global_data$date_of_MMonly_diagnosis, end= Global_data$date_of_bmt_1)/                      
-  duration(n=1, unit="months")
+  duration(n=1, unit="days")
 Global_data$time_to_hct <- round(Global_data$time_to_hct, 3)
 
 Global_data$time_to_drug <- interval(start= Global_data$date_of_MMonly_diagnosis, end= Global_data$line_start_date_1)/                      
-  duration(n=1, unit="months")
+  duration(n=1, unit="days")
 Global_data$time_to_drug <- round(Global_data$time_to_drug, 3)
 
 # rm(b)

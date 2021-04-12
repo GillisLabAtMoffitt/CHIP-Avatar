@@ -85,6 +85,70 @@ gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Demographics 
 
 germline_patient_data_imids <- analysis_data %>% filter(imids_maintenance != "not qc'd")
 
+mysurv <- Surv(time = germline_patient_data_imids$month_at_os, event = germline_patient_data_imids$os_event)
+myplot <- survfit(mysurv~imids_maintenance, data = germline_patient_data_imids)
+ggsurvplot(myplot, data = germline_patient_data_imids,
+                     title = "OS in germline patients data",
+                     font.main = c(24, "bold", "black"),
+                     font.x = c(20, "bold", "black"),
+                     font.y = c(20, "bold", "black"),
+                     font.legend = c(20, "bold", "black"),
+                     font.tickslab = c(18, "bold", "black"),
+                     size = 1.5, # line thickness default = 1
+                     
+                     xlab = "Time in months", 
+                     legend = "top",
+                     legend.title = "", 
+                     # legend.labs = c("CH", "No CH"),
+                     color = "imids_maintenance",
+                     # palette = c("cornflowerblue", "firebrick1"),
+                     # linetype = "imids_maintenance", 
+                     # pval = TRUE,
+                     conf.int = FALSE,
+                     # Add risk table
+                     tables.height = 0.3,
+                     risk.table.title = "Risk table (count(%))",
+                     risk.table = "abs_pct",
+                     risk.table.y.text = FALSE,
+                     # risk.table.fontsize = 4,
+                     tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                                    font.x = c(16, "bold", "black"),
+                                                    font.y = c(16, "bold", "transparent"),
+                                                    font.tickslab = c(19, "bold", "black")
+                     )) + guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 2))
+
+mysurv <- Surv(time = germline_patient_data_imids$month_at_progression_drug, event = germline_patient_data_imids$drug_progression_event)
+myplot <- survfit(mysurv~imids_maintenance, data = germline_patient_data_imids)
+ggsurvplot(myplot, data = germline_patient_data_imids,
+           title = "PFS in germline patients data",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5, # line thickness default = 1
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           # legend.labs = c("CH", "No CH"),
+           color = "imids_maintenance",
+           # palette = c("cornflowerblue", "firebrick1"),
+           # linetype = "imids_maintenance", 
+           # pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           # risk.table.fontsize = 4,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           )) + guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 2))
+
 IMIDs <- germline_patient_data_imids %>% 
   filter(imids_maintenance == "IMIDs as maintenance")
 No_IMIDs <- germline_patient_data_imids %>% 
@@ -591,6 +655,98 @@ tbl <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivar
 
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Ethnicity PFS CH coxph.pdf"))
 
+# Hisp + IMIDs
+
+ethnicity_surv_imids <- ethnicity_surv %>% filter(imids_maintenance != "not qc'd")
+
+mysurv <- Surv(time = ethnicity_surv_imids$month_at_os, event = ethnicity_surv_imids$os_event)
+myplot <- survfit(mysurv~Ethnicity + received_IMIDs, data = ethnicity_surv_imids)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/OS by Eth imids.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = ethnicity_surv_imids,
+           title = "OS in germline patients",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           color = "Ethnicity",
+           linetype = "imids_maintenance",
+           palette = c("darkred", "darkgreen"),
+           xlim = c(-25, 400),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+) + guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 2))
+dev.off()
+
+# tbl1 <- ethnicity_surv %>% select(Ethnicity, Age_at_MMonly_diagnosis, Gender, ISS, Drugs_ever, HCT_ever, CH_status) %>% 
+#   tbl_uvregression(method = survival::coxph, 
+#                    y = (Surv(time = ethnicity_surv$month_at_os, 
+#                              event = ethnicity_surv$os_event)),
+#                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+#   bold_labels() %>% italicize_levels()
+# tbl2 <- coxph(Surv(time = ethnicity_surv$month_at_os, 
+#                    event = ethnicity_surv$os_event) ~ Ethnicity + Age_at_MMonly_diagnosis + Gender + ISS + Drugs_ever + HCT_ever + CH_status, data =  ethnicity_surv) %>%
+#   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+# tbl <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**")) %>% as_gt() %>% 
+#   gt::tab_source_note(gt::md("*Data on active MM patients only*")) %>% 
+#   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+# 
+# gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Ethnicity CH coxph.pdf"))
+
+
+mysurv <- Surv(time = ethnicity_surv$month_at_progression_drug, event = ethnicity_surv$drug_progression_event)
+myplot <- survfit(mysurv~Ethnicity + received_IMIDs, data = ethnicity_surv)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/PFS by Eth imids.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = ethnicity_surv,
+           title = "PFS in germline patients",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           color = "Ethnicity",
+           linetype = "received_IMIDs",
+           palette = c("darkred", "darkgreen"),
+           xlim = c(-25, 400),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+) + guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 2))
+dev.off()
+
 rm(ethnicity_surv)
 
 # Black----
@@ -837,7 +993,99 @@ tbl <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivar
 
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Race CH PFS coxph.pdf"))
 
-rm(race_surv)
+# Race + IMIDs
+
+race_surv_imids <- race_surv %>% filter(imids_maintenance != "not qc'd")
+
+mysurv <- Surv(time = race_surv_imids$month_at_os, event = race_surv_imids$os_event)
+myplot <- survfit(mysurv~Race1 + imids_maintenance, data = race_surv_imids)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/OS by Race imids.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = race_surv_imids,
+           title = "OS in germline patients",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           color = "Race1",
+           linetype = "imids_maintenance",
+           palette = c("lightsalmon1", "blue"),
+           xlim = c(-25, 250),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+) + guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 2))
+dev.off()
+
+# tbl1 <- ethnicity_surv %>% select(Ethnicity, Age_at_MMonly_diagnosis, Gender, ISS, Drugs_ever, HCT_ever, CH_status) %>% 
+#   tbl_uvregression(method = survival::coxph, 
+#                    y = (Surv(time = ethnicity_surv$month_at_os, 
+#                              event = ethnicity_surv$os_event)),
+#                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+#   bold_labels() %>% italicize_levels()
+# tbl2 <- coxph(Surv(time = ethnicity_surv$month_at_os, 
+#                    event = ethnicity_surv$os_event) ~ Ethnicity + Age_at_MMonly_diagnosis + Gender + ISS + Drugs_ever + HCT_ever + CH_status, data =  ethnicity_surv) %>%
+#   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+# tbl <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**")) %>% as_gt() %>% 
+#   gt::tab_source_note(gt::md("*Data on active MM patients only*")) %>% 
+#   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+# 
+# gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Ethnicity CH coxph.pdf"))
+
+
+mysurv <- Surv(time = race_surv_imids$month_at_progression_drug, event = race_surv_imids$drug_progression_event)
+myplot <- survfit(mysurv~Race1 + imids_maintenance, data = race_surv_imids)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/PFS by Race imids.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = race_surv_imids,
+           title = "PFS in germline patients",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           color = "Race1",
+           linetype = "imids_maintenance",
+           palette = c("lightsalmon1", "blue"),
+           xlim = c(-25, 200),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+) + guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 2))
+dev.off()
+
+rm(race_surv, race_surv_imids)
 
 # HCT----
 analysis_data %>% 

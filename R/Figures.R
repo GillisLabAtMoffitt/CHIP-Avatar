@@ -2121,5 +2121,6 @@ ggsurvplot(myplot, data = no_HCT_pop,
 dev.off()
 
 
-
-
+# For Brianna
+b <- regimen_in_hct %>% filter(first_regimen_before_hct == "HCT before 1st regimen") %>% 
+  select(avatar_id, date_of_bmt_1, line_start_date_1, line_stop_date_1, first_regimen_name, drug_name__1)

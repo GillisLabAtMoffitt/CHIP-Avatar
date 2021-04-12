@@ -9,7 +9,7 @@ tbl <- analysis_data %>%
   mutate(Ethnicity = str_replace(Ethnicity, "Unknown", NA_character_)) %>% 
   select(Age_at_diagnosis_closest_germline, Age_at_MMonly_diagnosis, 
          Gender, Race, Ethnicity, Whole, ISS, CH_status) %>%
-  tbl_summary(by = Whole, 
+  tbl_summary(by = Whole, label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Age_at_MMonly_diagnosis) ~ 2),
               missing = "no") %>% 
@@ -23,7 +23,8 @@ tbl <- germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(Disease_Status_germline, Whole) %>% 
-  tbl_summary(by = Whole) %>% bold_labels() %>% as_gt()  %>%
+  tbl_summary(by = Whole, label = list(Disease_Status_germline ~ "Disease Status at Germline")) %>% 
+  bold_labels() %>% as_gt()  %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Disease status in germline MM Avatar patients.pdf"))
@@ -36,10 +37,10 @@ germline_patient_data %>%
   arrange(n) %>% 
   ggplot(aes(x="", y=n, fill=Disease_Status_germline)) +
   geom_bar(stat="identity", width=1) +
-  scale_fill_manual("Disease Status at \ngermline", values = c("hotpink", "orchid1", "mediumorchid1", "mediumpurple1", "lemonchiffon", "peachpuff", 
+  scale_fill_manual("", values = c("hotpink", "orchid1", "mediumorchid1", "mediumpurple1", "lemonchiffon", "peachpuff", 
                                                                "lightcyan", "lightblue", "cyan", "steelblue1", "blue", "darkblue")) +
-  theme_void() +
-  theme(plot.title = element_text(hjust = 0.5))+
+  theme_void(base_size = 16) +
+  theme(plot.title = element_text(hjust = -0.15))+
   coord_polar("y", start=0, direction=-1) +
   labs(x=NULL, y=NULL, title="Disease Status at germline collection in MM Avatar data")
 dev.off()
@@ -58,7 +59,7 @@ p + scale_fill_viridis_c(
   guide = "colourbar",
   aesthetics = "fill"
 ) +
-  theme_minimal() +
+  theme_minimal(base_size = 16) +
   labs(x="Age at Diagnosis", y="Number of Patient", title="Repartition of Age at Diagnosis in MM Avatar")
 dev.off()
 
@@ -70,6 +71,7 @@ tbl <- analysis_data %>%
   mutate(Ethnicity = str_replace(Ethnicity, "Unknown", NA_character_)) %>%
   mutate(Race = str_replace(Race, "Asian|More than one race|Am Indian", "Others")) %>% 
   tbl_summary(by = CH_status, 
+              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_MMonly_diagnosis, Race) ~ 2),
               missing = "no") %>% 
@@ -105,12 +107,12 @@ ggsurv <- ggsurvplot(myplot, data = germline_patient_data_imids,
                      legend.title = "", 
                      # legend.labs = c("CH", "No CH"),
                      color = "CH_status",
-                     # palette = c("red", "blue", "#00BA38", "#00BA38"),
+                     palette = c("cornflowerblue", "firebrick1"),
                      linetype = "imids_maintenance", 
                      # pval = TRUE,
                      conf.int = FALSE,
                      # Add risk table
-                     tables.height = 0.17,
+                     tables.height = 0.3,
                      risk.table.title = "Risk table (count(%))",
                      risk.table = "abs_pct",
                      risk.table.y.text = FALSE,
@@ -163,12 +165,12 @@ ggsurv <- ggsurvplot(myplot, data = germline_patient_data_imids,
                      legend.title = "", 
                      # legend.labs = c("CH", "No CH"),
                      color = "CH_status",
-                     # palette = c("red", "blue", "#00BA38", "#00BA38"),
+                     palette = c("cornflowerblue", "firebrick1"),
                      linetype = "imids_maintenance",
                      # pval = TRUE,
                      conf.int = FALSE,
                      # Add risk table
-                     tables.height = 0.17,
+                     tables.height = 0.3,
                      risk.table.title = "Risk table (count(%))",
                      risk.table = "abs_pct",
                      risk.table.y.text = FALSE,
@@ -344,7 +346,7 @@ p <- ggplot(analysis_data %>% filter(!is.na(Age_at_MMonly_diagnosis),
   theme_minimal(base_size = 23) +
   labs(x=NULL, y="Age at Diagnosis", title="Age at Multiple Myeloma diagnosis")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
-  stat_compare_means()
+  stat_compare_means(size = 7)
 dev.off()
 
 tbl <- analysis_data %>% 
@@ -355,14 +357,26 @@ tbl <- analysis_data %>%
          Drugs_ever, delay_to_treatment, Age_at_firstdrug, HCT_ever, Age_at_firstbmt, Radiation_ever, Age_at_firstrad,
          Gender, Ethnicity, ISS, CH_status) %>%
   tbl_summary(by = Ethnicity, 
+              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              missing = "no",
               digits = list(c(Age_at_diagnosis_closest_germline, Age_at_MMonly_diagnosis) ~ 2)) %>% bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>%  
   gt::tab_source_note(gt::md("*Data for active MM patients only*")) %>% 
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Ethnicity table summary.pdf"))
 
+tbl <- analysis_data %>% 
+  filter(str_detect(Ethnicity, "Hispanic")) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(Drugs_ever, delay_to_treatment, Age_at_firstdrug, Ethnicity) %>%
+  tbl_summary(by = Ethnicity, 
+              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>%  
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Ethnicity delay summary.pdf"))
 
 
 
@@ -510,6 +524,22 @@ ggsurvplot(myplot, data = ethnicity_surv,
 ) + guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 2))
 dev.off()
 
+tbl1 <- ethnicity_surv %>% select(Ethnicity, Age_at_MMonly_diagnosis, Gender, ISS, Drugs_ever, HCT_ever, CH_status) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = ethnicity_surv$month_at_os, 
+                             event = ethnicity_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = ethnicity_surv$month_at_os, 
+                   event = ethnicity_surv$os_event) ~ Ethnicity + Age_at_MMonly_diagnosis + Gender + ISS + Drugs_ever + HCT_ever + CH_status, data =  ethnicity_surv) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**")) %>% as_gt() %>% 
+  gt::tab_source_note(gt::md("*Data on active MM patients only*")) %>% 
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Ethnicity CH coxph.pdf"))
+
+
 mysurv <- Surv(time = ethnicity_surv$month_at_progression_drug, event = ethnicity_surv$drug_progression_event)
 myplot <- survfit(mysurv~Ethnicity + CH_status, data = ethnicity_surv)
 jpeg(paste0(path, "/Figures/Moffitt Symposium/PFS by Eth CH.jpeg"), height = 600, width = 600)
@@ -546,6 +576,21 @@ ggsurvplot(myplot, data = ethnicity_surv,
 ) + guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 2))
 dev.off()
 
+tbl1 <- ethnicity_surv %>% select(Ethnicity, Age_at_MMonly_diagnosis, Gender, ISS, HCT_ever, CH_status) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = ethnicity_surv$month_at_progression_drug, 
+                             event = ethnicity_surv$drug_progression_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = ethnicity_surv$month_at_progression_drug, 
+                   event = ethnicity_surv$drug_progression_event) ~ Ethnicity + Age_at_MMonly_diagnosis + Gender + ISS + HCT_ever + CH_status, data =  ethnicity_surv) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**")) %>% as_gt() %>% 
+  gt::tab_source_note(gt::md("*Data on active MM patients only*")) %>% 
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Ethnicity PFS CH coxph.pdf"))
+
 rm(ethnicity_surv)
 
 # Black----
@@ -557,7 +602,7 @@ p <- analysis_data %>%
   theme_minimal(base_size = 22) +
   labs(x=NULL, y="Age at Diagnosis", title="Age of Multiple Myeloma diagnosis")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
-  stat_compare_means()
+  stat_compare_means(size = 7)
 dev.off()
 
 tbl <- analysis_data %>% 
@@ -568,6 +613,7 @@ tbl <- analysis_data %>%
          Drugs_ever, delay_to_treatment, Age_at_firstdrug, HCT_ever, Age_at_firstbmt, Radiation_ever, Age_at_firstrad,
          Gender, Race, ISS, CH_status) %>%
   tbl_summary(by = Race, 
+              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Age_at_MMonly_diagnosis) ~ 2)) %>% bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>%  
   gt::tab_source_note(gt::md("*Data for active MM patients only*")) %>% 
@@ -575,6 +621,16 @@ tbl <- analysis_data %>%
 
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Race table summary.pdf"))
 
+tbl <- analysis_data %>% 
+  mutate(Race = factor(Race, levels=c("White", "Black"))) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(Drugs_ever, delay_to_treatment, Race, CH_status) %>%
+  tbl_summary(by = Race, 
+              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
+              sort = list(everything() ~ "frequency")) %>% bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>%  
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Race delay summary.pdf"))
 
 race_surv <- analysis_data %>% 
   mutate(Race1 = factor(Race, levels=c("White", "Black"))) %>% filter(!is.na(Race))
@@ -717,6 +773,20 @@ ggsurvplot(myplot, data = race_surv,
 ) + guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 2))
 dev.off()
 
+tbl1 <- race_surv %>% select(Race1, Age_at_MMonly_diagnosis, Gender, ISS, Drugs_ever, HCT_ever, CH_status) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = race_surv$month_at_os, 
+                             event = race_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = race_surv$month_at_os, 
+                   event = race_surv$os_event) ~ Race1 + Age_at_MMonly_diagnosis + Gender + ISS + Drugs_ever + HCT_ever + CH_status, data =  race_surv) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**")) %>% as_gt() %>% 
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Race CH coxph.pdf"))
+
 mysurv <- Surv(time = race_surv$month_at_progression_drug, event = race_surv$drug_progression_event)
 myplot <- survfit(mysurv~Race1 + CH_status, data = race_surv)
 jpeg(paste0(path, "/Figures/Moffitt Symposium/PFS by Race CH.jpeg"), height = 600, width = 600)
@@ -753,6 +823,20 @@ ggsurvplot(myplot, data = race_surv,
 ) + guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 2))
 dev.off()
 
+tbl1 <- race_surv %>% select(Race1, Age_at_MMonly_diagnosis, Gender, ISS, HCT_ever, CH_status) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = race_surv$month_at_progression_drug, 
+                             event = race_surv$drug_progression_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = race_surv$month_at_progression_drug, 
+                   event = race_surv$drug_progression_event) ~ Race1 + Age_at_MMonly_diagnosis + Gender + ISS + HCT_ever + CH_status, data =  race_surv) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**")) %>% as_gt() %>% 
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+
+gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Race CH PFS coxph.pdf"))
+
 rm(race_surv)
 
 # HCT----
@@ -760,6 +844,7 @@ analysis_data %>%
   select(HCT_ever, Age_at_firstbmt, days_at_firsthct) %>% 
   mutate(Whole = "Germline patients") %>% 
   tbl_summary(by = Whole, 
+              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
               sort = list(everything() ~ "frequency"),
               digits = list(c(Age_at_firstbmt) ~ 2),
               missing = "no") %>% 
@@ -769,6 +854,7 @@ analysis_data %>%
 tbl <- analysis_data %>% 
   select(HCT_ever, CH_status, ISS, Ethnicity, Race, Gender, Drugs_ever) %>% 
   tbl_summary(by = HCT_ever, 
+              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
               sort = list(everything() ~ "frequency"),
               missing = "no") %>% 
   add_p() %>% bold_p(t = .05) %>% bold_labels() %>% as_gt() %>%  
@@ -781,6 +867,7 @@ tbl <- analysis_data %>%
   mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>% 
   select(HCT_ever, HCT_before_germline, HCT_vs_germline, Age_at_firstbmt, days_at_firsthct, CH_status) %>% 
   tbl_summary(by = CH_status, 
+              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
               sort = list(everything() ~ "frequency"),
               digits = list(c(Age_at_firstbmt) ~ 2),
               missing = "no") %>% 
@@ -794,6 +881,7 @@ tbl <- analysis_data %>%
   mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>% 
   select(HCT_ever, HCT_before_germline, HCT_vs_germline, Age_at_firstbmt, days_at_firsthct, CH_status, ISS) %>% 
   tbl_summary(by = ISS, 
+              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_firstbmt) ~ 2), 
               missing = "no") %>% 
@@ -807,6 +895,7 @@ tbl <- analysis_data %>%
   mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>% 
   select(HCT_before_germline, Age_at_firstbmt, days_at_firsthct, CH_status, ISS) %>% 
   tbl_summary(by = HCT_before_germline, 
+              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_firstbmt) ~ 2), 
               missing = "no") %>% 
@@ -1046,7 +1135,7 @@ dev.off()
 
 # Drugs----
 analysis_data %>% 
-  select(Drugs_ever, Age_at_firstbmt, days_at_firsthct) %>% 
+  select(Drugs_ever, Age_at_firstdrug, days_at_firstdrugs) %>% 
   mutate(Whole = "Germline patients") %>% 
   tbl_summary(by = Whole, 
               sort = list(everything() ~ "frequency"),
@@ -1205,6 +1294,92 @@ dev.off()
 # gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Moffitt Symposium/Drugs PFS coxph.pdf"))
 
 
+# By number of regimen
+regimen_data <- analysis_data %>%
+  select(avatar_id, starts_with("treatment_line_"), CH_status, os_event, month_at_os, month_at_progression_drug, drug_progression_event) %>% 
+  pivot_longer(cols = starts_with("treatment_line_"),
+               names_to = "regimen_number", values_to = "treatment_line_", values_drop_na = TRUE) %>% 
+  filter(treatment_line_ < 90) %>% 
+  arrange(desc(treatment_line_)) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(treatment_line_ = case_when(
+    treatment_line_ > 5         ~ "more than 5",
+    TRUE                        ~ as.character(treatment_line_)
+  )) 
+regimen_data %>% 
+  select(treatment_line_, CH_status) %>% 
+  tbl_summary(by = CH_status,
+              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
+              missing_text = "No Drugs") %>% bold_labels() %>% add_p() %>% as_gt()
+
+mysurv <- Surv(time = regimen_data$month_at_os, event = regimen_data$os_event)
+myplot <- survfit(mysurv~treatment_line_, data = regimen_data)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/OS by regimen number.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = regimen_data,
+           title = "OS in germline patient data",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           # palette = c("blue", "red"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)+ guides(colour = guide_legend(ncol = 2))
+dev.off()
+
+mysurv <- Surv(time = regimen_data$month_at_progression_drug, event = regimen_data$drug_progression_event)
+myplot <- survfit(mysurv~treatment_line_, data = regimen_data)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/PFS by regimen number.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = regimen_data,
+           title = "PFS in germline patient data",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           # palette = c("blue", "red"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)+ guides(colour = guide_legend(ncol = 2))
+dev.off()
+
+
 # Regimen
 
 a <- analysis_data %>% 
@@ -1216,6 +1391,7 @@ tbl <- analysis_data %>%
   filter(str_detect(first_regimen_name, common_regimen_name) | is.na(first_regimen_name)) %>% 
   select(first_regimen_name, Whole) %>% 
   tbl_summary(by = Whole,
+              label = list(first_regimen_name ~ "First Regimen Name", CH_status ~ "CH status"),
               sort = list(everything() ~ "frequency"),
               missing_text = "No Drugs") %>% bold_labels() %>%  as_gt() %>%  
   gt::tab_source_note(gt::md("*Most common regimen = Regimen given at 10 patients or more*")) %>%  
@@ -1228,6 +1404,7 @@ tbl <- analysis_data %>%
   filter(str_detect(first_regimen_name, common_regimen_name)) %>% 
   select(CH_status, first_regimen_name) %>% 
   tbl_summary(by = CH_status, 
+              label = list(first_regimen_name ~ "First Regimen Name", CH_status ~ "CH status"),
               sort = list(everything() ~ "frequency"),
               missing = "no") %>% 
   add_p() %>% bold_p(t = .05) %>% bold_labels() %>% as_gt() %>%  
@@ -1240,6 +1417,7 @@ tbl <- analysis_data %>%
   filter(str_detect(first_regimen_name, common_regimen_name)) %>% 
   select(ISS, first_regimen_name) %>% 
   tbl_summary(by = ISS, 
+              label = list(first_regimen_name ~ "First Regimen Name", CH_status ~ "CH status"),
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               missing = "no") %>% 
   add_p() %>% bold_p(t = .05) %>% bold_labels() %>% as_gt() %>%  
@@ -1393,6 +1571,306 @@ dev.off()
 rm(regimen_data)
 
 
+# First regimen before hct----
+a <- analysis_data %>% 
+  group_by(first_regimen_name) %>% mutate(n = n()) %>% filter(n >= 10) %>% select(first_regimen_name) %>% distinct()
+common_regimen_name <- paste0(a$first_regimen_name, collapse = "|^")
+
+regimen_in_hct <- analysis_data %>% filter(HCT_ever == "HCT") %>% 
+  filter(str_detect(first_regimen_name, common_regimen_name)) %>% 
+  mutate(first_regimen_before_hct = case_when(
+    line_stop_date_1 < date_of_bmt_1              ~ "1st regimen before HCT",
+    TRUE                                          ~ "HCT before 1st regimen"
+  )) %>% 
+  mutate(number_regimen_before_hct = case_when(
+    line_stop_date_1 < date_of_bmt_1              ~ "1",
+    line_stop_date_2 < date_of_bmt_1              ~ "2",
+    line_stop_date_3 < date_of_bmt_1              ~ "3",
+    line_stop_date_4 < date_of_bmt_1              ~ "4",
+    TRUE                                          ~ "more than 4"
+  ))
+
+
+mysurv <- Surv(time = regimen_in_hct$month_at_os, event = regimen_in_hct$os_event)
+myplot <- survfit(mysurv~first_regimen_before_hct, data = regimen_in_hct)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/OS by regimen vs HCT.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = regimen_in_hct,
+           title = "OS in germline patient data",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           # palette = c("blue", "red"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)+ guides(colour = guide_legend(ncol = 2))
+dev.off()
+
+mysurv <- Surv(time = regimen_in_hct$month_at_progression_drug, event = regimen_in_hct$drug_progression_event)
+myplot <- survfit(mysurv~first_regimen_before_hct, data = regimen_in_hct)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/PFS by regimen vs HCT.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = regimen_in_hct,
+           title = "PFS in germline patient data",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           # palette = c("blue", "red"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)+ guides(colour = guide_legend(ncol = 2))
+dev.off()
+
+# regimen number bf HCT
+mysurv <- Surv(time = regimen_in_hct$month_at_os, event = regimen_in_hct$os_event)
+myplot <- survfit(mysurv~number_regimen_before_hct, data = regimen_in_hct)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/OS by regimen number bf HCT.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = regimen_in_hct,
+           title = "OS in germline patient data",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           # palette = c("blue", "red"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)+ guides(colour = guide_legend(ncol = 2))
+dev.off()
+
+mysurv <- Surv(time = regimen_in_hct$month_at_progression_drug, event = regimen_in_hct$drug_progression_event)
+myplot <- survfit(mysurv~number_regimen_before_hct, data = regimen_in_hct)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/PFS by regimen number bf HCT.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = regimen_in_hct,
+           title = "PFS in germline patient data",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           # palette = c("blue", "red"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)+ guides(colour = guide_legend(ncol = 2))
+dev.off()
+
+
+regimen_in_hct_2 <- regimen_in_hct %>% 
+  filter(first_regimen_before_hct == "1st regimen before HCT")
+
+mysurv <- Surv(time = regimen_in_hct_2$month_at_os, event = regimen_in_hct_2$os_event)
+myplot <- survfit(mysurv~first_regimen_name, data = regimen_in_hct_2)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/OS by regimen name bf HCT.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = regimen_in_hct_2,
+           title = "OS in germline patient data",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           # palette = c("blue", "red"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)+ guides(colour = guide_legend(ncol = 2))
+dev.off()
+
+mysurv <- Surv(time = regimen_in_hct_2$month_at_progression_drug, event = regimen_in_hct_2$drug_progression_event)
+myplot <- survfit(mysurv~first_regimen_name, data = regimen_in_hct_2)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/PFS by regimen name bf HCT.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = regimen_in_hct_2,
+           title = "PFS in germline patient data",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           # palette = c("blue", "red"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)+ guides(colour = guide_legend(ncol = 2))
+dev.off()
+
+# In no HCT pop----
+a <- analysis_data %>% 
+  group_by(first_regimen_name) %>% mutate(n = n()) %>% filter(n >= 10) %>% select(first_regimen_name) %>% distinct()
+common_regimen_name <- paste0(a$first_regimen_name, collapse = "|^")
+
+no_HCT_pop <- analysis_data %>% filter(HCT_ever == "HCT") %>% 
+  filter(str_detect(first_regimen_name, common_regimen_name))
+
+mysurv <- Surv(time = no_HCT_pop$month_at_os, event = no_HCT_pop$os_event)
+myplot <- survfit(mysurv~first_regimen_name, data = no_HCT_pop)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/OS by regimen name no HCT.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = no_HCT_pop,
+           title = "OS in germline patient data",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           # palette = c("blue", "red"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)+ guides(colour = guide_legend(ncol = 2))
+dev.off()
+
+mysurv <- Surv(time = no_HCT_pop$month_at_progression_drug, event = no_HCT_pop$drug_progression_event)
+myplot <- survfit(mysurv~first_regimen_name, data = no_HCT_pop)
+jpeg(paste0(path, "/Figures/Moffitt Symposium/PFS by regimen name no HCT.jpeg"), height = 600, width = 600)
+ggsurvplot(myplot, data = no_HCT_pop,
+           title = "PFS in germline patient data",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic"),
+           # palette = c("blue", "red"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (count(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)+ guides(colour = guide_legend(ncol = 2))
+dev.off()
 
 
 

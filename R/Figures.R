@@ -530,7 +530,7 @@ tbl1 <- ethnicity_surv %>% select(Ethnicity, Age_at_MMonly_diagnosis, Gender, IS
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = ethnicity_surv$month_at_os, 
                    event = ethnicity_surv$os_event) ~ Ethnicity + Age_at_MMonly_diagnosis + Gender + ISS + Drugs_ever + HCT_ever, data =  ethnicity_surv) %>%
-  tbl_regression(exponentiate = TRUE, intercept = TRUE) %>% bold_p(t = .05)
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 tbl <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**")) %>% as_gt() %>% 
   # gt::tab_source_note(gt::md("*ISS calculated for active MM patients only*")) %>% 
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))

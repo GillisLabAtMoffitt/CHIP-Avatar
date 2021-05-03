@@ -8,7 +8,7 @@ hiv_data <-
 
 mysurv <- Surv(time = hiv_data$`Survival Time (years)`, event = hiv_data$vital_status)
 myplot <- survfit(mysurv~hiv_data$`HIV status`, data = hiv_data)
-png(paste0(path1, "/OS by HIV.png"), height = 600, width = 600)
+jpeg("OS by HIV.jpeg", height = 600, width = 600)
 ggsurvplot(myplot, data = hiv_data,
            title = "OS",
            font.main = c(24, "bold", "black"),
@@ -44,20 +44,20 @@ dev.off()
 
 mysurv <- Surv(time = hiv_data$`Survival Time (years)`, event = hiv_data$vital_status)
 myplot <- survfit(mysurv~CH_status, data = hiv_data)
-png(paste0(path1, "/OS by CH.png"), height = 600, width = 600)
+jpeg("OS by CH.jpeg", height = 600, width = 600)
 ggsurvplot(myplot, data = hiv_data,
            title = "OS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
-           font.legend = c(14, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
            font.tickslab = c(18, "bold", "black"),
            size = 1.5,
            
            xlab = "Time in years", 
            legend = "top",
            legend.title = "",
-           legend.labs = c("CH", "No CH"),
+           legend.labs = c("ARCH", "No ARCH"),
            # color = "Ethnicity",
            # palette = c("darkred", "darkgreen"),
            xlim = c(-0.20, 10),
@@ -85,13 +85,13 @@ hiv_pos <- hiv_data %>% filter(`HIV status` == "positive")
 
 mysurv <- Surv(time = hiv_pos$`Survival Time (years)`, event = hiv_pos$vital_status)
 myplot <- survfit(mysurv~CH_status, data = hiv_pos)
-png(paste0(path1, "/PFS by CH in HIV positive.png"), height = 600, width = 600)
+jpeg("OS by CH in HIV positive.jpeg", height = 600, width = 600)
 ggsurvplot(myplot, data = hiv_pos,
            title = "OS in HIV positive patients",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
-           font.legend = c(14, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
            font.tickslab = c(18, "bold", "black"),
            size = 1.5,
            
@@ -100,7 +100,7 @@ ggsurvplot(myplot, data = hiv_pos,
            legend.title = "",
            # color = "Ethnicity",
            # palette = c("darkred", "darkgreen"),
-           legend.labs = c("CH", "No CH"),
+           legend.labs = c("ARCH", "No ARCH"),
            xlim = c(-0.20, 10),
            pval = TRUE,
            conf.int = FALSE,

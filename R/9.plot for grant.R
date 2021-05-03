@@ -39,6 +39,8 @@ ggsurvplot(myplot, data = hiv_data,
            # Censor
            censor = TRUE
 )
+jpeg(paste0(path1, "/OS by HIV.jpeg"), height = 600, width = 600)
+p
 dev.off()
 
 
@@ -75,7 +77,9 @@ ggsurvplot(myplot, data = hiv_data,
            ),
            # Censor
            censor = TRUE
-) #+ guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 2))
+)
+jpeg(paste0(path1, "/OS by CH.jpeg"), height = 600, width = 600)
+p
 dev.off()
 
 
@@ -116,5 +120,7 @@ ggsurvplot(myplot, data = hiv_pos,
            ),
            # Censor
            censor = TRUE
-) #+ guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 2))
+)
+jpeg(paste0(path1, "/PFS by CH in HIV positive.jpeg"), height = 600, width = 600)
+p
 dev.off()

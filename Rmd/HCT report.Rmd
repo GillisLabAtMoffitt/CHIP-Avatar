@@ -1,0 +1,1095 @@
+---
+title: "HCT hypothesis"
+author: "Christelle Colin-Leitzinger"
+date: '`r Sys.Date()`'
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: false
+    theme: cerulean #darkly
+    highlight: pygments
+    # keep_md: true
+editor_options: 
+  chunk_output_type: inline
+---
+
+<style type="text/css">
+h1.title {
+  font-size: 25px;
+}
+.figure {
+   margin-top: 25px;
+   <!-- margin-bottom: 100px; -->
+}
+
+table {
+    margin-top: 25px;
+    <!-- margin-bottom: 100px !important; -->
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      cache = FALSE,
+                      # fig.width = 7, fig.height = 5, 
+                      fig.align='center'#, fig.show='hold'
+                      )
+options(gtsummary.print_engine = "gt")
+options(gtsummary.as_gt.addl_cmds = "gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1))")
+
+```
+
+
+<style>
+div.blue { background-color:#0099CC; border-radius: 5px; padding: 20px; font-size: 38px}
+</style>
+<div class = "blue">
+
+<span style="color: white;">HCT hypothesis</span>
+
+</div>
+<br>
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(VennDiagram)
+library(viridis)
+library(lubridate)
+library(gtsummary)
+library(survival)
+library(survminer)
+```
+
+```{r load}
+# Global_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Global_data.rds")
+germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/germline_patient_data.rds")
+# Treatment1 <-  readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Treatment1.rds")
+path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
+# patients_removed_nonMM <- c("A000428", "A000456")
+```
+<br>
+<br>
+<!-- Leave a space here -->
+
+***
+# I.
+
+## 1.Demographics of MM patients with WES
+### General
+
+```{r demographics in germline}
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(Whole, ISS) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric")) %>% bold_labels() %>%  as_gt() %>%  
+  gt::tab_source_note(gt::md("*ISS is reported for MM patients only*"))
+```
+
+
+### Disease status at germline collection
+```{r}
+
+```
+
+<br>
+
+#### ISS
+<div class = "row">
+<div class = "col-md-6">
+```{r, fig.height = 7}
+germline_patient_surv <- germline_patient_data %>% distinct(avatar_id, .keep_all = TRUE)
+mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
+myplot <- survfit(mysurv~ISS, data = germline_patient_surv)
+# jpeg(paste0(path, "/Figures/Survivals/Demographic/OS ISS.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS ISS from date of diagnosis",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "ISS",
+           # # legend.labs = c("No ISS", "ISS"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = germline_patient_surv$month_at_progression_Dx, event = germline_patient_surv$Progression_event)
+myplot <- survfit(mysurv~ISS, data = germline_patient_surv)
+# jpeg(paste0(path, "/Figures/Survivals/Demographic/PFS ISS from Dx.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "PFS ISS from Dx",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "ISS",
+           # # legend.labs = c("No ISS", "ISS"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)
+# dev.off()
+
+mysurv <- Surv(time = germline_patient_surv$month_at_progression_drug, event = germline_patient_surv$drug_progression_event)
+myplot <- survfit(mysurv~ISS, data = germline_patient_surv)
+# jpeg(paste0(path, "/Figures/Survivals/Demographic/PFS ISS from drugs date.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "PFS ISS from drug date",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "ISS",
+           # # legend.labs = c("No ISS", "ISS"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)
+```
+</div>
+</div>
+
+## 2.Treatments
+The results presented here are for the treatment of patients with whole exome sequencing.
+<div class = "row">
+<div class = "col-md-6">
+```{r}
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(ISS, HCT_ever, HCT_vs_germline, HCT_before_germline) %>%
+  tbl_summary(by = ISS, 
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% add_p() %>% add_n() %>% as_gt()
+```
+</div>
+
+<div class = "col-md-6">
+```{r}
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(ISS, radiation_before_germline, Radiation_ever) %>%
+  tbl_summary(by = ISS, 
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% add_p() %>% add_n() %>% as_gt()
+```
+</div>
+</div>
+
+<br>
+<br>
+<!-- Leave a space here -->
+
+***
+## 3.CH
+CH status is assessed by using the Avatar WES data.
+<div class = "row">
+<div class = "col-md-6">
+```{r}
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(CH_status) %>% 
+  tbl_summary(sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% as_gt() %>%  
+  gt::tab_style(
+    style = gt::cell_text(
+      color = "#0099CC"
+    ),
+    locations = gt::cells_column_labels(everything())
+  ) 
+```
+
+</div>
+
+<div class = "col-md-6">
+```{r}
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(CH_status, ISS) %>% 
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric")) %>% add_p() %>% bold_labels() %>%  as_gt() %>%  
+  gt::tab_source_note(gt::md("*ISS is reported for MM patients only*"))
+```
+</div>
+</div>
+
+<div class = "row">
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
+myplot <- survfit(mysurv~CH_status, data = germline_patient_surv)
+# jpeg(paste0(path, "/Figures/Survivals/CHIP/OS by CH.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS CH",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           # # legend.labs = c("CH", "No CH"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.17,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black"))
+)
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = germline_patient_surv$month_at_progression_drug, event = germline_patient_surv$drug_progression_event)
+myplot <- survfit(mysurv~CH_status, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "PFS calculated from drug date",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           # # legend.labs = c("CH", "No CH"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.17,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black"))
+)
+```
+</div>
+</div>
+
+#### CH in sequenced patients
+<div class = "row">
+<div class = "col-md-6">
+```{r, fig.height = 7}
+patient <- readxl::read_xlsx(paste0(path, "/Nancy's working files/MM Avatar_Sequenced subset.xlsx"),
+                             sheet = "Sequenced") %>% 
+  select(avatar_id) %>% distinct()
+id <- paste(patient$avatar_id, collapse = "|")
+germline_patient_data_simp <- germline_patient_surv %>% 
+  filter(!str_detect(Disease_Status_germline, "Amyloidosis|Myelofibrosis|Solitary|Waldenstrom|Refractory|Normal|Poly"))
+
+germline_patient_data_seqsimp <- germline_patient_data_simp[ grepl(id, germline_patient_data_simp$avatar_id) , ]
+
+mysurv <- Surv(time = germline_patient_data_seqsimp$month_at_os, event = germline_patient_data_seqsimp$os_event)
+myplot <- survfit(mysurv~CH_status, data = germline_patient_data_seqsimp)
+# jpeg(paste0(path, "/Figures/Survivals/CHIP/OS by CH in sequenced patients MM+SM.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = germline_patient_data_seqsimp,
+           title = "OS CH",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           # # legend.labs = c("CH", "No CH"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.17,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black"))
+)
+
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = germline_patient_data_seqsimp$month_at_progression_drug, event = germline_patient_data_seqsimp$drug_progression_event)
+myplot <- survfit(mysurv~CH_status, data = germline_patient_data_seqsimp)
+ggsurvplot(myplot, data = germline_patient_data_seqsimp,
+           title = "PFS from drug date",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5, # line thickness default = 1
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           # legend.labs = c("CH", "No CH"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.17,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           )
+)
+```
+</div>
+</div>
+
+<br>
+<br>
+<!-- Leave a space here -->
+
+***
+# III.Survivals by treatment
+All survival analysis are limited to the germline population.
+
+## 1.HCT
+pfs-hct is when HCT happened before germline = Yes whereas HCT_ever is a more general Yes/No HCT.
+<div class = "row">
+<div class = "col-md-6">
+```{r, fig.height = 7}
+germline_patient_surv <- germline_patient_data %>% distinct(avatar_id, .keep_all = TRUE)
+
+mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
+myplot <- survfit(mysurv~HCT_ever, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS HCT (pfs_hct is when HCT <or= germline date)",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)
+
+
+
+mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
+myplot <- survfit(mysurv~HCT_vs_germline, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS HCT_vs_germline",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)
+
+mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
+myplot <- survfit(mysurv~HCT_before_germline, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS HCT_before_germline",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)
+
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+germline_patient_surv %>% select(HCT_ever) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = germline_patient_surv$month_at_os, 
+                             event = germline_patient_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+
+germline_patient_surv %>% select(HCT_vs_germline) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = germline_patient_surv$month_at_os, 
+                             event = germline_patient_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+
+
+```
+</div>
+</div>
+
+<span style="color:red">
+**It is a difference of survival between patient who received HCT BEFORE GERMLINE or not but it may be due to the stage**
+</span>
+
+
+<br>
+<br>
+
+## 2.HCT & ISS
+<div class = "row">
+<div class = "col-md-6">
+```{r}
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(CH_status, ISS) %>% 
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric")) %>% add_p() %>% bold_labels() %>%  as_gt() %>%  
+  gt::tab_source_note(gt::md("*ISS is reported for MM patients only*"))
+```
+</div>
+
+<div class = "col-md-6">
+```{r}
+germline_patient_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(CH_status, ISS) %>% 
+  tbl_summary(by = ISS, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric")) %>% add_p() %>% bold_labels() %>%  as_gt() %>%  
+  gt::tab_source_note(gt::md("*ISS is reported for MM patients only*"))
+```
+</div>
+</div>
+
+<div class = "row">
+<div class = "col-md-6">
+```{r, fig.height = 7}
+germline_patient_surv <- germline_patient_data %>% distinct(avatar_id, .keep_all = TRUE)
+mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
+
+myplot <- survfit(mysurv~HCT_vs_germline+ISS, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS HCT",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("No Treatment", "Treatment"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           color = "ISS",
+           linetype = "HCT_vs_germline",
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)
+
+myplot <- survfit(mysurv~HCT_ever+ISS, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS HCT",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("No Treatment", "Treatment"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           color = "ISS",
+           linetype = "HCT_ever",
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)
+
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+tbl1 <- germline_patient_surv %>% select(HCT_vs_germline, ISS) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = germline_patient_surv$month_at_os, 
+                             event = germline_patient_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = germline_patient_surv$month_at_os, 
+             event = germline_patient_surv$os_event) ~ HCT_vs_germline + ISS, data =  germline_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+
+tbl1 <- germline_patient_surv %>% select(HCT_ever, ISS) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = germline_patient_surv$month_at_os, 
+                             event = germline_patient_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = germline_patient_surv$month_at_os, 
+             event = germline_patient_surv$os_event) ~ HCT_ever + ISS, data =  germline_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+```
+</div>
+</div>
+
+<span style="color:red">
+**When compare survival between patient who received SCT by ISS stage, it is no difference**
+</span>
+
+<br>
+<br>
+
+## 3.HCT & CH
+<div class = "row">
+<div class = "col-md-6">
+```{r, fig.height = 7}
+germline_patient_surv <- germline_patient_data %>% distinct(avatar_id, .keep_all = TRUE)
+mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
+myplot <- survfit(mysurv~HCT_ever+CH_status, data = germline_patient_surv)
+# jpeg(paste0(path, "/Figures/Survivals/CHIP/OS HCT by CH.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS HCT ever",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), #20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           color = "CH_status",
+           linetype = "HCT_ever",
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+) + guides(colour = guide_legend(nrow = 2))
+
+mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
+myplot <- survfit(mysurv~HCT_vs_germline+CH_status, data = germline_patient_surv)
+# jpeg(paste0(path, "/Figures/Survivals/CHIP/OS HCT by CH.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS HCT_vs_germline",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), #20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           color = "CH_status",
+           linetype = "HCT_vs_germline",
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+) + guides(colour = guide_legend(nrow = 2))
+
+myplot <- survfit(mysurv~HCT_before_germline+CH_status, data = germline_patient_surv)
+# jpeg(paste0(path, "/Figures/Survivals/CHIP/OS HCT by CH.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS HCT_before_germline",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), #20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           color = "CH_status",
+           linetype = "HCT_before_germline",
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+) + guides(colour = guide_legend(nrow = 2))
+
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+tbl1 <- germline_patient_surv %>% select(HCT_before_germline, CH_status) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = germline_patient_surv$month_at_os, 
+                             event = germline_patient_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = germline_patient_surv$month_at_os, 
+             event = germline_patient_surv$os_event) ~ HCT_before_germline + CH_status, data =  germline_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+
+tbl1 <- germline_patient_surv %>% select(HCT_ever, CH_status) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = germline_patient_surv$month_at_os, 
+                             event = germline_patient_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = germline_patient_surv$month_at_os, 
+             event = germline_patient_surv$os_event) ~ HCT_ever + CH_status, data =  germline_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+```
+</div>
+</div>
+
+<span style="color:red">
+**Interestingly this difference of survival between +/- SCT is seen in patients with no CH. What is the part of CH in the ISS stage?**
+</span>
+
+<br>
+<br>
+
+
+
+<br>
+<br>
+
+## 5.Radiation
+<div class = "row">
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
+myplot <- survfit(mysurv~radiation_before_germline, data = germline_patient_surv)
+# jpeg(paste0(path, "/Figures/Survivals/Treatment/OS by Radiation.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS ",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # legend.labs = c("No Radiation", "Radiation"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)
+# dev.off()
+
+myplot <- survfit(mysurv~radiation_before_germline+CH_status, data = germline_patient_surv)
+# jpeg(paste0(path, "/Figures/Survivals/CHIP/OS Rad by CH.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS ",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # legend.labs = c("No Radiation", "Radiation"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           color = "CH_status",
+           linetype = "radiation_before_germline",
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+) + guides(colour = guide_legend(nrow = 2))
+
+myplot <- survfit(mysurv~Radiation_ever, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "OS Radiation",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("No Radiation", "Radiation"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = germline_patient_surv$month_at_progression_rad, event = germline_patient_surv$rad_progression_event)
+myplot <- survfit(mysurv~radiation_before_germline, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "PFS radiation_before_germline",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("No Radiation", "Radiation"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)
+myplot <- survfit(mysurv~radiation_before_germline+CH_status, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "PFS radiation_before_germline",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("No Radiation", "Radiation"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           color = "CH_status",
+           linetype = "radiation_before_germline",
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+) + guides(colour = guide_legend(nrow = 2))
+
+myplot <- survfit(mysurv~Radiation_ever, data = germline_patient_surv)
+ggsurvplot(myplot, data = germline_patient_surv,
+           title = "PFS Radiation",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("No Radiation", "Radiation"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 6,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)
+```
+</div>
+</div>
+
+<br>
+<br>
+

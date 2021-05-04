@@ -198,9 +198,9 @@ Global_data <- Global_data %>%
   # mutate(pfs_treatment_start_date = coalesce(pfs_treatment_start_date, pfs_hct_start_date)) %>% 
   mutate(pfs_treatment = case_when(
     !is.na(pfs_hct_start_date) &
-      !is.na(pfs_line_start_date)                     ~ "Drug + SCT",
+      !is.na(pfs_line_start_date)                     ~ "Drug + HCT",
     !is.na(pfs_hct_start_date) &
-      is.na(pfs_line_start_date)                      ~ "SCT only (before or after germline)",
+      is.na(pfs_line_start_date)                      ~ "HCT only (before or after germline)",
     is.na(pfs_hct_start_date) &
       !is.na(pfs_line_start_date)                     ~ "Drug only"
   )) %>% 

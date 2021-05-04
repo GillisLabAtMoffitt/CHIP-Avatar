@@ -8,7 +8,7 @@ data*
 *.log
 *.png
 *.html
-*.jpg
+*.jpeg
 *.csv
 *.rds
 

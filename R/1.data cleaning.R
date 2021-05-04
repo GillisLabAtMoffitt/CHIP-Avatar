@@ -133,6 +133,7 @@ Demo_RedCap_V4ish <- Demo_RedCap_V4ish %>%
 # Patient history ----
 history_disease <- function(data){
   data <- data %>% 
+    filter(histology == 97651 | histology == 97323) %>% 
     mutate(disease_stage = case_when(
       hematological_malignancy_phase == 1         ~ "active",
       hematological_malignancy_phase == 2         ~ "smoldering",
@@ -391,12 +392,21 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
           "given with |investigational agent: |investigational therapy: |investigational therapy : |clinical trial: |clinical trial; |clinical trial-|clinical trial | sulfate|clinical trial/|other: |  |clinical trial|oral proteasome inhibitor = ")) %>%
   mutate(drug_name_ = case_when(
     drug_name_ == "cafilzomib"                                             ~ "carfilzomib",
+    drug_name_ == "-doxorubicin"                                           ~ "doxorubicin",
+    drug_name_ == "liposomal doxorubicin"                                  ~ "doxil",
     drug_name_ == "daratumuab"                                             ~ "daratumumab",
     str_detect(drug_name_, "^dex")                                         ~ "dexamethasone",
+    drug_name_ == "cyclophosphomide: dex"                                  ~ "cyclophosphomide; dexamethasone",
+    
     str_detect(drug_name_, "^lena|revlimid")                               ~ "lenalidomide",
     str_detect(drug_name_, "^mel")                                         ~ "melphalan",
     str_detect(drug_name_, "velcade")                                      ~ "bortezomib",
     drug_name_ == "vinicristine"                                           ~ "vincristine",
+    (str_detect(drug_name_, "kpt") &
+       str_detect(drug_name_, "300")) |
+      str_detect(drug_name_, "selinexor")                                  ~ "kpt300",
+    str_detect(drug_name_, "kpt") &
+      str_detect(drug_name_, "8602")                                       ~ "kpt8602",
     drug_name_ %in% c("anastrozole", "azacitidine", "carmustine", 
                       "cytarabine", "decitabine", "denosumab", 
                       "docetaxel", "hydrocortisone", "methotrexate",
@@ -405,20 +415,8 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
                       "sorafenib tosylate", "tamoxifen citrate", 
                       "zoledronic acid", "prevnar", "ruxolitinib")         ~ "non-mm drugs",
     TRUE                                                                   ~ drug_name_
-  )) %>% 
-  mutate(drug_name_ = str_replace_all(drug_name_, "liposomal doxorubicin", "doxil")) %>% 
-  mutate(drug_name_ = str_replace_all(drug_name_, "-doxorubicin", "doxorubicin")) %>% 
-  
-  mutate(drug_name_ = case_when(
-    str_detect(drug_name_, "kpt") &
-      str_detect(drug_name_, "300")            ~ "kpt300",
-    str_detect(drug_name_, "kpt") &
-      str_detect(drug_name_, "8602")           ~ "kpt8602",
-    TRUE                                       ~ drug_name_
-  )) %>% 
-  
-  mutate(drug_name_ = str_replace_all(drug_name_, "cyclophosphomide: dex", "cyclophosphomide; dexamethasone")) %>% 
-  filter(!is.na(avatar_id) & drug_name_ != "non-mm drugs") %>% 
+  )) %>%
+  filter(!is.na(avatar_id) | drug_name_ != "non-mm drugs" | is.na(drug_start_date)) %>% 
   distinct() %>%
   # group_by(avatar_id, drug_start_date) %>%
   # arrange(drug_name_) %>%

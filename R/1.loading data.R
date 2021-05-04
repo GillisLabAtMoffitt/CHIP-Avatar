@@ -124,7 +124,7 @@ Treatment_V12 <-
   readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx")),
                     sheet = "Treatment") %>%
   select(c("mrn", "avatar_id", "treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date",
-           "drug_name_other_")) %>%
+           "drug_name_other_", "treatment_site")) %>%
   unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = TRUE) # %>% 
 # rename(drug_other = "drug_name_other_")
 #---
@@ -204,7 +204,7 @@ TreatmentV12_L_2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_04212020.xlsx")),
                     sheet = "Treatment") %>%
   select(c("avatar_id", "treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date",
-           "drug_name_other_")) %>%
+           "drug_name_other_", "treatment_site")) %>%
   unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = TRUE)
 #
 ProgressionV12_L_2 <-
@@ -417,7 +417,7 @@ TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
                     sheet = "Treatment") %>%
   select(c("avatar_id", "treatment_line_", "drug_start_date" , "drug_name_", "drug_stop_date",
-           "drug_name_other")) %>%
+           "drug_name_other", "treatment_site")) %>%
   unite(drug_name_, c(drug_name_,drug_name_other), sep = ": ", na.rm = TRUE, remove = TRUE)
 Qcd_TreatmentV2 <-
   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
@@ -504,7 +504,7 @@ TreatmentV4 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx")),
                     sheet = "Treatment") %>%
   select(c("avatar_id", "treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date",
-           "drug_name_other")) %>%
+           "drug_name_other", "treatment_site")) %>%
   unite(drug_name_, c(drug_name_,drug_name_other), sep = ": ", na.rm = TRUE, remove = TRUE)
 #---
 Progression_V4 <-
@@ -581,7 +581,7 @@ TreatmentV4.1 <-
   readxl::read_xlsx((paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx")),
                     sheet = "Treatment") %>%
   select(c("avatar_id", "treatment_line_", "drug_start_date", "drug_name_", "drug_stop_date",
-           "drug_name_other_")) %>%
+           "drug_name_other_", "treatment_site")) %>%
   unite(drug_name_, c(drug_name_,drug_name_other_), sep = ": ", na.rm = TRUE, remove = TRUE)
 #
 Progression_V4.1 <-

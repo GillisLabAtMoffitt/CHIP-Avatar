@@ -156,7 +156,7 @@ Labs_V12 <-
 Metastasis_V12 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx"),
                     sheet = "Metastatic_Disease") %>%
-  select(c("avatar_id", metastasis_date = "mets_verify_date"))
+  select(c("avatar_id", metastasis_date = "mets_verify_date", have_metastasis = "initial_1_mets_1"))
 #---
 Staging_V12 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx"),
@@ -235,7 +235,7 @@ LabsV12_L_2 <-
 MetastasisV12_L_2 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_04212020.xlsx"),
                     sheet = "Metastatic_Disease") %>%
-  select(c("avatar_id", metastasis_date = "mets_verify_date"))
+  select(c("avatar_id", metastasis_date = "mets_verify_date", have_metastasis = "initial_1_mets_1"))
 #
 StagingV12_L_2 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_04212020.xlsx"),
@@ -533,7 +533,7 @@ LabsV4 <-
 MetastasisV4 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx"),
                     sheet = "Metastatic_Disease") %>%
-  select(c("avatar_id", metastasis_date = "mets_verify_date"))
+  select(c("avatar_id", metastasis_date = "mets_verify_date", have_metastasis = "initial_1_mets_1"))
 #---
 StagingV4 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx"),
@@ -610,7 +610,7 @@ LabsV4.1 <-
 MetastasisV4.1 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
                     sheet = "Metastatic_Disease") %>%
-  select(c("avatar_id", metastasis_date = "mets_verify_date"))
+  select(c("avatar_id", metastasis_date = "mets_verify_date", have_metastasis = "initial_1_mets_1"))
 #
 StagingV4.1 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),

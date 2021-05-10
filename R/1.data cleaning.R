@@ -385,7 +385,7 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
     treatment_line_ == "Palliative"              ~ 91,
     str_detect(treatment_line_, "Unknown")       ~ 99
   )) %>% 
-  select(mrn, avatar_id, treatment_line_, drug_start_date, drug_stop_date, drug_name_) %>% 
+  select(mrn, avatar_id, treatment_line_, drug_start_date, drug_stop_date, drug_name_, treatment_site) %>% 
   mutate(drug_name_ = tolower(drug_name_)) %>%
   mutate(drug_name_ = 
            str_remove_all(drug_name_, 
@@ -795,6 +795,15 @@ Progression_hct <- Progression_hct %>% # Remove progression < hct and keep earli
   rename(progression_hct_date = "progression_date")
 
 
+# Metastasis
+metastasis <- bind_rows(Metastasis_V12, MetastasisV12_L_2, MetastasisV4, MetastasisV4.1) %>% 
+  mutate(have_metastasis = ifelse(have_metastasis == 3, "No Metastasis", "Metastasis")) %>% 
+  mutate(metastasis_date = case_when(
+    have_metastasis == "No Metastasis"      ~ NA_POSIXct_,
+    have_metastasis == "Metastasis"         ~ metastasis_date
+  ))
+
+
 # Cleaning
 rm(Demo_HRI, Demo_linkage, MM_history_V12, MM_historyV2, MM_historyV4, MM_historyV4.1,
    Vitals_V12, VitalsV2, VitalsV4, VitalsV4.1, SCT_V12, SCTV2, SCTV4, SCTV4.1,
@@ -911,6 +920,7 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., Last_labs_dates %>% select(c("avatar_id", "labs_last_date")), by = "avatar_id") %>% 
   full_join(., OS_data, by = "avatar_id") %>% 
   full_join(., Staging_ISS, by = c("avatar_id", "collectiondt_germline")) %>% 
+  full_join(., metastasis, by = "avatar_id") %>% 
   full_join(Demo_RedCap_V4ish %>% select(-TCC_ID), ., by = "avatar_id")
 # # write.csv(Global_data, paste0(path, "/Global_data.csv"))
 Global_data <- left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id")) %>% 

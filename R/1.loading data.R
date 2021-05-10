@@ -22,9 +22,10 @@ Demo_linkage <-
                     sheet = "Sheet1")
 # 1.2.Load Germline with disease status --------------------------------------------------------------------------
 Germline <- readxl::read_xlsx(paste0(path, 
-                                     "/Raghu MM/Germline data/Moffitt_Germl_v0.4.5_Disease_Classification_12082020.xlsx")) %>% 
-  select(c("avatar_id", "SLID_germline", "collectiondt_germline", 
-           "moffittSampleId_germline", Disease_Status_germline = "Disease_Status"))
+                                     "/Raghu MM/Germline data/Avatar_MM_03162021_OUT.xlsx")) %>% 
+  filter(DiseaseType == "Not applicable (germline)") %>% 
+  select(c("avatar_id", SLID_germline = "DNASequencingLibraryID", collectiondt_germline = "collectiondt", 
+           moffittSampleId_germline = "ORIENSpecimenID", Disease_Status_germline = "disease_status"))
 # uid <- paste(unique(Germline$avatar_id), collapse = '|')
 # Germ <- 
 #   readxl::read_xlsx(paste0(path, 
@@ -79,7 +80,7 @@ Seq_WES_Raghu <-
 Sequencing2 <- # warning message due to a TRUE added in a num var by Raghu (he copy paste an extra patient)
   readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/MM_Metadata_WES_V0441.xlsx")) %>% 
   select(c(avatar_id = "subject",
-           "SLID_germline", moffitt_sample_id_germline = "moffittSampleId_germline",
+           "SLID_germline", "moffittSampleId_germline",
            "collectiondt_germline",
            "SLID_tumor" , moffitt_sample_id_tumor = "moffittSampleId_tumor", "collectiondt_tumor",
            BaitSet = "baitSet"))
@@ -87,7 +88,7 @@ Sequencing2 <- # warning message due to a TRUE added in a num var by Raghu (he c
 Seq_WES_Raghu2 <- 
   readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/MM_Metadata_WES_V045.xlsx")) %>% 
   select(c(avatar_id = "subject", 
-           "SLID_germline", moffitt_sample_id_germline = "moffittSampleId_germline", "collectiondt_germline", 
+           "SLID_germline", "moffittSampleId_germline", "collectiondt_germline", 
            "SLID_tumor" , moffitt_sample_id_tumor = "moffittSampleId_tumor", "collectiondt_tumor", 
            "BaitSet"))
 

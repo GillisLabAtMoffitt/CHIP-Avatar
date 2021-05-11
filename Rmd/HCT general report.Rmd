@@ -14,6 +14,7 @@ editor_options:
   chunk_output_type: console
 ---
 
+```{=html}
 <style type="text/css">
 h1.title {
   font-size: 25px;
@@ -28,7 +29,7 @@ table {
     margin-bottom: 25px;
 }
 </style>
-
+```
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
                       warning = FALSE,
@@ -42,15 +43,15 @@ options(gtsummary.as_gt.addl_cmds = "gt::tab_options(table.font.size = 14, data_
 
 ```
 
-
+```{=html}
 <style>
 div.blue { background-color:#0099CC; border-radius: 5px; padding: 20px; font-size: 38px}
 </style>
-<div class = "blue">
+```
+::: {.blue}
+[HCT]{style="color: white;"}
+:::
 
-<span style="color: white;">HCT</span>
-
-</div>
 <br>
 
 ```{r library, include=FALSE}
@@ -72,9 +73,10 @@ path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "
 # patients_removed_nonMM <- c("A000428", "A000456")
 ```
 
+------------------------------------------------------------------------
 
-***
 # I. MM patients with WES who received HCT
+
 ## 1. Demographics
 
 ```{r demographics in germline}
@@ -102,22 +104,24 @@ hct_data %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 ```
 
-## 2. Disease status at time of bood collection (`r emo::ji("warning")` is not at time of HCT)
+## 2. Disease status at time of Blood collection (`r emo::ji("warning")` is not at time of HCT)
+
 ```{r}
 hct_data %>%
   mutate(Whole = "HCT patients") %>% 
   select(Disease_Status_germline, Whole) %>% 
-  tbl_summary(by = Whole, label = list(Disease_Status_germline ~ "Disease Status at Time of Bood Collection")) %>% 
+  tbl_summary(by = Whole, label = list(Disease_Status_germline ~ "Disease Status at Time of Blood Collection")) %>% 
   bold_labels() %>% as_gt()  %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 ```
 
 ## 3. Time from blood collection to hct
+
 ```{r, fig.width=10}
 hct_data %>%
   mutate(Whole = "HCT patients") %>% 
   select(days_at_hct_blood, Whole, time_to_hct) %>% 
-  tbl_summary(by = Whole, label = list(days_at_hct_blood ~ "Time to HCT from Bood Collection (in days)", time_to_hct ~ "Time to HCT from MM diagnosis (in days)")) %>% 
+  tbl_summary(by = Whole, label = list(days_at_hct_blood ~ "Time to HCT from Blood Collection (in days)", time_to_hct ~ "Time to HCT from MM diagnosis (in days)")) %>% 
   bold_labels() %>% as_gt() %>%  
   gt::tab_source_note(gt::md("**HCT happen 694 days before blood collection**")) %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
@@ -139,8 +143,8 @@ p + scale_fill_viridis_c(
   aesthetics = "fill"
 ) +
   theme_minimal(base_size = 14) +
-  labs(x="Time to HCT from Bood Collection (in days)", y="Number of Patient", title="Number of Days Between Bood Collection and HCT",
-       caption = "1 bin = 100 days")+
+  labs(x="Time to HCT from Blood Collection (in days)", y="Number of Patient", title="Number of Days Between Blood Collection and HCT",
+       caption = "Each bar represents 100 days")+
   
   annotate("text", x = -3750, y = 38, # x and y coordinates of the text
            label = "HCT before \nblood collection", 
@@ -151,7 +155,13 @@ p + scale_fill_viridis_c(
            label = "HCT after \nblood collection", 
            size = 4) +
   annotate("segment", x = 15, xend = 2500, y = 35, yend = 35,
-           size = 1, colour = "blue")
+           size = 1, colour = "blue") + 
+  
+  scale_x_continuous(breaks=c(-7500, -6225, -5000, -3775, -2500, -1225, 0, 200, 1225, 2500),
+          minor_breaks=c(0, 200)
+          ) + 
+  theme(axis.text.x = element_text(angle=90, size=c(12, 12, 12, 12, 12, 12, 9, 12, 12)))# +
+  # geom_text(stat="count", aes(label=stat(count)), vjust=-0.2) 
 
 hct_data %>% 
   mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>% 
@@ -167,7 +177,7 @@ hct_data %>%
   mutate(days_at_hct_blood = (interval(start= hct_data$collectiondt_germline, end= hct_data$date_of_bmt_1)  /  duration(n=1, unit="days"))) %>% 
   mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>% 
   select(HCT_vs_germline, days_at_hct_blood, HCT_vs_germline) %>% 
-  tbl_summary(by = HCT_vs_germline, label = list(days_at_hct_blood ~ "Time to HCT from Bood Collection (in days)"),
+  tbl_summary(by = HCT_vs_germline, label = list(days_at_hct_blood ~ "Time to HCT from Blood Collection (in days)"),
               sort = list(everything() ~ "frequency"),
               missing = "no") %>% 
   bold_labels() %>% as_gt() %>%  
@@ -177,6 +187,7 @@ hct_data %>%
 ```
 
 ## 4. Year at HCT
+
 ```{r, fig.width=12}
 hct_data %>% mutate(year_at_first_bmt = as.factor(year(date_of_bmt_1))) %>% 
   mutate(Whole = "HCT patients") %>% 
@@ -193,6 +204,7 @@ hct_data %>% mutate(year_at_first_bmt = (year(date_of_bmt_1))) %>%
 ```
 
 ## 5. Name of first regimen for HCT patients
+
 ```{r}
 hct_data %>% 
   mutate(Whole = "HCT patients") %>% 
@@ -236,127 +248,233 @@ hct_data %>%
 <br>
 
 <!-- #### ISS -->
+
 <!-- <div class = "row"> -->
+
 <!-- <div class = "col-md-6"> -->
+
 <!-- ```{r, fig.height = 7} -->
+
 <!-- germline_patient_surv <- germline_patient_data %>% distinct(avatar_id, .keep_all = TRUE) -->
+
 <!-- mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event) -->
+
 <!-- myplot <- survfit(mysurv~ISS, data = germline_patient_surv) -->
+
 <!-- # jpeg(paste0(path, "/Figures/Survivals/Demographic/OS ISS.jpeg"), width = 1200, height = 900) -->
+
 <!-- ggsurvplot(myplot, data = germline_patient_surv, -->
+
 <!--            title = "OS ISS from date of diagnosis", -->
+
 <!--            font.main = c(24, "bold", "black"), -->
+
 <!--            font.x = c(20, "bold", "black"), -->
+
 <!--            font.y = c(20, "bold", "black"), -->
+
 <!--            font.legend = c(20, "bold", "black"), -->
+
 <!--            font.tickslab = c(18, "bold", "black"), -->
+
 <!--            size = 1.5, -->
 
 <!--            xlab = "Time in months",  -->
+
 <!--            legend = "top", -->
+
 <!--            legend.title = "ISS", -->
+
 <!--            # # legend.labs = c("No ISS", "ISS"), -->
+
 <!--            # palette = c("darkred", "darkgreen", "grey"), -->
+
 <!--            pval = TRUE, -->
+
 <!--            conf.int = FALSE, -->
+
 <!--            # Add risk table -->
+
 <!--            tables.height = 0.3, -->
+
 <!--            risk.table.title = "Risk table (number(%))", -->
+
 <!--            risk.table = "abs_pct", -->
+
 <!--            risk.table.y.text = FALSE, -->
+
 <!--            risk.table.fontsize = 4, -->
+
 <!--            tables.theme = theme_survminer(base_size = 5, -->
+
 <!--                                           font.main = c(16, "bold", "black"), -->
+
 <!--                                           font.x = c(16, "bold", "black"), -->
+
 <!--                                           font.y = c(16, "bold", "transparent"), -->
+
 <!--                                           font.tickslab = c(19, "bold", "black")), -->
+
 <!--            # Censor -->
+
 <!--            censor = TRUE -->
+
 <!-- ) -->
+
 <!-- ``` -->
+
 <!-- </div> -->
 
 <!-- <div class = "col-md-6"> -->
+
 <!-- ```{r, fig.height = 7} -->
+
 <!-- mysurv <- Surv(time = germline_patient_surv$month_at_progression_Dx, event = germline_patient_surv$Progression_event) -->
+
 <!-- myplot <- survfit(mysurv~ISS, data = germline_patient_surv) -->
+
 <!-- # jpeg(paste0(path, "/Figures/Survivals/Demographic/PFS ISS from Dx.jpeg"), width = 1200, height = 900) -->
+
 <!-- ggsurvplot(myplot, data = germline_patient_surv, -->
+
 <!--            title = "PFS ISS from Dx", -->
+
 <!--            font.main = c(24, "bold", "black"), -->
+
 <!--            font.x = c(20, "bold", "black"), -->
+
 <!--            font.y = c(20, "bold", "black"), -->
+
 <!--            font.legend = c(20, "bold", "black"), -->
+
 <!--            font.tickslab = c(18, "bold", "black"), -->
+
 <!--            size = 1.5, -->
 
 <!--            xlab = "Time in months",  -->
+
 <!--            legend = "top", -->
+
 <!--            legend.title = "ISS", -->
+
 <!--            # # legend.labs = c("No ISS", "ISS"), -->
+
 <!--            # palette = c("darkred", "darkgreen", "grey"), -->
+
 <!--            pval = TRUE, -->
+
 <!--            conf.int = FALSE, -->
+
 <!--            # Add risk table -->
+
 <!--            tables.height = 0.3, -->
+
 <!--            risk.table.title = "Risk table (number(%))", -->
+
 <!--            risk.table = "abs_pct", -->
+
 <!--            risk.table.y.text = FALSE, -->
+
 <!--            risk.table.fontsize = 4, -->
+
 <!--            tables.theme = theme_survminer(base_size = 5, -->
+
 <!--                                           font.main = c(16, "bold", "black"), -->
+
 <!--                                           font.x = c(16, "bold", "black"), -->
+
 <!--                                           font.y = c(16, "bold", "transparent"), -->
+
 <!--                                           font.tickslab = c(19, "bold", "black") -->
+
 <!--            ), -->
+
 <!--            # Censor -->
+
 <!--            censor = TRUE -->
+
 <!-- ) -->
+
 <!-- # dev.off() -->
 
 <!-- mysurv <- Surv(time = germline_patient_surv$month_at_progression_drug, event = germline_patient_surv$drug_progression_event) -->
+
 <!-- myplot <- survfit(mysurv~ISS, data = germline_patient_surv) -->
+
 <!-- # jpeg(paste0(path, "/Figures/Survivals/Demographic/PFS ISS from drugs date.jpeg"), width = 1200, height = 900) -->
+
 <!-- ggsurvplot(myplot, data = germline_patient_surv, -->
+
 <!--            title = "PFS ISS from drug date", -->
+
 <!--            font.main = c(24, "bold", "black"), -->
+
 <!--            font.x = c(20, "bold", "black"), -->
+
 <!--            font.y = c(20, "bold", "black"), -->
+
 <!--            font.legend = c(20, "bold", "black"), -->
+
 <!--            font.tickslab = c(18, "bold", "black"), -->
+
 <!--            size = 1.5, -->
 
 <!--            xlab = "Time in months",  -->
+
 <!--            legend = "top", -->
+
 <!--            legend.title = "ISS", -->
+
 <!--            # # legend.labs = c("No ISS", "ISS"), -->
+
 <!--            # palette = c("darkred", "darkgreen", "grey"), -->
+
 <!--            pval = TRUE, -->
+
 <!--            conf.int = FALSE, -->
+
 <!--            # Add risk table -->
+
 <!--            tables.height = 0.3, -->
+
 <!--            risk.table.title = "Risk table (number(%))", -->
+
 <!--            risk.table = "abs_pct", -->
+
 <!--            risk.table.y.text = FALSE, -->
+
 <!--            risk.table.fontsize = 4, -->
+
 <!--            tables.theme = theme_survminer(base_size = 5, -->
+
 <!--                                           font.main = c(16, "bold", "black"), -->
+
 <!--                                           font.x = c(16, "bold", "black"), -->
+
 <!--                                           font.y = c(16, "bold", "transparent"), -->
+
 <!--                                           font.tickslab = c(19, "bold", "black") -->
+
 <!--            ), -->
+
 <!--            # Censor -->
+
 <!--            censor = TRUE -->
+
 <!-- ) -->
+
 <!-- ``` -->
+
 <!-- </div> -->
+
 <!-- </div> -->
 
+------------------------------------------------------------------------
 
-
-***
 ## 6. CH
+
 CH status is assessed by using the Avatar WES data.
+
 ```{r}
 hct_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
@@ -370,17 +488,19 @@ hct_data %>%
     locations = gt::cells_column_labels(everything())
   ) 
 ```
-<br>
-<br>
 
-***
+<br> <br>
+
+------------------------------------------------------------------------
 
 ## 7. Survivals by HCT
+
 All survival analysis are limited to the germline population.
 
 ### HCT `r emo::ji("warning")` here it includes patients with no HCT
-<div class = "row">
-<div class = "col-md-6">
+
+::: {.row}
+::: {.col-md-6}
 ```{r, fig.height = 7}
 germline_patient_surv <- germline_patient_data
 
@@ -418,9 +538,9 @@ ggsurvplot(myplot, data = germline_patient_surv,
            censor = TRUE
 ) + guides(colour = guide_legend(nrow = 2))
 ```
-</div>
+:::
 
-<div class = "col-md-6">
+::: {.col-md-6}
 ```{r, fig.height = 7}
 germline_patient_surv %>% select(HCT_ever) %>% 
   tbl_uvregression(method = survival::coxph, 
@@ -429,16 +549,15 @@ germline_patient_surv %>% select(HCT_ever) %>%
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 ```
-</div>
-</div>
+:::
+:::
 
-<br>
-<br>
+<br> <br>
 
 ### HCT & ISS
 
-<div class = "row">
-<div class = "col-md-6">
+::: {.row}
+::: {.col-md-6}
 ```{r, fig.height = 9}
 germline_patient_surv <- germline_patient_data %>% mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_))
 
@@ -480,9 +599,9 @@ ggsurvplot(myplot, data = germline_patient_surv,
            censor = TRUE
 ) + guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 3))
 ```
-</div>
+:::
 
-<div class = "col-md-6">
+::: {.col-md-6}
 ```{r, fig.height = 7}
 tbl1 <- germline_patient_surv %>% select(HCT_ever, ISS) %>% 
   tbl_uvregression(method = survival::coxph, 
@@ -495,20 +614,20 @@ tbl2 <- coxph(Surv(time = germline_patient_surv$month_at_os,
   tbl_regression(exponentiate = TRUE)
 tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
 ```
-</div>
-</div>
+:::
+:::
 
-<span style="color:red">
-**Receiving HCT increases survival in each ISS group**
-</span>
+[ **Receiving HCT increases survival in each ISS group**
+]{style="color:red"}
 
-<br>
-<br>
+<br> <br>
 
 ### HCT & CH
+
 #### In WES Population
-<div class = "row">
-<div class = "col-md-6">
+
+::: {.row}
+::: {.col-md-6}
 ```{r, fig.height = 7}
 germline_patient_surv <- germline_patient_data %>% distinct(avatar_id, .keep_all = TRUE)
 mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
@@ -548,9 +667,9 @@ ggsurvplot(myplot, data = germline_patient_surv,
            censor = TRUE
 ) + guides(colour = guide_legend(nrow = 2))
 ```
-</div>
+:::
 
-<div class = "col-md-6">
+::: {.col-md-6}
 ```{r, fig.height = 7}
 tbl1 <- germline_patient_surv %>% select(HCT_ever, CH_status) %>% 
   tbl_uvregression(method = survival::coxph, 
@@ -563,15 +682,15 @@ tbl2 <- coxph(Surv(time = germline_patient_surv$month_at_os,
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
 ```
-</div>
-</div>
+:::
+:::
 
 <br>
 
 #### In patient Receiving HCT After Blood Collection
 
-<div class = "row">
-<div class = "col-md-6">
+::: {.row}
+::: {.col-md-6}
 ```{r, fig.height = 7}
 blood_bf_hct <- hct_data %>% 
   filter(HCT_vs_germline == "HCT after blood")
@@ -613,9 +732,9 @@ ggsurvplot(myplot, data = blood_bf_hct,
 
 
 ```
-</div>
+:::
 
-<div class = "col-md-6">
+::: {.col-md-6}
 ```{r, fig.height = 7}
 blood_bf_hct %>% select(CH_status) %>% 
   tbl_uvregression(method = survival::coxph, 
@@ -624,15 +743,15 @@ blood_bf_hct %>% select(CH_status) %>%
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 ```
-</div>
-</div>
+:::
+:::
 
-<br>
-<br>
-
+<br> <br>
 
 # II. MM Avatar Patients with Targeted Sequencing
-Patients who had their blood collection before treatment were selected for sequencing.
+
+Patients who had their blood collection before treatment were selected
+for sequencing.
 
 ### General
 
@@ -658,22 +777,24 @@ hct_data_sequenced %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 ```
 
-### Disease status at time of bood collection (`r emo::ji("warning")` is not at time of HCT)
+### Disease status at time of Blood collection (`r emo::ji("warning")` is not at time of HCT)
+
 ```{r}
 hct_data_sequenced %>%
   mutate(Whole = "HCT patients") %>% 
   select(Disease_Status_germline, Whole) %>% 
-  tbl_summary(by = Whole, label = list(Disease_Status_germline ~ "Disease Status at Time of Bood Collection")) %>% 
+  tbl_summary(by = Whole, label = list(Disease_Status_germline ~ "Disease Status at Time of Blood Collection")) %>% 
   bold_labels() %>% as_gt()  %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 ```
 
 ### Time from blood collection to hct
+
 ```{r, fig.width=10}
 hct_data_sequenced %>%
   mutate(Whole = "HCT patients") %>% 
   select(days_at_hct_blood, Whole, time_to_hct) %>% 
-  tbl_summary(by = Whole, label = list(days_at_hct_blood ~ "Time to HCT from Bood Collection (in days)", time_to_hct ~ "Time to HCT from MM diagnosis (in days)")) %>% 
+  tbl_summary(by = Whole, label = list(days_at_hct_blood ~ "Time to HCT from Blood Collection (in days)", time_to_hct ~ "Time to HCT from MM diagnosis (in days)")) %>% 
   bold_labels() %>% as_gt() %>%  
   gt::tab_source_note(gt::md("**HCT happen 694 days before blood collection**")) %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
@@ -695,14 +816,17 @@ p + scale_fill_viridis_c(
   aesthetics = "fill"
 ) +
   theme_minimal(base_size = 14) +
-  labs(x="Time to HCT from Bood Collection (in days)", y="Number of Patient", title="Number of Days Between Bood Collection and HCT",
-       caption = "1 bin = 100 days")+
+  labs(x="Time to HCT from Blood Collection (in days)", y="Number of Patient", title="Number of Days Between Blood Collection and HCT",
+       caption = "Each bar represents 100 days")+
   
   annotate("text", x = 1450, y = 38, # x and y coordinates of the text
            label = "HCT after \nblood collection", 
            size = 4) +
   annotate("segment", x = 0, xend = 2500, y = 35, yend = 35,
-           size = 1, colour = "blue")
+           size = 1, colour = "blue")+
+  scale_x_continuous(breaks=c(0, 200, 500, 1000, 1500, 2000, 2500),
+          minor_breaks=c(0, 200)
+          )
 
 hct_data_sequenced %>% 
   mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>% 
@@ -718,7 +842,7 @@ hct_data_sequenced %>%
   # mutate(days_at_hct_blood = (interval(start= hct_data$collectiondt_germline, end= hct_data$date_of_bmt_1)  /  duration(n=1, unit="days"))) %>% 
   mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>% 
   select(HCT_vs_germline, days_at_hct_blood, HCT_vs_germline) %>% 
-  tbl_summary(by = HCT_vs_germline, label = list(days_at_hct_blood ~ "Time to HCT from Bood Collection (in days)"),
+  tbl_summary(by = HCT_vs_germline, label = list(days_at_hct_blood ~ "Time to HCT from Blood Collection (in days)"),
               sort = list(everything() ~ "frequency"),
               missing = "no") %>% 
   bold_labels() %>% as_gt() %>%  
@@ -728,6 +852,7 @@ hct_data_sequenced %>%
 ```
 
 ### Year at HCT
+
 ```{r}
 hct_data_sequenced %>% mutate(year_at_first_bmt = as.factor(year(date_of_bmt_1))) %>% 
   mutate(Whole = "HCT patients") %>% 
@@ -742,8 +867,9 @@ hct_data_sequenced %>% mutate(year_at_first_bmt = (year(date_of_bmt_1))) %>%
   labs(x="Year", y="Number of Patient", title="Number of HCT per Year in MM Avatar Cohort", fill = NULL)+
   scale_fill_discrete(labels = c("2008 or later", "Before 2008"))
 ```
-</div>
+
 </div>
 
-<br>
-<br>
+</div>
+
+<br> <br>

@@ -82,4 +82,40 @@ tbl3 <- germline_patient_data %>%
 tbl_merge(list(tbl1, tbl2, tbl3), tab_spanner = c("**ISS I**", "**ISS II**", "**ISS III**"))
 
 
+# Metastasis----
+
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(have_metastasis) %>%
+  tbl_summary() %>% 
+  bold_labels() 
+
+germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(Whole = "Germline patients") %>% 
+  select(have_metastasis, CH_status) %>%
+  tbl_summary(by = CH_status,
+              missing = "no") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

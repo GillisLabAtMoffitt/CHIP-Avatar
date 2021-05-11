@@ -829,8 +829,8 @@ biopsy <- bind_rows(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1) %>%
 imaging <- bind_rows(Imaging, Imaging_V12, ImagingV2, ImagingV4, ImagingV4.1) %>% 
   drop_na() %>% 
   gather(., key = "event", value = "labs_last_date", 2)
-metastasis <- bind_rows(Metastasis_V12, MetastasisV4, MetastasisV4.1) %>% 
-  drop_na() %>% 
+metastasis2 <- bind_rows(Metastasis_V12, MetastasisV4, MetastasisV4.1) %>%
+  drop_na() %>%
   gather(., key = "event", value = "labs_last_date", 2)
 performance <- bind_rows(Performance_V12, PerformanceV2, PerformanceV4, PerformanceV4.1) %>% 
   drop_na() %>% 
@@ -848,7 +848,7 @@ rm(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1,
    Staging, Staging_V12, StagingV2, StagingV4, StagingV4.1,
    TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1)
 
-Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker) %>% 
+Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis2, performance, staging, tumormarker) %>% 
   filter(!str_detect(labs_last_date, "9999|2816|2077")) %>% # Remove mistakes and missing dates
   # remove if its <= to date_of_diagnosis (before MM diagnosis)
   # remove if its => to date_contact_lost 
@@ -863,7 +863,7 @@ Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis, performanc
   filter(is.na(labs_before_diag)) %>% 
   arrange(desc(labs_last_date)) %>% 
   distinct(avatar_id, .keep_all = TRUE)
-rm(labs_dates, biopsy, imaging, metastasis, performance, staging, tumormarker)
+rm(labs_dates, biopsy, imaging, performance, staging, tumormarker)
 
 
 # Cleaning

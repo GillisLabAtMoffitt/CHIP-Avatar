@@ -215,11 +215,8 @@ Global_data <- Global_data %>%
   
   
   mutate(ISS = case_when(
-    Disease_Status_germline %in% c("Pre Treatment Newly Diagnosed Multiple Myeloma",
-                                   "Post Treatment Newly Diagnosed Multiple Myeloma",
-                                   "Early Relapse Multiple Myeloma",
-                                   "Late Relapse Multiple Myeloma")                    ~ ISS,
-    TRUE                                                                               ~ NA_character_
+    !is.na(date_of_MMonly_diagnosis)            ~ ISS,
+    TRUE                                        ~ NA_character_
   )) %>% 
   mutate(Disease_Status_germline = tolower(Disease_Status_germline)) %>% 
   mutate(Disease_Status_germline = capwords(Disease_Status_germline)) %>% 
@@ -282,6 +279,10 @@ Global_data$Age_at_diagnosis_closest_germline <- round(Global_data$Age_at_diagno
 Global_data$Age_at_MMonly_diagnosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_MMonly_diagnosis)/                      
   duration(n=1, unit="years")
 Global_data$Age_at_MMonly_diagnosis <- round(Global_data$Age_at_MMonly_diagnosis, 3)
+Global_data$MM_age_cat <- as.factor(findInterval(Global_data$Age_at_MMonly_diagnosis, c(0,50,60,70)))
+levels(Global_data$MM_age_cat) <- c("<50", "50-59", "60-69", ">70")
+
+
 Global_data$Age_at_MMSMMGUSdiagnosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_MMSMMGUSdiagnosis)/                      
   duration(n=1, unit="years")
 Global_data$Age_at_MMSMMGUSdiagnosis <- round(Global_data$Age_at_MMSMMGUSdiagnosis, 3)

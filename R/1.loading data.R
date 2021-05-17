@@ -653,6 +653,12 @@ CHIP_status <- read_csv(paste0(path, "/Nancy's working files/CHcalls_12.10.20.cs
   # mutate(CH_status = ifelse(CH_status == "CH", "CHIP", "No CHIP")) %>% 
   mutate(patient_germline_id = str_remove(patient_germline_id, "_normal"))
 #
+CHIP_tageted_seq <- readxl::read_xlsx(paste0(path, "/Nancy's working files/M4M_MM Avatar targeted_CH from 03.03.21 paired_for Christelle.xlsx")) %>% 
+  mutate(CH_status_TS = ifelse(CH == 1, "CHIP", "No CHIP")) %>% 
+  select(patient_id, CH_status_TS) %>% 
+  arrange(desc(CH_status_TS)) %>% 
+  distinct(patient_id, .keep_all = TRUE)
+#
 IMIDS_maintenance <- readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Maintainance_Regimen.xlsx"))
 #
 migration_patients <- readxl::read_xlsx(paste0(path, "/Raghu MM/Avatar List For Migration.xlsx"))

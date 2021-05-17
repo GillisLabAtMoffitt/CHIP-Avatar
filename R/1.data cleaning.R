@@ -923,7 +923,9 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., metastasis, by = "avatar_id") %>% 
   full_join(Demo_RedCap_V4ish %>% select(-TCC_ID), ., by = "avatar_id")
 # # write.csv(Global_data, paste0(path, "/Global_data.csv"))
-Global_data <- left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id")) %>% 
+Global_data <- 
+  left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id")) %>% 
+  left_join(., CHIP_tageted_seq, by = c("SLID_germline" = "patient_id")) %>% 
   filter(!str_detect(avatar_id, paste0(patients_removed_nonMM, collapse = "|")))
 write_rds(Global_data, file = "Global_data_pre.rds")
 write_rds(Treatment1, "Treatment1.rds")

@@ -489,9 +489,88 @@ hct_data %>%
   ) 
 ```
 
+```{r}
+hct_data %>%
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(CH_status, MM_age_cat) %>% 
+  tbl_summary(by = MM_age_cat,
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>% 
+  gt::tab_style(
+    style = gt::cell_text(
+      color = "#0099CC"
+    ),
+    locations = gt::cells_column_labels(everything())
+  ) 
+```
+
+```{r}
+hct_data %>%
+  select(avatar_id, starts_with("treatment_line_"), CH_status) %>% 
+  pivot_longer(cols = starts_with("treatment_line_"),
+               names_to = "regimen_number", values_to = "treatment_line_", values_drop_na = TRUE) %>% 
+  filter(treatment_line_ < 90) %>% 
+  arrange(desc(treatment_line_)) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(treatment_line_ = case_when(
+    as.numeric(treatment_line_) > 5         ~ "more than 5",
+    TRUE                                    ~ as.character(treatment_line_)
+  )) %>% 
+  select(treatment_line_, CH_status) %>% 
+  tbl_summary(by = treatment_line_,
+              missing_text = "No Drugs") %>%
+  modify_spanning_header(everything() ~ "Number of line received by HCT patients") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>% 
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+
+hct_data %>%
+  select(avatar_id, date_of_bmt_1, starts_with("line_start"), CH_status) %>% 
+  pivot_longer(cols = starts_with("line_start"),
+               names_to = "line", values_to = "date", values_drop_na = TRUE) %>% 
+  filter(date < date_of_bmt_1) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_hct = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_hct, CH_status) %>% 
+  tbl_summary(by = line_bf_hct,
+              missing_text = "No Drugs") %>% 
+  modify_spanning_header(everything() ~ "Number of line of drugs received by patients before HCT") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>% 
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+
+hct_data %>%
+  select(avatar_id, collectiondt_germline, starts_with("line_start"), CH_status) %>% 
+  pivot_longer(cols = starts_with("line_start"),
+               names_to = "line", values_to = "date", values_drop_na = TRUE) %>% 
+  filter(date < collectiondt_germline) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_blood = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_blood, CH_status) %>% 
+  tbl_summary(by = line_bf_blood,
+              missing_text = "No Drugs") %>% 
+  modify_spanning_header(everything() ~ "Number of line of drugs received by patients before blood collection") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>% 
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+```
+
+```{r}
+hct_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  # mutate(Whole = "Germline patients") %>% 
+  select(ISS, CH_status) %>%
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric")) %>%
+  bold_labels() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>% 
+  gt::tab_source_note(gt::md("**Data on HCT patients**"))
+
+```
+
 <br> <br>
 
-------------------------------------------------------------------------
+***
 
 ## 7. Survivals by HCT
 

@@ -69,7 +69,7 @@ library(survminer)
 # Global_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Global_data.rds")
 germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/germline_patient_data.rds")
 # Treatment1 <-  readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Treatment1.rds")
-path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
+# path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
 # patients_removed_nonMM <- c("A000428", "A000456")
 ```
 
@@ -181,10 +181,21 @@ hct_data %>%
               sort = list(everything() ~ "frequency"),
               missing = "no") %>% 
   bold_labels() %>% as_gt() %>%  
-  # gt::tab_source_note(gt::md("*ISS is reported for MM patients only*")) %>%  
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+
+hct_data %>% 
+  # mutate(days_at_hct_blood = (interval(start= hct_data$collectiondt_germline, end= hct_data$date_of_bmt_1)  /  duration(n=1, unit="days"))) %>% 
+  # filter(days_at_hct_blood < 0) %>% 
+  mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>%
+  select(HCT_vs_germline, Disease_Status_germline) %>% 
+  tbl_summary(by = HCT_vs_germline, label = list(Disease_Status_germline ~ "Disease Status at Blood collection"),
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels() %>% as_gt() %>%  
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
 ```
+It would be interesting to have sequence blood data (before and after HCT) for the purpose of “Melphalan resistance” phenotype. Unfortuantely we don't have a lot of patients
 
 ## 4. Year at HCT
 
@@ -205,9 +216,17 @@ hct_data %>% mutate(year_at_first_bmt = (year(date_of_bmt_1))) %>%
 
 ## 5. Name of first regimen for HCT patients
 
+Brianna is helping up cleaning up the regimen data. Then we could classify regimen into alkylating agent, anthracycline, PI, IMIDS.  
+
+The first table include the name of the FIRST regimen (anti-DKK-1)
+
+Because I take all the treatment line which happen before HCT it include melphalan as a line.
+
 ```{r}
 hct_data %>% 
   mutate(Whole = "HCT patients") %>% 
+    filter(line_start_date_1 < date_of_bmt_1) %>% 
+
   select(first_regimen_name, Whole) %>% 
   tbl_summary(by = Whole,
               sort = list(everything() ~ "frequency")) %>% 
@@ -229,6 +248,9 @@ hct_data %>%
   tbl_summary(label = list(treatment_line_ ~ "Number of line received by HCT patients"),
               missing_text = "No Drugs") %>% bold_labels() %>% as_gt() %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+
+hct_data %>% filter(str_detect(first_regimen_name, "dkk")) %>% 
+  select(avatar_id, date_of_bmt_1, line_start_date_1 , contains("regimen_name"))
 
 hct_data %>%
   select(avatar_id, date_of_bmt_1, starts_with("line_start")) %>% 
@@ -577,6 +599,9 @@ hct_data %>%
 All survival analysis are limited to the germline population.
 
 ### HCT `r emo::ji("warning")` here it includes patients with no HCT
+
+For OS the time pooint "zeror" is diagnosis.  
+Also `r emo::ji("question_mark")` to do PFS, we need a base date for the "No HCT" population.  
 
 ::: {.row}
 ::: {.col-md-6}
@@ -952,3 +977,17 @@ hct_data_sequenced %>% mutate(year_at_first_bmt = (year(date_of_bmt_1))) %>%
 </div>
 
 <br> <br>
+
+# Comments
+
+For example, focus on WES at diagnosis, WES prior to HCT (which could be the same as the first group), WES at first progression, or subsequent progression.
+
+
+
+
+
+
+
+
+
+

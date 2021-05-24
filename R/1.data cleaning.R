@@ -416,7 +416,8 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
                       "zoledronic acid", "prevnar", "ruxolitinib")         ~ "non-mm drugs",
     TRUE                                                                   ~ drug_name_
   )) %>%
-  filter(!is.na(avatar_id) | drug_name_ != "non-mm drugs" | is.na(drug_start_date)) %>% 
+  filter(!is.na(avatar_id) | is.na(drug_start_date)) %>% 
+  filter(drug_name_ != "non-mm drugs") %>%
   distinct() %>%
   # group_by(avatar_id, drug_start_date) %>%
   # arrange(drug_name_) %>%

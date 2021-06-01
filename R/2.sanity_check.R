@@ -225,6 +225,38 @@ trial_reg_name <- treatment %>%
 write_csv(trial_reg_name, paste0(path, "/sanity check output/clinical trial as reg_name.csv"))
 
 
+# How many patients had HCT but no melphalan----
+hct_data <- germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  filter(!is.na(date_of_bmt_1))
+
+hct_data1 <- hct_data %>% 
+  pivot_longer(cols = starts_with("drug_name_"), values_to = "drug_name_") %>% 
+  filter(str_detect(drug_name_, "melphalan")) %>% 
+  distinct(avatar_id, .keep_all = TRUE)
+uid <- paste(unique(hct_data1$avatar_id), collapse = '|')
+
+hct_data_no_mel <- hct_data[(!grepl(uid, hct_data$avatar_id)),] %>% 
+  select(avatar_id, starts_with("date_of_bmt_"), starts_with("drug_name"))
+write_csv(hct_data_no_mel, paste0(path, "/sanity check output/patients received HCT but no melphalan.csv"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

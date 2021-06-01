@@ -98,9 +98,9 @@ hct_data %>%
   mutate(Race = str_replace(Race, "Unknown", NA_character_)) %>% 
   mutate(Ethnicity = str_replace(Ethnicity, "Unknown", NA_character_)) %>% 
   select(Age_at_MMonly_diagnosis, 
-         Gender, Race, Ethnicity, Whole, ISS) %>%
+         Gender, Race, Ethnicity, Whole, ISS, ISS_grp) %>%
   tbl_summary(by = Whole, label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis"),
-              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric", ISS_grp ~ "alphanumeric"),
               digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
               missing = "no") %>% 
   bold_labels() %>% as_gt() %>%  
@@ -250,7 +250,7 @@ hct_data %>%
   arrange(desc(treatment_line_)) %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(treatment_line_ = case_when(
-    treatment_line_ > 5         ~ "more than 5",
+    treatment_line_ > 4         ~ "more than 4",
     TRUE                        ~ as.character(treatment_line_)
   )) %>% 
   select(treatment_line_) %>% 
@@ -299,9 +299,9 @@ tbl1 <- hct_data %>%
   mutate(Race = str_replace(Race, "Unknown", NA_character_)) %>% 
   mutate(Ethnicity = str_replace(Ethnicity, "Unknown", NA_character_)) %>% 
   select(Age_at_MMonly_diagnosis, 
-         Gender, Race, Ethnicity, ISS, CH_status_TS) %>%
+         Gender, Race, Ethnicity, ISS, ISS_grp, CH_status_TS) %>%
   tbl_summary(by = CH_status_TS, label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis"),
-              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric", ISS_grp ~ "alphanumeric"),
               digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
               missing = "no") %>% 
   bold_labels() %>% add_p() %>% bold_p(t = .05)# %>% as_gt() %>%  

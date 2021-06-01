@@ -126,12 +126,12 @@ Global_data <- Global_data %>%
   )) %>%
   mutate(Drugs_ever = ifelse(!is.na(line_start_date_1), "Drug", "No Drug")) %>% 
   mutate(drugs_before_germline = case_when(
-    pfs_line_start_date < collectiondt_germline         ~ "Drugs before blood",
+    pfs_line_start_date < collectiondt_germline         ~ "Blood after Drugs",
     pfs_line_start_date >= collectiondt_germline |
-      is.na(pfs_line_start_date)                         ~ "Drugs after blood"
+      is.na(pfs_line_start_date)                         ~ "Blood before Drugs"
   )) %>% 
   
-  mutate(rad_bf_germline = if_else(rad_start_date_1 < collectiondt_germline, "Radiation before Blood", "No")) %>% 
+  mutate(rad_bf_germline = if_else(rad_start_date_1 < collectiondt_germline, "Blood after Radiation", "No")) %>% 
   # PFS FROM RAD DATE
   mutate(pfs_rad_progression_date = coalesce(progression_rad_date, pfs_date_death)) %>% 
   mutate(rad_progression_event = case_when(
@@ -149,9 +149,9 @@ Global_data <- Global_data %>%
   mutate(interval_radiation_germline = interval(start = pfs_rad_start_date, collectiondt_germline)/
            duration(n=1, units = "days")) %>% 
   mutate(radiation_before_germline = case_when(
-    pfs_rad_start_date < collectiondt_germline           ~ "Radiation before blood",
+    pfs_rad_start_date < collectiondt_germline           ~ "Blood after Radiation",
     pfs_rad_start_date >= collectiondt_germline |
-      is.na(pfs_rad_start_date)                          ~ "No Radiation or after blood"
+      is.na(pfs_rad_start_date)                          ~ "Blood before Radiation or no Rad"
   )) %>% 
   
   
@@ -170,13 +170,13 @@ Global_data <- Global_data %>%
   )) %>%
   mutate(HCT_ever = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT")) %>% 
   mutate(HCT_before_germline = case_when(
-    pfs_hct_start_date < collectiondt_germline          ~ "HCT before blood",
+    pfs_hct_start_date < collectiondt_germline          ~ "Blood after HCT",
     pfs_hct_start_date >= collectiondt_germline |
-      is.na(pfs_hct_start_date)                         ~ "No HCT or after blood"
+      is.na(pfs_hct_start_date)                         ~ "Blood before HCT or no HCT"
   )) %>%
   mutate(HCT_vs_germline = case_when(
-    pfs_hct_start_date < collectiondt_germline          ~ "HCT before blood",
-    pfs_hct_start_date >= collectiondt_germline         ~ "HCT after blood",
+    pfs_hct_start_date < collectiondt_germline          ~ "Blood after HCT",
+    pfs_hct_start_date >= collectiondt_germline         ~ "Blood before HCT",
       is.na(pfs_hct_start_date)                         ~ "No HCT"
   )) %>%
   mutate(interval_HCT_germline = interval(start = pfs_hct_start_date, end = collectiondt_germline)/

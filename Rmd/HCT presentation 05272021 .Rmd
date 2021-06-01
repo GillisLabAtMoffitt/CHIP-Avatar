@@ -480,7 +480,7 @@ germline_patient_surv %>% select(HCT_ever) %>%
 
 <br>
 
-Also `r emo::ji("question_mark")` to do PFS, we need the time point "zero" for the "No HCT" population.  
+`r emo::ji("pad")` **For PFS the time point "zero" is drugs start date.**   
 
 ::: {.row}
 ::: {.col-md-6}
@@ -613,10 +613,10 @@ tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"
 ```{r, fig.height = 7}
 hct_patient_surv <- hct_data %>% distinct(avatar_id, .keep_all = TRUE)
 mysurv <- Surv(time = hct_patient_surv$month_at_os, event = hct_patient_surv$os_event)
-myplot <- survfit(mysurv~HCT_ever+CH_status, data = hct_patient_surv)
+myplot <- survfit(mysurv~CH_status, data = hct_patient_surv)
 # jpeg(paste0(path, "/Figures/Survivals/CHIP/OS HCT by CH.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = hct_patient_surv,
-           title = "OS HCT ever",
+           title = "OS in HCT population",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -629,12 +629,10 @@ ggsurvplot(myplot, data = hct_patient_surv,
            legend.title = "",
            # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
            # palette = c("darkred", "darkgreen", "grey"),
-           color = "HCT_ever",
-           linetype = "CH_status",
            pval = TRUE,
            conf.int = FALSE,
-                      xlim = c(-10, 400),
-# Add risk table
+           xlim = c(-10, 400),
+           # Add risk table
            tables.height = 0.3,
            risk.table.title = "Risk table (number(%))",
            risk.table = "abs_pct",
@@ -649,16 +647,15 @@ ggsurvplot(myplot, data = hct_patient_surv,
            censor = TRUE
 ) + guides(colour = guide_legend(nrow = 2))
 
-hct_patient_surv <- germline_patient_data %>% 
+no_hct_patient_surv <- germline_patient_data %>% 
   filter(is.na(date_of_bmt_1)) %>% 
   distinct(avatar_id, .keep_all = TRUE)
 
-no_hct_patient_surv <- germline_patient_data %>% distinct(avatar_id, .keep_all = TRUE)
 mysurv <- Surv(time = no_hct_patient_surv$month_at_os, event = no_hct_patient_surv$os_event)
-myplot <- survfit(mysurv~HCT_ever+CH_status, data = no_hct_patient_surv)
+myplot <- survfit(mysurv~CH_status, data = no_hct_patient_surv)
 # jpeg(paste0(path, "/Figures/Survivals/CHIP/OS HCT by CH.jpeg"), width = 1200, height = 900)
 ggsurvplot(myplot, data = no_hct_patient_surv,
-           title = "OS HCT ever",
+           title = "OS in No HCT population",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -671,12 +668,10 @@ ggsurvplot(myplot, data = no_hct_patient_surv,
            legend.title = "",
            # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
            # palette = c("darkred", "darkgreen", "grey"),
-           color = "HCT_ever",
-           linetype = "CH_status",
            pval = TRUE,
            conf.int = FALSE,
-                      xlim = c(-10, 400),
-# Add risk table
+           xlim = c(-10, 200),
+           # Add risk table
            tables.height = 0.3,
            risk.table.title = "Risk table (number(%))",
            risk.table = "abs_pct",
@@ -695,14 +690,27 @@ ggsurvplot(myplot, data = no_hct_patient_surv,
 
 ::: {.col-md-6}
 ```{r, fig.height = 7}
-tbl1 <- hct_patient_surv %>% select(HCT_ever, CH_status) %>% 
+tbl1 <- hct_patient_surv %>% select(CH_status) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = hct_patient_surv$month_at_os, 
                              event = hct_patient_surv$os_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = hct_patient_surv$month_at_os, 
-             event = hct_patient_surv$os_event) ~ HCT_ever + CH_status, data =  hct_patient_surv) %>%
+             event = hct_patient_surv$os_event) ~ CH_status, data =  hct_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+```
+<br><br><br>
+```{r, fig.height = 7}
+tbl1 <- no_hct_patient_surv %>% select(CH_status) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = no_hct_patient_surv$month_at_os, 
+                             event = no_hct_patient_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = no_hct_patient_surv$month_at_os, 
+             event = no_hct_patient_surv$os_event) ~ CH_status, data =  no_hct_patient_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
 ```
@@ -715,9 +723,9 @@ tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"
 ::: {.col-md-6}
 ```{r, fig.height = 7}
 mysurv <- Surv(time = hct_patient_surv$month_at_progression_drug, event = hct_patient_surv$hct_progression_event)
-myplot <- survfit(mysurv~HCT_ever+CH_status, data = hct_patient_surv)
+myplot <- survfit(mysurv~CH_status, data = hct_patient_surv)
 ggsurvplot(myplot, data = hct_patient_surv,
-           title = "PFS HCT from  DRUGS date",
+           title = "PFS in HCT population",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
            font.y = c(20, "bold", "black"),
@@ -730,8 +738,40 @@ ggsurvplot(myplot, data = hct_patient_surv,
            legend.title = "",
            # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
            # palette = c("darkred", "darkgreen", "grey"),
-           color = "HCT_ever",
-           linetype = "CH_status",
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 4,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           # censor = TRUE
+) + guides(colour = guide_legend(nrow = 2))
+
+mysurv <- Surv(time = no_hct_patient_surv$month_at_progression_drug, event = no_hct_patient_surv$hct_progression_event)
+myplot <- survfit(mysurv~CH_status, data = no_hct_patient_surv)
+ggsurvplot(myplot, data = no_hct_patient_surv,
+           title = "PFS in No HCT population",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), # 20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -754,14 +794,27 @@ ggsurvplot(myplot, data = hct_patient_surv,
 
 ::: {.col-md-6}
 ```{r, fig.height = 7}
-tbl1 <- hct_patient_surv %>% select(HCT_ever, CH_status) %>% 
+tbl1 <- hct_patient_surv %>% select(CH_status) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = hct_patient_surv$month_at_progression_drug, 
                              event = hct_patient_surv$hct_progression_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = hct_patient_surv$month_at_progression_drug, 
-             event = hct_patient_surv$hct_progression_event) ~ HCT_ever + CH_status, data =  hct_patient_surv) %>%
+             event = hct_patient_surv$hct_progression_event) ~ CH_status, data =  hct_patient_surv) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+```
+<br><br><br>
+```{r, fig.height = 7}
+tbl1 <- no_hct_patient_surv %>% select(CH_status) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = no_hct_patient_surv$month_at_progression_drug, 
+                             event = no_hct_patient_surv$hct_progression_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = no_hct_patient_surv$month_at_progression_drug, 
+             event = no_hct_patient_surv$hct_progression_event) ~ CH_status, data =  no_hct_patient_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
 ```

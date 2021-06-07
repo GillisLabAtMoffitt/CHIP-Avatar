@@ -238,6 +238,7 @@ hct_data %>%
 
   select(first_regimen_name, Whole) %>% 
   tbl_summary(by = Whole,
+              label = list(first_regimen_name ~ "Name of first regimen (only) before HCT"),
               sort = list(everything() ~ "frequency")) %>% 
   bold_labels() %>% as_gt()  %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
@@ -260,24 +261,25 @@ hct_data %>%
 
 
 hct_data %>%
-  select(avatar_id, date_of_bmt_1, starts_with("line_start"), starts_with("drug_name_")) %>%
-  # `colnames<-`(str_remove(colnames(.), "_")) %>% 
-  # group_by(avatar_id, date_of_bmt_1) %>% 
-  pivot_longer(cols = !c(avatar_id, date_of_bmt_1),
-               names_to = c(".value", "child"), names_sep = "(.).",
-               values_drop_na = TRUE) %>% 
-  filter(date < date_of_bmt_1) %>% 
-  filter(str_detect())
-  
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>% 
+  select(avatar_id, date_of_bmt_1, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id, date_of_bmt_1),
+               names_to = "line", values_to = "date") %>% 
+
+  filter(date < date_of_bmt_1 , !is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
   group_by(avatar_id) %>% 
   mutate(line_bf_hct = n()) %>% 
   ungroup() %>% 
+  
   distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(line_bf_hct = factor(line_bf_hct)) %>% 
   select(line_bf_hct) %>% 
   tbl_summary(label = list(line_bf_hct ~ "Number of line of drugs received by patients before HCT"),
               missing_text = "No Drugs") %>% bold_labels() %>% as_gt() %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 ```
+The last table doesn't count melphalan line.
 <br> 
 <br>
 
@@ -763,7 +765,7 @@ tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"
 ::: {.col-md-6}
 ```{r, fig.height = 7}
 blood_bf_hct <- hct_data %>% 
-  filter(HCT_vs_germline == "HCT after blood")
+  filter(HCT_vs_germline == "Blood before HCT")
 
 mysurv <- Surv(time = blood_bf_hct$month_at_os, event = blood_bf_hct$os_event)
 myplot <- survfit(mysurv~CH_status_TS, data = blood_bf_hct)

@@ -81,6 +81,8 @@ id <- paste(unique( Global_data$avatar_id[which(!is.na(Global_data$was_contact_l
 
 
 Global_data <- Global_data %>% 
+  mutate(CH_status = factor(CH_status, levels = c("No_CH", "CH"))) %>% 
+  mutate(CH_status_TS = factor(CH_status_TS, levels = c("No CHIP", "CHIP"))) %>% 
   mutate(diagnosis_MM_year = year(date_of_MMonly_diagnosis)) %>% 
   mutate(diagnosis_MM_year = case_when(
     diagnosis_MM_year < 2009     ~ "previous 2009",

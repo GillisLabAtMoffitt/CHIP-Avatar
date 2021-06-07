@@ -123,12 +123,14 @@ Demo_RedCap_V4ish <- Demo_RedCap_V4ish %>%
     TRUE                                                      ~ Race
   )) %>% 
   mutate(Race = factor(Race, levels=c("White", "Black", "Am Indian", "Asian", "More than one race", "Others", "Unknown"))) %>% 
+  mutate(Race1 = factor(Race, levels=c("White", "Black"))) %>% 
   mutate(Ethnicity = case_when(
     Ethnicity %in% c("Spanish; Hispanic")                                   ~ "Hispanic",
     Ethnicity %in% c("Non- Hispanic", "Non-Spanish; non-Hispanic")          ~ "Non-Hispanic",
     Ethnicity %in% c("Unknown", "Prefer not to answer", "PT Not Present")   ~ "Unknown",
     TRUE                                                                    ~ Ethnicity
-  ))
+  )) %>% 
+  mutate(Ethnicity1 = factor(Ethnicity, levels= c("Non-Hispanic", "Hispanic")))
 
 # Patient history ----
 history_disease <- function(data){

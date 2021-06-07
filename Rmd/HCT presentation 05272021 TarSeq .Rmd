@@ -261,11 +261,47 @@ hct_data %>%
 
 
 hct_data %>%
-  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>% 
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
   select(avatar_id, date_of_bmt_1, starts_with("line_start")) %>%
   pivot_longer(cols = -c(avatar_id, date_of_bmt_1),
                names_to = "line", values_to = "date") %>% 
-
   filter(date < date_of_bmt_1 , !is.na(date)) %>% 
   arrange(avatar_id, date) %>% 
   group_by(avatar_id) %>% 
@@ -743,14 +779,14 @@ tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"
 ```
 <br><br><br>
 ```{r, fig.height = 7}
-tbl1 <- no_hct_patient_surv %>% select(CH_status_TS) %>% 
+tbl1 <- no_hct_patient_surv %>% select(CH_status_TS, Age_at_MMonly_diagnosis, Gender, Ethnicity1, Race1, ISS) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = no_hct_patient_surv$month_at_progression_drug, 
                              event = no_hct_patient_surv$hct_progression_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = no_hct_patient_surv$month_at_progression_drug, 
-             event = no_hct_patient_surv$hct_progression_event) ~ CH_status_TS, data =  no_hct_patient_surv) %>%
+             event = no_hct_patient_surv$hct_progression_event) ~ CH_status_TS + Age_at_MMonly_diagnosis + Gender + Ethnicity1 + Race1 + ISS, data =  no_hct_patient_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
 ```
@@ -759,7 +795,7 @@ tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"
 
 <br>
 
-#### In Targeted Sequencing patient Receiving HCT After Blood Collection
+#### In Targeted Sequencing Patient with Blood Collection Before HCT
 
 ::: {.row}
 ::: {.col-md-6}

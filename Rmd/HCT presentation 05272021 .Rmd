@@ -134,9 +134,9 @@ hct_data %>%
 hct_data %>%
   mutate(Whole = "HCT patients") %>% 
   select(days_at_hct_blood, Whole, time_to_hct) %>% 
-  tbl_summary(by = Whole, label = list(days_at_hct_blood ~ "Time to HCT from Blood Collection (in days)", time_to_hct ~ "Time to HCT from MM diagnosis (in days)")) %>% 
+  tbl_summary(by = Whole, label = list(days_at_hct_blood ~ "Time from Blood Collection to HCT (in days)", time_to_hct ~ "Time from MM diagnosis to HCT (in days)")) %>% 
   bold_labels() %>% as_gt() %>%  
-  gt::tab_source_note(gt::md("**HCT happen 694 days before blood collection**")) %>%
+  gt::tab_source_note(gt::md("**HCT happen 690 days before blood collection**")) %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
 p <- qplot(x =days_at_hct_blood, data=subset(hct_data,!is.na(days_at_hct_blood)), fill=..count.., 
@@ -156,7 +156,7 @@ p + scale_fill_viridis_c(
   aesthetics = "fill"
 ) +
   theme_minimal(base_size = 14) +
-  labs(x="Time to HCT from Blood Collection (in days)", y="Number of Patient", title="Number of Days Between Blood Collection and HCT",
+  labs(x="Time from Blood Collection to HCT (in days)", y="Number of Patient", title="Number of Days Between Blood Collection and HCT",
        caption = "Each bar represents 100 days")+
   
   annotate("text", x = -3750, y = 38, # x and y coordinates of the text
@@ -275,14 +275,55 @@ hct_data %>% filter(str_detect(first_regimen_name, "dkk")) %>%
   select(avatar_id, date_of_bmt_1, line_start_date_1 , contains("regimen_name"))
 
 hct_data %>%
-  select(avatar_id, date_of_bmt_1, starts_with("line_start")) %>% 
-  pivot_longer(cols = starts_with("line_start"),
-               names_to = "line", values_to = "date", values_drop_na = TRUE) %>% 
-  filter(date < date_of_bmt_1) %>% 
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
+  select(avatar_id, date_of_bmt_1, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id, date_of_bmt_1),
+               names_to = "line", values_to = "date") %>% 
+  filter(date < date_of_bmt_1 , !is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
   group_by(avatar_id) %>% 
   mutate(line_bf_hct = n()) %>% 
   ungroup() %>% 
+  
   distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(line_bf_hct = factor(line_bf_hct)) %>% 
   select(line_bf_hct) %>% 
   tbl_summary(label = list(line_bf_hct ~ "Number of line of drugs received by patients before HCT"),
               missing_text = "No Drugs") %>% bold_labels() %>% as_gt() %>%
@@ -824,13 +865,13 @@ tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"
 <br> 
 <br>
 
-#### In WES patient Receiving HCT After Blood Collection
+#### In WES Patient with Blood Collection Before HCT
 
 ::: {.row}
 ::: {.col-md-6}
 ```{r, fig.height = 7}
 blood_bf_hct <- hct_data %>% 
-  filter(HCT_vs_germline == "HCT after blood")
+  filter(HCT_vs_germline == "Blood before HCT")
 
 mysurv <- Surv(time = blood_bf_hct$month_at_os, event = blood_bf_hct$os_event)
 myplot <- survfit(mysurv~CH_status, data = blood_bf_hct)

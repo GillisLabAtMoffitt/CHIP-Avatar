@@ -90,8 +90,7 @@ germline_patient_data <- germline_patient_data %>%
          !is.na(CH_status_TS))
 
 hct_data <- germline_patient_data %>% 
-  filter(!is.na(date_of_bmt_1)) %>% 
-  mutate(days_at_hct_blood = interval(start= collectiondt_germline, end= date_of_bmt_1)  /  duration(n=1, unit="days"))
+  filter(!is.na(date_of_bmt_1))
 
 hct_data %>% 
   mutate(Whole = "HCT patients") %>% 
@@ -132,13 +131,13 @@ hct_data %>%
 ```{r, fig.width=10}
 hct_data %>%
   mutate(Whole = "HCT patients") %>% 
-  select(days_at_hct_blood, Whole, time_to_hct) %>% 
-  tbl_summary(by = Whole, label = list(days_at_hct_blood ~ "Time to HCT from Blood Collection (in days)", time_to_hct ~ "Time to HCT from MM diagnosis (in days)")) %>% 
+  select(days_blood_hct, Whole, time_to_hct) %>% 
+  tbl_summary(by = Whole, label = list(days_blood_hct ~ "Time to HCT from Blood Collection (in days)", time_to_hct ~ "Time to HCT from MM diagnosis (in days)")) %>% 
   bold_labels() %>% as_gt() %>%  
   gt::tab_source_note(gt::md("**HCT happen 694 days before blood collection**")) %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
-p <- qplot(x =days_at_hct_blood, data=subset(hct_data,!is.na(days_at_hct_blood)), fill=..count.., 
+p <- qplot(x =days_blood_hct, data=subset(hct_data,!is.na(days_blood_hct)), fill=..count.., 
            geom="histogram", 
            binwidth = 100,
            ) 
@@ -178,18 +177,18 @@ p + scale_fill_viridis_c(
 #   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
 # hct_data %>% 
-#   mutate(days_at_hct_blood = (interval(start= hct_data$collectiondt_germline, end= hct_data$date_of_bmt_1)  /  duration(n=1, unit="days"))) %>% 
+#   mutate(days_blood_hct = (interval(start= hct_data$collectiondt_germline, end= hct_data$date_of_bmt_1)  /  duration(n=1, unit="days"))) %>% 
 #   mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>% 
-#   select(HCT_vs_germline, days_at_hct_blood, HCT_vs_germline) %>% 
-#   tbl_summary(by = HCT_vs_germline, label = list(days_at_hct_blood ~ "Time to HCT from Blood Collection (in days)"),
+#   select(HCT_vs_germline, days_blood_hct, HCT_vs_germline) %>% 
+#   tbl_summary(by = HCT_vs_germline, label = list(days_blood_hct ~ "Time to HCT from Blood Collection (in days)"),
 #               sort = list(everything() ~ "frequency"),
 #               missing = "no") %>% 
 #   bold_labels() %>% as_gt() %>%  
 #   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
 # hct_data %>% 
-#   # mutate(days_at_hct_blood = (interval(start= hct_data$collectiondt_germline, end= hct_data$date_of_bmt_1)  /  duration(n=1, unit="days"))) %>% 
-#   # filter(days_at_hct_blood < 0) %>% 
+#   # mutate(days_blood_hct = (interval(start= hct_data$collectiondt_germline, end= hct_data$date_of_bmt_1)  /  duration(n=1, unit="days"))) %>% 
+#   # filter(days_blood_hct < 0) %>% 
 #   mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>%
 #   select(HCT_vs_germline, Disease_Status_germline) %>% 
 #   tbl_summary(by = HCT_vs_germline, label = list(Disease_Status_germline ~ "Disease Status at Blood collection"),

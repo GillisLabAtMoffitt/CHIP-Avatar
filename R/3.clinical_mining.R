@@ -7,7 +7,8 @@
   tbl_summary(by = Whole, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% 
-  bold_labels() %>% as_gt()
+  bold_labels() %>% as_gt() %>% 
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in MM Avatar patients.pdf"))
 
 # tbl <- 
@@ -18,8 +19,9 @@ gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in MM
   mutate(Disease_Status_facet = forcats::fct_explicit_na(Disease_Status_facet)) %>% 
   tbl_summary(by = Disease_Status_facet, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% add_p() %>% 
-  bold_labels() %>% as_gt()
+              digits = list(c(Age_at_diagnosis_closest_germline, Race) ~ 2)) %>% 
+  bold_labels() %>% add_p() %>% bold_p(t= .05) %>% as_gt() %>% 
+    gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 gt::gtsave(tbl, zoom = 1, paste0(path, "/Figures/Demographics/Demographics in MM Avatar patients by DS with missing.pdf"))
 
 Global_data  %>% 
@@ -36,17 +38,6 @@ Global_data  %>%
   geom_text(aes(label = paste0("n=", count)), size = 3, hjust = "inward", position = position_stack(vjust = 1.08))+
   theme_minimal()+
   coord_flip()
-
-
-
-
-
-
-
-
-
-
-
 
 ################################################################################################## II ## Germline data mining ----
 

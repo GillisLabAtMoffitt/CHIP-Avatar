@@ -81,7 +81,7 @@ id <- paste(unique( Global_data$avatar_id[which(!is.na(Global_data$was_contact_l
 
 
 Global_data <- Global_data %>% 
-  mutate(CH_status = factor(CH_status, levels = c("No_CH", "CH"))) %>% 
+  mutate(CH_status = factor(CH_status, levels = c("No CH", "CH"))) %>% 
   mutate(CH_status_TS = factor(CH_status_TS, levels = c("No CHIP", "CHIP"))) %>% 
   mutate(diagnosis_MM_year = year(date_of_MMonly_diagnosis)) %>% 
   mutate(diagnosis_MM_year = case_when(
@@ -379,6 +379,12 @@ Global_data$time_to_drug <- interval(start= Global_data$date_of_MMonly_diagnosis
   duration(n=1, unit="days")
 Global_data$time_to_drug <- round(Global_data$time_to_drug, 3)
 
+Global_data$days_blood_drugs <- interval(start= Global_data$collectiondt_germline, end= Global_data$line_start_date_1)/                      
+  duration(n=1, unit="days")
+
+Global_data$days_blood_hct <- interval(start= Global_data$collectiondt_germline, end= Global_data$date_of_bmt_1)/                      
+  duration(n=1, unit="days")
+
 # rm(b)
 write_rds(Global_data, file = "Global_data.rds")
 
@@ -491,6 +497,8 @@ germline_patient_data <- germline_patient_data %>%
 
 write_rds(germline_patient_data, file = "germline_patient_data.rds")
 # # write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))
+# End create all variables
+
 # tab <- table(germline_patient_data$GermBFtumorWES)
 # # jpeg("barplot3.jpg", width = 350, height = 350)
 # barplot(tab, main = "Frequency of collection date first observed", ylim = c(0,500))
@@ -500,4 +508,3 @@ write_rds(germline_patient_data, file = "germline_patient_data.rds")
 # # Cleaning
 # rm(tab)
 
-# End create all variables

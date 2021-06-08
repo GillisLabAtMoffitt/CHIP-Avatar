@@ -650,7 +650,7 @@ Staging_ISS <- readxl::read_xlsx(paste0(path, "/Raghu MM/Staging_09142020.xlsx")
   distinct(avatar_id, .keep_all = TRUE) # remove the duplicate of patient 180
 #
 CHIP_status <- read_csv(paste0(path, "/Nancy's working files/CHcalls_12.10.20.csv")) %>% 
-  # mutate(CH_status = ifelse(CH_status == "CH", "CHIP", "No CHIP")) %>% 
+  mutate(CH_status = str_replace(CH_status, "No_CH", "No CH")) %>% 
   mutate(patient_germline_id = str_remove(patient_germline_id, "_normal"))
 #
 CHIP_tageted_seq <- readxl::read_xlsx(paste0(path, "/Nancy's working files/M4M_MM Avatar targeted_CH from 03.03.21 paired_for Christelle.xlsx")) %>% 

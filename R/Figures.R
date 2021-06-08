@@ -1215,7 +1215,7 @@ analysis_data %>%
   select(HCT_ever, Age_at_firstbmt, days_at_firsthct) %>% 
   mutate(Whole = "Germline patients") %>% 
   tbl_summary(by = Whole, 
-              label = list(time_to_drug ~ "Time to drug (days)", time_to_hct ~ "Time to HCT (days)"),
+              # label = list(time_to_drug ~ "Time to drug (days)", time_to_hct ~ "Time to HCT (days)"),
               sort = list(everything() ~ "frequency"),
               digits = list(c(Age_at_firstbmt) ~ 2),
               missing = "no") %>% 
@@ -1281,7 +1281,7 @@ analysis_data %>%
   ) %>%
   ggplot(aes(x= HCT_ever, y = perc, fill = CH_status))+
   geom_bar(stat = "identity")+
-  labs(x = "", y = "percent", title = "Patients with CH receive less HCT") +
+  labs(x = "", y = "percent", title = "Patients with CH receive less HCT (because older?)") +
   scale_fill_manual(values = c("lightpink", "snow2"))+
   theme_minimal(base_size = 16)+
   geom_text(aes(label = paste0(round(perc,2), " %")), size = 5, position = position_stack(vjust = 0.85))+

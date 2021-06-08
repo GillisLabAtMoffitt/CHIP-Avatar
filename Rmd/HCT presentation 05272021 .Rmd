@@ -87,12 +87,10 @@ germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/g
 ```{r demographics in germline}
 germline_patient_data <- germline_patient_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  filter(!is.na(date_of_MMonly_diagnosis)) %>% 
-  mutate(CH_status = str_replace(CH_status, "No_CH", "No CH"))
+  filter(!is.na(date_of_MMonly_diagnosis))
 
 hct_data <- germline_patient_data %>% 
-  filter(!is.na(date_of_bmt_1)) %>% 
-  mutate(days_at_hct_blood = interval(start= collectiondt_germline, end= date_of_bmt_1)  /  duration(n=1, unit="days"))
+  filter(!is.na(date_of_bmt_1))
 
 hct_data %>% 
   mutate(Whole = "HCT patients") %>% 
@@ -133,13 +131,13 @@ hct_data %>%
 ```{r, fig.width=10}
 hct_data %>%
   mutate(Whole = "HCT patients") %>% 
-  select(days_at_hct_blood, Whole, time_to_hct) %>% 
-  tbl_summary(by = Whole, label = list(days_at_hct_blood ~ "Time from Blood Collection to HCT (in days)", time_to_hct ~ "Time from MM diagnosis to HCT (in days)")) %>% 
+  select(days_blood_hct, Whole, time_to_hct) %>% 
+  tbl_summary(by = Whole, label = list(days_blood_hct ~ "Time from Blood Collection to HCT (in days)", time_to_hct ~ "Time from MM diagnosis to HCT (in days)")) %>% 
   bold_labels() %>% as_gt() %>%  
   gt::tab_source_note(gt::md("**HCT happen 690 days before blood collection**")) %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
-p <- qplot(x =days_at_hct_blood, data=subset(hct_data,!is.na(days_at_hct_blood)), fill=..count.., 
+p <- qplot(x =days_blood_hct, data=subset(hct_data,!is.na(days_blood_hct)), fill=..count.., 
            geom="histogram", 
            binwidth = 100,
            ) 
@@ -187,18 +185,18 @@ hct_data %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
 hct_data %>% 
-  mutate(days_at_hct_blood = (interval(start= hct_data$collectiondt_germline, end= hct_data$date_of_bmt_1)  /  duration(n=1, unit="days"))) %>% 
+  mutate(days_blood_hct = (interval(start= hct_data$collectiondt_germline, end= hct_data$date_of_bmt_1)  /  duration(n=1, unit="days"))) %>% 
   mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>% 
-  select(HCT_vs_germline, days_at_hct_blood, HCT_vs_germline) %>% 
-  tbl_summary(by = HCT_vs_germline, label = list(days_at_hct_blood ~ "Time to HCT from Blood Collection (in days)"),
+  select(HCT_vs_germline, days_blood_hct, HCT_vs_germline) %>% 
+  tbl_summary(by = HCT_vs_germline, label = list(days_blood_hct ~ "Time to HCT from Blood Collection (in days)"),
               sort = list(everything() ~ "frequency"),
               missing = "no") %>% 
   bold_labels() %>% as_gt() %>%  
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
 hct_data %>% 
-  # mutate(days_at_hct_blood = (interval(start= hct_data$collectiondt_germline, end= hct_data$date_of_bmt_1)  /  duration(n=1, unit="days"))) %>% 
-  # filter(days_at_hct_blood < 0) %>% 
+  # mutate(days_blood_hct = (interval(start= hct_data$collectiondt_germline, end= hct_data$date_of_bmt_1)  /  duration(n=1, unit="days"))) %>% 
+  # filter(days_blood_hct < 0) %>% 
   mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>%
   select(HCT_vs_germline, Disease_Status_germline) %>% 
   tbl_summary(by = HCT_vs_germline, label = list(Disease_Status_germline ~ "Disease Status at Blood collection"),
@@ -980,4 +978,22 @@ tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"
 :::
 :::
 
-
+```{r}
+analysis_data %>% 
+  mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>% 
+  filter(!is.na(HCT_vs_germline)) %>% 
+  group_by(HCT_vs_germline, CH_status) %>%
+  summarise(count=n()) %>%
+  mutate(perc=(count/sum(count)*100)
+  ) %>%
+  ggplot(aes(x= HCT_vs_germline, y = perc, fill = CH_status))+
+  geom_bar(stat = "identity")+
+  labs(x = "", y = "percent", title = "Patients who had HCT have more CH") +
+  scale_fill_manual(values = c("lightpink", "snow2"))+
+  theme_minimal(base_size = 16)+
+  geom_text(aes(label = paste0(round(perc,2), " %")), size = 5, position = position_stack(vjust = 0.85))+
+  geom_text(aes(label = paste0("n=", count)), size = 5, position = position_stack(vjust = 0.25))+
+  annotate("text", x = 0, y = 105, label = paste0("p=",chisq.test(table(analysis_data$CH_status, analysis_data$HCT_vs_germline))[3]),
+           color = "black", size = 6, hjust = 0, vjust = 0)
+```
+It is bias because CH patients are probably older and will not receive HCT anyway. Can we adjust?

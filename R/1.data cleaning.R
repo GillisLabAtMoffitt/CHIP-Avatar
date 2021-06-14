@@ -387,7 +387,8 @@ treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, Treat
     treatment_line_ == "Palliative"              ~ 91,
     str_detect(treatment_line_, "Unknown")       ~ 99
   )) %>% 
-  select(mrn, avatar_id, treatment_line_, drug_start_date, drug_stop_date, drug_name_, treatment_site) %>% 
+  select(mrn, avatar_id, treatment_line_, drug_start_date, drug_stop_date, drug_name_#, treatment_site
+         ) %>% 
   mutate(drug_name_ = tolower(drug_name_)) %>%
   mutate(drug_name_ = 
            str_remove_all(drug_name_, 
@@ -603,7 +604,7 @@ Treatment1 <- treatment1 %>%
     drug_count == 1 &
       str_detect(drug_name_, "melph")               ~ "Melphalan",
     drug_count == 1 &
-      str_detect(drug_name_, "carfilzomib")         ~ "Carfilzomib",
+      str_detect(drug_name_, "carfilzomib")         ~ "Carfilzomib", # Carfilzomib is next gen PI
     drug_count == 1 &
       str_detect(drug_name_, "cyclo")               ~ "Cyclophosphamide",
     drug_count == 1 &
@@ -612,7 +613,21 @@ Treatment1 <- treatment1 %>%
       str_detect(drug_name_, "vincristine")         ~ "Vincristine",
     TRUE                                                    ~ drug_name_
   )) %>% 
-  mutate(regimen_name = str_replace_na(regimen_name, replacement = "No Drugs"))
+  mutate(regimen_name = str_replace_na(regimen_name, replacement = "No Drugs")) %>% 
+  mutate(is_PI = case_when(
+    str_detect(drug_name_, "bortezomib|carfilzomib|oprozomib|ixazomib")                 ~ "PI",
+    str_detect(regimen_name, "VRd|KRd")           ~ "PI",
+    TRUE                                           ~ NA_character_
+  )) %>% 
+  mutate(received_IMIDs = case_when(
+    str_detect(drug_name_, "lidomide")             ~ "IMIDs",
+    TRUE                                           ~ NA_character_
+  )) %>% 
+  mutate(regimen_category = case_when(
+    str_detect(regimen_name, "VCd")                ~ "VCd", 
+    is_PI == "PI" & received_IMIDs == "IMIDs"      ~ "PI + IMIDs",
+    TRUE                                           ~ coalesce(is_PI, received_IMIDs)
+  ))
 
 # Now can dcast to have line of drug_name_ for each line/regimen ## Old code
 # 1st for regimen with same start and end date
@@ -638,30 +653,31 @@ Treatment1 <- treatment1 %>%
 
 # Summarize by avatar_id
 Treatment <- dcast(setDT(Treatment1), mrn+avatar_id ~ rowid(avatar_id), 
-                   value.var = c("treatment_line_", "line_start_date", "drug_name_", "regimen_name", 
+                   value.var = c("treatment_line_", "line_start_date", "drug_name_",
+                                 "regimen_name", "regimen_category",
                                  "line_stop_date", "drug_start_date", "drug_stop_date"))
 
 regimen_changed_id <- c("A000180", "A000414", "A014308", "A014310", "A015461", "A022588", "A025760")
 Treatment <- Treatment %>% 
   purrr::keep(~!all(is.na(.))) %>% 
-  mutate(received_IMIDs = case_when(
-    str_detect(drug_name__1, "lidomide") |
-      str_detect(drug_name__2, "lidomide") |
-      str_detect(drug_name__3, "lidomide") |
-      str_detect(drug_name__4, "lidomide") |
-      str_detect(drug_name__5, "lidomide") |
-      str_detect(drug_name__6, "lidomide") |
-      str_detect(drug_name__7, "lidomide") |
-      str_detect(drug_name__8, "lidomide") |
-      str_detect(drug_name__9, "lidomide") |
-      str_detect(drug_name__10, "lidomide") |
-      str_detect(drug_name__11, "lidomide") |
-      str_detect(drug_name__12, "lidomide") |
-      str_detect(drug_name__13, "lidomide") |
-      str_detect(drug_name__14, "lidomide") |
-      str_detect(drug_name__15, "lidomide")    ~ "IMIDs",
-    TRUE ~ "No IMIDs"
-  )) %>% 
+  # mutate(received_IMIDs = case_when(
+  #   str_detect(drug_name__1, "lidomide") |
+  #     str_detect(drug_name__2, "lidomide") |
+  #     str_detect(drug_name__3, "lidomide") |
+  #     str_detect(drug_name__4, "lidomide") |
+  #     str_detect(drug_name__5, "lidomide") |
+  #     str_detect(drug_name__6, "lidomide") |
+  #     str_detect(drug_name__7, "lidomide") |
+  #     str_detect(drug_name__8, "lidomide") |
+  #     str_detect(drug_name__9, "lidomide") |
+  #     str_detect(drug_name__10, "lidomide") |
+  #     str_detect(drug_name__11, "lidomide") |
+  #     str_detect(drug_name__12, "lidomide") |
+  #     str_detect(drug_name__13, "lidomide") |
+  #     str_detect(drug_name__14, "lidomide") |
+  #     str_detect(drug_name__15, "lidomide")    ~ "IMIDs",
+  #   TRUE ~ "No IMIDs"
+  # )) %>% 
   full_join(., IMIDS_maintenance, by = "avatar_id") %>% 
   rename(first_regimen_name = regimen_name_1) %>% 
   mutate(first_regimen_name = ifelse((str_detect(avatar_id, paste0(regimen_changed_id, collapse = "|"))), "VRd", first_regimen_name))

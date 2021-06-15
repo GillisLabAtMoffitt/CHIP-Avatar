@@ -337,6 +337,12 @@ hct_data %>%
     locations = gt::cells_column_labels(everything())
   ) 
 
+hct_data %>%
+  select(Disease_Status_germline, CH_status_TS) %>% 
+  tbl_summary(by = CH_status_TS, label = list(Disease_Status_germline ~ "Disease Status at Time of Blood Collection")) %>% 
+  bold_labels() %>% as_gt() %>%
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+
 tbl1 <- hct_data %>% 
   mutate(Race = str_replace(Race, "Unknown", NA_character_)) %>% 
   mutate(Ethnicity = str_replace(Ethnicity, "Unknown", NA_character_)) %>% 
@@ -346,7 +352,7 @@ tbl1 <- hct_data %>%
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric", ISS_grp ~ "alphanumeric"),
               digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
               missing = "no") %>% 
-  bold_labels() %>% add_p() %>% bold_p(t = .05)# %>% as_gt() %>%  
+  bold_labels() %>% add_p(correct = FALSE) %>% bold_p(t = .05)# %>% as_gt() %>%  
   # gt::tab_source_note(gt::md("**Data for active MM patients who received HCT**")) %>% 
   # gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
@@ -367,7 +373,7 @@ tbl2 <- hct_data %>%
               missing_text = "No Drugs") %>% 
   
   # modify_spanning_header(everything() ~ "Number of line of drugs received by patients before blood collection") %>% 
-  bold_labels() %>% add_p() %>% bold_p(t = .05) #%>% as_gt() %>% 
+  bold_labels() %>% add_p(correct = FALSE) %>% bold_p(t = .05) #%>% as_gt() %>% 
   # gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
 tbl_stack(list(tbl1, tbl2)) %>% as_gt() %>%
@@ -381,7 +387,7 @@ hct_data %>%
   select(CH_status_TS, MM_age_cat) %>% 
   tbl_summary(by = MM_age_cat,
               sort = list(everything() ~ "frequency")) %>% 
-  bold_labels() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>% 
+  bold_labels() %>% add_p(correct = FALSE) %>% bold_p(t = .05) %>% as_gt() %>% 
   gt::tab_style(
     style = gt::cell_text(
       color = "#0099CC"
@@ -406,7 +412,7 @@ hct_data %>%
 #   tbl_summary(by = treatment_line_,
 #               missing_text = "No Drugs") %>%
 #   modify_spanning_header(everything() ~ "Number of line received by HCT patients") %>% 
-#   bold_labels() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>% 
+#   bold_labels() %>% add_p(correct = FALSE) %>% bold_p(t = .05) %>% as_gt() %>% 
 #   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 # 
 # hct_data %>%
@@ -422,7 +428,7 @@ hct_data %>%
 #   tbl_summary(by = line_bf_hct,
 #               missing_text = "No Drugs") %>% 
 #   modify_spanning_header(everything() ~ "Number of line of drugs received by patients before HCT") %>% 
-#   bold_labels() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>% 
+#   bold_labels() %>% add_p(correct = FALSE) %>% bold_p(t = .05) %>% as_gt() %>% 
 #   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 
 
@@ -435,7 +441,7 @@ hct_data %>%
 #   select(ISS, CH_status_TS) %>%
 #   tbl_summary(by = CH_status_TS, 
 #               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric")) %>%
-#   bold_labels() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>% 
+#   bold_labels() %>% add_p(correct = FALSE) %>% bold_p(t = .05) %>% as_gt() %>% 
 #   gt::tab_source_note(gt::md("**Data on HCT patients**"))
 
 ```

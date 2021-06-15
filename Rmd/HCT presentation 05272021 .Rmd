@@ -865,6 +865,56 @@ tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"
 
 #### In WES Patient with Blood Collection Before HCT
 
+```{r}
+germline_patient_data %>% 
+  mutate(HCT_vs_germline = str_replace(HCT_vs_germline, "No HCT", NA_character_)) %>% 
+  select(HCT_ever, HCT_vs_germline, time_to_hct, CH_status) %>% 
+  tbl_summary(by = CH_status, 
+              label = list(time_to_hct ~ "Time to HCT", HCT_vs_germline ~ "HCT vs Germline"),
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels() %>% add_overall() %>% add_p(correct = FALSE) %>% bold_p(t = .05) %>% as_gt() %>%  
+  # gt::tab_source_note(gt::md("*Data for active MM patients only*")) %>% 
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+
+germline_patient_data %>% 
+  group_by(HCT_ever, CH_status) %>%
+  summarise(count=n()) %>%
+  mutate(perc=(count/sum(count)*100)
+  ) %>%
+  ggplot(aes(x= HCT_ever, y = perc, fill = CH_status))+
+  geom_bar(stat = "identity")+
+  labs(x = "", y = "percent", title = "Patients with CH receive less HCT (because older?)") +
+  scale_fill_manual(values = c("lightpink", "snow2"))+
+  theme_minimal(base_size = 16)+
+  geom_text(aes(label = paste0(round(perc,2), " %")), size = 5, position = position_stack(vjust = 0.85))+
+  geom_text(aes(label = paste0("n=", count)), size = 5, position = position_stack(vjust = 0.25))+
+  annotate("text", x = 0, y = 105, label = paste0("p=",chisq.test(table(germline_patient_data$CH_status, germline_patient_data$HCT_ever), correct = FALSE)[3]),
+           color = "black", size = 6, hjust = 0, vjust = 0)
+
+hct_data %>% 
+  group_by(HCT_vs_germline, CH_status) %>%
+  summarise(count=n()) %>%
+  mutate(perc=(count/sum(count)*100)
+  ) %>%
+  ggplot(aes(x=HCT_vs_germline, y = perc, fill = CH_status))+
+  geom_bar(stat = "identity")+
+  labs(x = "", y = "percent", title = "Patients who had HCT",
+       fill = "CH status") +
+  # scale_fill_manual(values = c("turquoise3", "snow2"))+
+  # scale_x_discrete(labels=c("Drugs after \ngermline", "Drugs before \ngermline"))+
+  theme_minimal(base_size = 20)+
+  geom_text(aes(label = paste0(round(perc,2), " %")), size = 5, position = position_stack(vjust = 0.5))+
+  geom_text(aes(label = paste0("n=", count)), size = 5, position = position_stack(vjust = 0.25))+
+  annotate("text", x = 0, y = 105, label = paste0("p=",chisq.test(table(hct_data$CH_status, hct_data$HCT_vs_germline), correct = FALSE)[3]),
+           color = "black", size = 6, hjust = 0, vjust = 1)
+
+
+```
+
+
+
+
 ::: {.row}
 ::: {.col-md-6}
 ```{r, fig.height = 7}

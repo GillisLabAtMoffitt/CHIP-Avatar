@@ -151,8 +151,319 @@ sm_patient_data %>%
   bold_labels() %>% add_p(correct = FALSE) %>% bold_p(t = .05) %>% as_gt() %>%
   gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
 ```
+```{r}
+# sm_patient_data %>% 
+#   select(smoldering_status, CH_status) %>%
+#   tbl_summary(by = smoldering_status, 
+#               sort = list(everything() ~ "frequency"),
+#               missing = "no") %>% 
+#   bold_labels() %>% add_p(correct = FALSE) %>% bold_p(t = .05) %>% as_hux_table(strip_md_bold = TRUE)#%>% as_gt() %>%  
+#   # gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+```
+```{r}
+# sm_patient_data %>% 
+#   select(smoldering_status, CH_status) %>%
+#   tbl_summary(by = smoldering_status, 
+#               sort = list(everything() ~ "frequency"),
+#               missing = "no") %>% 
+#   bold_labels() %>% add_p(correct = FALSE) %>% bold_p(t = .05) %>% as_flextable(return_calls = FALSE)
+```
+```{r}
+# sm_patient_data %>% 
+#   select(smoldering_status, CH_status) %>%
+#   tbl_summary(by = smoldering_status, 
+#               sort = list(everything() ~ "frequency"),
+#               missing = "no") %>% 
+#   bold_labels() %>% add_p(correct = FALSE) %>% bold_p(t = .05) %>% as_flex_table(strip_md_bold = TRUE) %>% flextable::border()
+```
+<br>
+<br>
+
+***
+
+::: {.row}
+::: {.col-md-6}
+```{r, fig.height = 7}
+mysurv <- Surv(time = sm_patient_data$month_at_os, event = sm_patient_data$os_event)
+myplot <- survfit(mysurv~CH_status, data = sm_patient_data)
+# jpeg(paste0(path, "/Figures/Survivals/CHIP/OS Drugs by CH.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = sm_patient_data,
+           title = "OS Drugs ever",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), #20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+                      xlim = c(-10, 400),
+# Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 4,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+) + guides(colour = guide_legend(nrow = 2))
+```
+:::
+
+::: {.col-md-6}
+```{r, fig.height = 7}
+tbl1 <- sm_patient_data %>% select(CH_status) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = sm_patient_data$month_at_os, 
+                             event = sm_patient_data$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = sm_patient_data$month_at_os, 
+             event = sm_patient_data$os_event) ~ CH_status, data =  sm_patient_data) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+```
+:::
+:::
 
 <br>
+
+::: {.row}
+::: {.col-md-6}
+```{r, fig.height = 7}
+mysurv <- Surv(time = sm_patient_data$month_at_progression_drug, event = sm_patient_data$drug_progression_event)
+myplot <- survfit(mysurv~CH_status, data = sm_patient_data)
+ggsurvplot(myplot, data = sm_patient_data,
+           title = "PFS Drugs from  DRUGS date",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), # 20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 4,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           # censor = TRUE
+) + guides(colour = guide_legend(nrow = 2))
+```
+:::
+
+::: {.col-md-6}
+```{r, fig.height = 7}
+tbl1 <- sm_patient_data %>% select(CH_status) %>%
+  tbl_uvregression(method = survival::coxph,
+                   y = (Surv(time = sm_patient_data$month_at_progression_drug,
+                             event = sm_patient_data$drug_progression_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>%
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = sm_patient_data$month_at_progression_drug,
+             event = sm_patient_data$drug_progression_event) ~ CH_status, data =  sm_patient_data) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+```
+:::
+:::
+
+::: {.row}
+::: {.col-md-6}
+```{r, fig.height = 7}
+mysurv <- Surv(time = sm_patient_data$month_at_os, event = sm_patient_data$os_event)
+myplot <- survfit(mysurv~CH_status+smoldering_status, data = sm_patient_data)
+# jpeg(paste0(path, "/Figures/Survivals/CHIP/OS Drugs by CH.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = sm_patient_data,
+           title = "OS Drugs ever",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), #20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # xlim = c(-10, 400),
+# Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 4,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+) + guides(colour = guide_legend(nrow = 2))
+```
+:::
+
+::: {.col-md-6}
+```{r, fig.height = 7}
+tbl1 <- sm_patient_data %>% select(CH_status) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = sm_patient_data$month_at_os, 
+                             event = sm_patient_data$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = sm_patient_data$month_at_os, 
+             event = sm_patient_data$os_event) ~ CH_status, data =  sm_patient_data) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+```
+:::
+:::
+
+::: {.row}
+::: {.col-md-6}
+```{r, fig.height = 7}
+sm_surv <- sm_patient_data %>% filter(str_detect(smoldering_status, "Pro"))
+mysurv <- Surv(time = sm_surv$month_at_os, event = sm_surv$os_event)
+myplot <- survfit(mysurv~CH_status+smoldering_status, data = sm_surv)
+# jpeg(paste0(path, "/Figures/Survivals/CHIP/OS Drugs by CH.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = sm_surv,
+           title = "OS Drugs ever",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), #20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # xlim = c(-10, 400),
+# Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 4,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+) + guides(colour = guide_legend(nrow = 2))
+```
+:::
+
+::: {.col-md-6}
+```{r, fig.height = 7}
+tbl1 <- sm_surv %>% select(CH_status) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = sm_surv$month_at_os, 
+                             event = sm_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = sm_surv$month_at_os, 
+             event = sm_surv$os_event) ~ CH_status, data =  sm_surv) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+```
+:::
+:::
+
 <br>
+
+::: {.row}
+::: {.col-md-6}
+```{r, fig.height = 7}
+mysurv <- Surv(time = sm_patient_data$month_at_progression_drug, event = sm_patient_data$drug_progression_event)
+myplot <- survfit(mysurv~CH_status+smoldering_status, data = sm_patient_data)
+ggsurvplot(myplot, data = sm_patient_data,
+           title = "PFS Drugs from  DRUGS date",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(10, "bold", "black"), # 20
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hipanic", "Non-Hispanic", "Unknown"),
+           # palette = c("darkred", "darkgreen", "grey"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 4,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           # censor = TRUE
+) + guides(colour = guide_legend(nrow = 2))
+```
+:::
+
+::: {.col-md-6}
+```{r, fig.height = 7}
+tbl1 <- sm_patient_data %>% select(CH_status) %>%
+  tbl_uvregression(method = survival::coxph,
+                   y = (Surv(time = sm_patient_data$month_at_progression_drug,
+                             event = sm_patient_data$drug_progression_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>%
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = sm_patient_data$month_at_progression_drug,
+             event = sm_patient_data$drug_progression_event) ~ CH_status, data =  sm_patient_data) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariate**", "**Multivariate**"))
+```
+:::
+:::
+
+<br> 
 
 ***

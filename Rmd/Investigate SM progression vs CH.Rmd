@@ -1,0 +1,158 @@
+---
+title: "SM Report"
+author: "Christelle Colin-Leitzinger"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_collapsed: no
+    theme: cerulean
+    highlight: pygments
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+```{=html}
+<style type="text/css">
+h1.title {
+  font-size: 25px;
+}
+.figure {
+   margin-top: 25px;
+   margin-bottom: 100px;
+}
+
+table {
+    margin-top: 25px;
+    margin-bottom: 25px;
+}
+</style>
+```
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      cache = FALSE,
+                      # fig.width = 7, fig.height = 5, 
+                      fig.align='center'#, fig.show='hold'
+                      )
+options(gtsummary.print_engine = "gt")
+options(gtsummary.as_gt.addl_cmds = "gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1))")
+
+```
+
+```{=html}
+<style>
+div.blue { background-color:#0099CC; border-radius: 5px; padding: 20px; font-size: 38px}
+</style>
+```
+::: {.blue}
+[Smoldering]{style="color: white;"}
+:::
+
+<br>
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(VennDiagram)
+library(viridis)
+library(lubridate)
+library(gtsummary)
+library(survival)
+library(survminer)
+```
+
+```{r load}
+# Global_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Global_data.rds")
+germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/germline_patient_data.rds")
+# Treatment1 <-  readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Treatment1.rds")
+# path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
+# patients_removed_nonMM <- c("A000428", "A000456")
+```
+
+
+***
+
+# Smoldering patients and CH
+<br>
+<br>
+
+***
+
+## 1. Demographics
+
+```{r data}
+sm_patient_data <- germline_patient_data %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  filter(!is.na(smoldering_status))
+rm(germline_patient_data)
+```
+
+Within the active multiple myeloma patient in the MM avatar data (N=`r sm_patient_data %>% NROW()`) were/are smoldering. 
+```{r demographics in germline}
+sm_patient_data %>% 
+  mutate(Whole = "SM patients") %>% 
+  mutate(Race = str_replace(Race, "Unknown", NA_character_)) %>% 
+  mutate(Ethnicity = str_replace(Ethnicity, "Unknown", NA_character_)) %>% 
+  select(Age_at_MMonly_diagnosis, 
+         Gender, Race, Ethnicity, Whole, ISS, ISS_grp) %>%
+  tbl_summary(by = Whole, label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis"),
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric", ISS_grp ~ "alphanumeric"),
+              digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
+              missing = "no") %>% 
+  bold_labels() %>% as_gt() %>%  
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+```
+<br>
+<br>
+
+***
+
+## 2. Proportion of patients who progressed fron SM to MM
+
+```{r}
+sm_patient_data %>% 
+  mutate(Whole = "SM patients") %>% 
+
+  select(smoldering_status, Whole) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels() %>% as_gt() %>%  
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+```
+
+```{r}
+sm_patient_data %>% 
+  select(Age_at_MMonly_diagnosis, 
+         Gender, Race, Ethnicity, smoldering_status, ISS, ISS_grp) %>%
+  tbl_summary(by = smoldering_status, label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis"),
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric", ISS_grp ~ "alphanumeric"),
+              digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
+              missing = "no") %>% 
+  bold_labels() %>% add_p(correct = FALSE) %>% bold_p(t = .05) %>% as_gt() %>%  
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+```
+<br>
+<br>
+
+***
+
+## 3. CH 
+```{r}
+sm_patient_data %>%
+  select(smoldering_status, CH_status) %>%
+  tbl_summary(by = smoldering_status,
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>%
+  bold_labels() %>% add_p(correct = FALSE) %>% bold_p(t = .05) %>% as_gt() %>%
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+```
+
+<br>
+<br>
+
+***

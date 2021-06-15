@@ -101,8 +101,8 @@ Germline <- left_join(WES_seq, Germline, by = "avatar_id") %>%
 rm(Sequencing, Sequencing2, WES_tumor, WES_seq, Seq_WES_Raghu, Seq_WES, Seq_WES_Raghu2)
 
 
-#######################################################################################  II  ## Bind Version----
-#######################################################################################  II  ## Align duplicated ID
+#######################################################################################  II  ## Bind Version, Clean----
+#######################################################################################  II  ## Create a wider format for each to facilitate date comparison
 # Demographic ----
 Demo_HRI <- full_join(Demo_linkage, Demo_HRI, by= "MRN") %>% 
   distinct(.) %>% 
@@ -133,6 +133,7 @@ Demo_RedCap_V4ish <- Demo_RedCap_V4ish %>%
   mutate(Ethnicity1 = factor(Ethnicity, levels= c("Non-Hispanic", "Hispanic")))
 
 # Patient history ----
+# Create function to code disease stage for latest version and fit to older version
 history_disease <- function(data){
   data <- data %>% 
     filter(histology == 97651 | histology == 97323) %>% 
@@ -151,7 +152,16 @@ MM_historyV4.1 <- history_disease(MM_historyV4.1)
 mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, MM_historyV4.1, .id = "versionMM") %>%
   drop_na("date_of_diagnosis") %>%
   distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
-  # Create date of diagnosis closest to germline date
+  # code smoldering diagnosis date
+  group_by(avatar_id) %>% 
+  mutate(sm_date_diagnosis = case_when(
+    (disease_stage == "smoldering")         ~ first(date_of_diagnosis),
+    TRUE                                    ~ NA_POSIXct_
+  )) %>% 
+  fill(sm_date_diagnosis, .direction = "downup") %>% 
+  ungroup() %>% 
+  
+  # Create date of diagnosis closest to germline date (general diagnosis, in not specific MM)
   left_join(., Germline %>% distinct(avatar_id, .keep_all = TRUE) %>% select("avatar_id", "collectiondt_germline"), # For only 1 date of Dx when multiple germline collection
             by = "avatar_id") %>% 
   mutate(interval = (interval(start= .$collectiondt_germline, end= .$date_of_diagnosis)/duration(n=1, unit="days"))) %>% 
@@ -165,19 +175,18 @@ mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, 
   arrange(avatar_id, date_of_diagnosis) %>% 
   ungroup()
 
-# diagn_data <- Global_data %>%
-#   # distinct(avatar_id, .keep_all = TRUE) %>% 
-#   # select("avatar_id", starts_with("disease_stage_"), "Disease_Status_germline", collectiondt_germline, starts_with("date_of_diagnosis_")) %>% 
-#   # pivot_longer(cols = date_of_diagnosis_1:ncol(.), names_to = "event", values_to = "date") %>%
-#   # drop_na(date) %>% 
-#   
-#   
-#   distinct(avatar_id, .keep_all = TRUE) %>% 
-#   select("avatar_id", Dx_date_closest_germline = "date")
-# # write.csv(diagn_data, paste0(path, "/diagnosis data with germline and interval.csv"))
-
-MM_history <- dcast(setDT(mm_history), avatar_id+Dx_date_closest_germline ~ rowid(avatar_id), 
+MM_history <- dcast(setDT(mm_history), avatar_id+Dx_date_closest_germline+sm_date_diagnosis ~ rowid(avatar_id), 
                     value.var = c("date_of_diagnosis", "disease_stage")) %>% 
+  # code smoldering status
+  mutate(smoldering_status = case_when(
+    !is.na(sm_date_diagnosis) &
+      (disease_stage_2 == "active" |
+       disease_stage_3 == "active" |
+       disease_stage_4 == "active")             ~ "Progressed from Smoldering",
+    !is.na(sm_date_diagnosis)                   ~ "Is Smoldering", 
+    TRUE                                        ~ NA_character_
+    )) %>% 
+  
   # unite(Dx_date_closest_germline, starts_with("Dx_date_closest_germline"), na.rm = TRUE, remove = TRUE) %>% 
   # mutate(Dx_date_closest_germline = as.POSIXct(.$Dx_date_closest_germline, format = "%Y-%m-%d")) %>% 
   # select(-collectiondt_germline) %>% 
@@ -201,7 +210,7 @@ MM_history <- dcast(setDT(mm_history), avatar_id+Dx_date_closest_germline ~ rowi
     disease_stage_4 == "mgus"            ~ date_of_diagnosis_4,
   )) %>% 
   mutate(date_of_MMSMMGUSdiagnosis = coalesce(date_of_MMonly_diagnosis, date_of_MMSMMGUSdiagnosis)) %>% 
-  select(c("avatar_id", "Dx_date_closest_germline", "date_of_MMonly_diagnosis", "date_of_MMSMMGUSdiagnosis", everything()))
+  select(c("avatar_id", "Dx_date_closest_germline", "date_of_MMonly_diagnosis", "sm_date_diagnosis", "smoldering_status", "date_of_MMSMMGUSdiagnosis", everything()))
 
 # write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
 

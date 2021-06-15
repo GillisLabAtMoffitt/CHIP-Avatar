@@ -94,6 +94,15 @@ Global_data <- Global_data %>%
     TRUE                         ~ as.character(diagnosis_MM_year)
   )) %>%
   
+  # Code progression from SM to MM
+  mutate(sm_progression_event = case_when(
+    smoldering_status == "Progressed from Smoldering"       ~ 1,
+    smoldering_status == "Is Smoldering"                    ~ 0
+    )) %>% 
+  mutate(pfs_sm_MM_date = round(interval(start = sm_date_diagnosis, end = date_of_MMonly_diagnosis)/                      
+           duration(n=1, unit="days"), 3)
+  ) %>% 
+
   # Add date_death as progression_date when no previous progression_date
   mutate(pfs_date_death= case_when(
     date_death > date_last_follow_up |

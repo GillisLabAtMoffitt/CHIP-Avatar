@@ -293,6 +293,11 @@ Global_data$Age_at_MMonly_diagnosis <- round(Global_data$Age_at_MMonly_diagnosis
 Global_data$MM_age_cat <- as.factor(findInterval(Global_data$Age_at_MMonly_diagnosis, c(0,50,60,70)))
 levels(Global_data$MM_age_cat) <- c("<50", "50-59", "60-69", ">70")
 
+Global_data$MM_age_cat5 <- as.factor(findInterval(Global_data$Age_at_MMonly_diagnosis, c(0,50, 55,60, 65, 70)))
+levels(Global_data$MM_age_cat5) <- c("<50", "50-54", "55-59", "60-64", "65-69", ">70")
+
+Global_data$MM_age_cat3 <- as.factor(findInterval(Global_data$Age_at_MMonly_diagnosis, c(0,50, 53, 56, 59, 62,65, 68,71)))
+levels(Global_data$MM_age_cat3) <- c("<50", "50-52", "53-55", "56-58", "59-61", "62-64", "65-67", "68-70", ">71")
 
 Global_data$Age_at_MMSMMGUSdiagnosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_MMSMMGUSdiagnosis)/                      
   duration(n=1, unit="years")

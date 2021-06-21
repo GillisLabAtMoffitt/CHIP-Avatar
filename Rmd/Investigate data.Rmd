@@ -65,10 +65,12 @@ library(survminer)
 ```
 
 ```{r load}
-Global_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Global_data.rds")
+# Global_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Global_data.rds")
 germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/germline_patient_data.rds")
 path <- ("/Users/colinccm/Documents/GitHub/Gillis/no vpn data/CHIP in Avatar")
 
+germline_patient_data <- germline_patient_data %>% filter(!is.na(date_of_MMonly_diagnosis)) %>% 
+    distinct(avatar_id, .keep_all = TRUE)
 ```
 <br>
 <br>
@@ -76,7 +78,7 @@ path <- ("/Users/colinccm/Documents/GitHub/Gillis/no vpn data/CHIP in Avatar")
 
 ***
 
-# Focus on Germline data
+# Focus on Germline data and active MM patients
 # I.Disparities
 
 ISS is reported for MM patients only.
@@ -86,7 +88,6 @@ ISS is reported for MM patients only.
 
 ```{r echo=FALSE, out.width='70%'}
 germline_patient_data %>% 
-  distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(Age_at_diagnosis_closest_germline, Age_at_MMonly_diagnosis, 
          delay_to_treatment, Gender, Race, Ethnicity, Whole, ISS, CH_status) %>%

@@ -81,8 +81,6 @@ id <- paste(unique( Global_data$avatar_id[which(!is.na(Global_data$was_contact_l
 
 
 Global_data <- Global_data %>% 
-  mutate(CH_status = factor(CH_status, levels = c("No CH", "CH"))) %>% 
-  mutate(CH_status_TS = factor(CH_status_TS, levels = c("No CHIP", "CHIP"))) %>% 
   mutate(diagnosis_MM_year = year(date_of_MMonly_diagnosis)) %>% 
   mutate(diagnosis_MM_year = case_when(
     diagnosis_MM_year < 2009     ~ "previous 2009",
@@ -136,6 +134,7 @@ Global_data <- Global_data %>%
     TRUE                                            ~ line_start_date_1
   )) %>%
   mutate(Drugs_ever = ifelse(!is.na(line_start_date_1), "Drug", "No Drug")) %>% 
+  mutate(Drugs_ever = factor(Drugs_ever, levels = c("No Drug", "Drug"))) %>% 
   mutate(drugs_before_germline = case_when(
     pfs_line_start_date < collectiondt_germline         ~ "Blood after Drugs",
     pfs_line_start_date >= collectiondt_germline |
@@ -179,7 +178,8 @@ Global_data <- Global_data %>%
     date_of_bmt_1 >= last_date_available           ~ NA_POSIXct_, # doesn't remove date
     TRUE                                           ~ date_of_bmt_1
   )) %>%
-  mutate(HCT_ever = ifelse(!is.na(date_of_bmt_1), "HCT", "No HCT")) %>% 
+  mutate(HCT_ever = ifelse(is.na(date_of_bmt_1), "No HCT", "HCT")) %>% 
+  mutate(HCT_ever = factor(HCT_ever, levels = c("No HCT", "HCT"))) %>% 
   mutate(HCT_before_germline = case_when(
     pfs_hct_start_date < collectiondt_germline          ~ "Blood after HCT",
     pfs_hct_start_date >= collectiondt_germline |
@@ -259,9 +259,9 @@ Global_data <- Global_data %>%
       is.na(date_of_bmt_1) ~ "No Treatment",
     TRUE                   ~ "Treatment Given"
   )) %>% 
-  mutate(ISS_grp = ifelse(str_detect(ISS, "II"), "II-III", ISS)) %>% 
-  mutate(delay_to_treatment = interval(start = date_of_MMonly_diagnosis, end = line_start_date_1)/
-           duration(n=1, units = "days"))
+  mutate(ISS_grp = ifelse(str_detect(ISS, "II"), "II-III", ISS)) #%>% 
+  # mutate(delay_to_treatment = interval(start = date_of_MMonly_diagnosis, end = line_start_date_1)/
+  #          duration(n=1, units = "days"))
   
   
   
@@ -452,6 +452,8 @@ germline_patient_data <- Global_data[!is.na(Global_data$Disease_Status_germline)
 
 # Do a check on dates
 germline_patient_data <- germline_patient_data %>% 
+  mutate(CH_status = factor(CH_status, levels = c("No CH", "CH"))) %>% 
+  mutate(CH_status_TS = factor(CH_status_TS, levels = c("No CHIP", "CHIP"))) %>% 
   mutate(germlineBFdrugs = case_when(
     collectiondt_germline > line_start_date_1 ~ "No",
     collectiondt_germline <= line_start_date_1 ~ "OK",

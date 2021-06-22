@@ -90,7 +90,7 @@ ISS is reported for MM patients only.
 germline_patient_data %>% 
   mutate(Whole = "Germline patients") %>% 
   select(Age_at_diagnosis_closest_germline, Age_at_MMonly_diagnosis, 
-         delay_to_treatment, Gender, Race, Ethnicity, Whole, ISS, CH_status) %>%
+         time_to_drug, Gender, Race, Ethnicity, Whole, ISS, CH_status) %>%
   tbl_summary(by = Whole, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Age_at_MMonly_diagnosis) ~ 2)) %>% bold_labels() %>%  as_gt() %>%  
@@ -120,7 +120,8 @@ p <- ggplot(germline_patient_data %>%
               filter(!is.na(Age_at_diagnosis_closest_germline),
                      !is.na(Disease_Status_facet), (Ethnicity == "Hispanic" | Ethnicity == "Non-Hispanic") ),
             aes(x=Ethnicity, y=Age_at_diagnosis_closest_germline), fill=Ethnicity) + 
-  geom_boxplot(color = c("darkred", "darkgreen", "darkred", "darkgreen", "darkred", "darkgreen")) + 
+  geom_boxplot(#color = c("darkred", "darkgreen", "darkred", "darkgreen", "darkred", "darkgreen")
+               ) + 
   theme_minimal(base_size = 15) +
   labs(x=NULL, y="Age at Diagnosis", title="Age of diagnosis closest to germline repartition")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
@@ -139,7 +140,7 @@ germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(Age_at_diagnosis_closest_germline, Age_at_MMonly_diagnosis, diagnosis_MM_year,
-         delay_to_treatment, Drugs_ever, HCT_ever, Gender, Race, Ethnicity, ISS, CH_status) %>%
+         time_to_drug, Drugs_ever, HCT_ever, Gender, Race, Ethnicity, ISS, CH_status) %>%
   tbl_summary(by = Ethnicity, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Age_at_MMonly_diagnosis) ~ 2)) %>% bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>%  
@@ -422,7 +423,9 @@ p <- germline_patient_data %>%
   mutate(Race = factor(Race, levels=c("White", "Black"))) %>% filter(!is.na(Race),!is.na(Disease_Status_facet)) %>% 
   # mutate(Disease_Status_facet = factor(Disease_Status_facet, levels=c("MM", "Smoldering", "MGUS"))) %>% 
   ggplot(aes(x=Race, y=Age_at_diagnosis_closest_germline), fill=Race) + 
-  geom_boxplot(color= c(rep(c("#A92E5EFF", "#E65D2FFF"),3))) +
+  geom_boxplot(
+    # color= c(rep(c("#A92E5EFF", "#E65D2FFF"),3))
+    ) +
   theme_minimal(base_size = 15) +
   labs(x=NULL, y="Age at Diagnosis", title="Age of diagnosis closest to germline repartition")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
@@ -442,7 +445,7 @@ germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(Age_at_diagnosis_closest_germline, Age_at_MMonly_diagnosis, diagnosis_MM_year, MM_age_cat3, MM_age_cat5,
-         delay_to_treatment, Drugs_ever, HCT_ever, Gender, Race, Ethnicity, ISS, CH_status) %>%
+         time_to_drug, Drugs_ever, HCT_ever, Gender, Race, Ethnicity, ISS, CH_status) %>%
   tbl_summary(by = Race, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_diagnosis_closest_germline, Age_at_MMonly_diagnosis) ~ 2)) %>% bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>%  
@@ -618,7 +621,7 @@ germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(Whole = "Germline patients") %>% 
   select(Age_at_MMonly_diagnosis, diagnosis_MM_year, MM_age_cat3, MM_age_cat5,
-         delay_to_treatment, Drugs_ever, HCT_ever, Gender, Race1, Ethnicity, ISS, CH_status) %>%
+         time_to_drug, Drugs_ever, HCT_ever, Gender, Race1, Ethnicity, ISS, CH_status) %>%
   tbl_summary(by = CH_status, 
               sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_MMonly_diagnosis) ~ 2)) %>% bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>%  
@@ -1004,7 +1007,7 @@ germline_patient_data %>%
 ```{r}
 germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  select(Age_at_diagnosis_closest_germline, delay_to_treatment, Gender, Race, Ethnicity, CH_status, ISS, ISS_grp) %>% 
+  select(Age_at_diagnosis_closest_germline, time_to_drug, Gender, Race, Ethnicity, CH_status, ISS, ISS_grp) %>% 
   mutate(Race = str_replace(Race, "Unknown", NA_character_)) %>%
   mutate(Ethnicity = str_replace(Ethnicity, "Unknown", NA_character_)) %>%
   mutate(Race = str_replace(Race, "Asian|More than one race|Am Indian", "Others")) %>% 

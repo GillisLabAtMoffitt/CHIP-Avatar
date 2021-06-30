@@ -1,16 +1,17 @@
 ---
 title: "Disparities"
 author: "Christelle Colin-Leitzinger"
-date: '`r Sys.Date()`'
-output: 
+date: "`r Sys.Date()`"
+output:
+  word_document:
+    toc: yes
   html_document:
-    toc: true
-    toc_float: true
-    toc_collapsed: false
-    theme: cerulean #darkly
+    toc: yes
+    toc_float: yes
+    toc_collapsed: no
+    theme: cerulean
     highlight: pygments
-    # keep_md: true
-editor_options: 
+editor_options:
   chunk_output_type: console
 ---
 

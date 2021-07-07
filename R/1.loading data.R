@@ -663,6 +663,9 @@ IMIDS_maintenance <- readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Maintainance_R
 #
 migration_patients <- readxl::read_xlsx(paste0(path, "/Raghu MM/Avatar List For Migration.xlsx"))
 
+# Somatic mutations
+load(file = paste0(path, "/TumorMuts/Nancy650AF.DP.AF.rda"))
+
 
 # Plot data recorded ---
 # jpeg(paste0(path, "/barplot1.jpg"), width = 350, height = 350)

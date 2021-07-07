@@ -130,7 +130,15 @@ Demo_RedCap_V4ish <- Demo_RedCap_V4ish %>%
     Ethnicity %in% c("Unknown", "Prefer not to answer", "PT Not Present")   ~ "Unknown",
     TRUE                                                                    ~ Ethnicity
   )) %>% 
-  mutate(Ethnicity1 = factor(Ethnicity, levels= c("Non-Hispanic", "Hispanic")))
+  mutate(Ethnicity1 = factor(Ethnicity, levels= c("Non-Hispanic", "Hispanic"))) %>% 
+  mutate(raceeth = case_when(
+    Race1 == "Black"                  ~ "Black",
+    # Race1 == "White" &
+      Ethnicity == "Hispanic"         ~ "Hispanic",
+    Race1 == "White" &
+      Ethnicity == "Non-Hispanic"     ~ "White Non-Hispanic",
+    TRUE                              ~ "Others"
+  ))
 
 # Patient history ----
 # Create function to code disease stage for latest version and fit to older version
@@ -148,9 +156,22 @@ MM_history_V12 <- history_disease(MM_history_V12)
 MM_historyV4 <- history_disease(MM_historyV4)
 MM_historyV4.1 <- history_disease(MM_historyV4.1)
 
+# Change status for patients that Nancy checked
+id <- paste("A022604","A027407","A029244","A007364","A000238",
+            "A000530","A007146","A010533","A016764", sep = "|")
 
 mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, MM_historyV4.1, .id = "versionMM") %>%
   drop_na("date_of_diagnosis") %>%
+  # Change status for patients that Nancy checked
+  mutate(disease_stage = case_when(
+    str_detect(avatar_id, id) &
+      disease_stage == "active"   ~ "wrongly classified", 
+    TRUE                          ~ disease_stage)) %>% 
+  # mutate(date_of_diagnosis = case_when(
+  #   str_detect(avatar_id, id) &
+  #     disease_stage == "wrongly classified"   ~ NA_POSIXct_, 
+  #   TRUE                                      ~ date_of_diagnosis)) %>% 
+
   distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
   # code smoldering diagnosis date
   group_by(avatar_id) %>% 
@@ -175,7 +196,8 @@ mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2, MM_historyV4, 
   arrange(avatar_id, date_of_diagnosis) %>% 
   ungroup()
 
-MM_history <- dcast(setDT(mm_history), avatar_id+Dx_date_closest_germline+sm_date_diagnosis ~ rowid(avatar_id), 
+
+MM_history <- dcast(setDT(mm_history), avatar_id+collectiondt_germline+Dx_date_closest_germline+sm_date_diagnosis ~ rowid(avatar_id), 
                     value.var = c("date_of_diagnosis", "disease_stage")) %>% 
   # code smoldering status
   mutate(smoldering_status = case_when(
@@ -199,6 +221,12 @@ MM_history <- dcast(setDT(mm_history), avatar_id+Dx_date_closest_germline+sm_dat
     disease_stage_3 == "active"          ~ date_of_diagnosis_3,
     disease_stage_4 == "active"          ~ date_of_diagnosis_4,
   )) %>% 
+  mutate(is_patient_MM = case_when(
+    !is.na(date_of_MMonly_diagnosis) &
+      smoldering_status == "Is Smoldering" ~ "No",
+    !is.na(date_of_MMonly_diagnosis)       ~ "Yes",
+    is.na(date_of_MMonly_diagnosis)        ~ "No"
+  )) %>% 
   mutate(date_of_MMSMMGUSdiagnosis = case_when(
     disease_stage_1 == "smoldering"      ~ date_of_diagnosis_1,
     disease_stage_2 == "smoldering"      ~ date_of_diagnosis_2,
@@ -207,10 +235,23 @@ MM_history <- dcast(setDT(mm_history), avatar_id+Dx_date_closest_germline+sm_dat
     disease_stage_1 == "mgus"            ~ date_of_diagnosis_1,
     disease_stage_2 == "mgus"            ~ date_of_diagnosis_2,
     disease_stage_3 == "mgus"            ~ date_of_diagnosis_3,
-    disease_stage_4 == "mgus"            ~ date_of_diagnosis_4,
+    disease_stage_4 == "mgus"            ~ date_of_diagnosis_4
   )) %>% 
   mutate(date_of_MMSMMGUSdiagnosis = coalesce(date_of_MMonly_diagnosis, date_of_MMSMMGUSdiagnosis)) %>% 
-  select(c("avatar_id", "Dx_date_closest_germline", "date_of_MMonly_diagnosis", "sm_date_diagnosis", "smoldering_status", "date_of_MMSMMGUSdiagnosis", everything()))
+  mutate(interval_MM = interval(start= date_of_MMonly_diagnosis, end= collectiondt_germline)/duration(n=1, unit="days")) %>% 
+  mutate(is_MMDx_close_to_blood = case_when(
+    is_patient_MM == "Yes" &
+      interval_MM > -60                  ~ "Yes",
+    TRUE                                 ~ "No"
+  )) %>% 
+  select(c("avatar_id", "Dx_date_closest_germline", "date_of_MMonly_diagnosis", "is_patient_MM", 
+           "sm_date_diagnosis", "smoldering_status", "date_of_MMSMMGUSdiagnosis", 
+           interval_MM, is_MMDx_close_to_blood, everything(), -collectiondt_germline))
+
+
+  
+
+
 
 # write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
 

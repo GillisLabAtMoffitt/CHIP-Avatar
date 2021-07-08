@@ -143,7 +143,8 @@ Demo_RedCap_V4ish <- Demo_RedCap_V4ish %>%
     Race1 == "White" &
       Ethnicity == "Non-Hispanic"     ~ "White Non-Hispanic",
     TRUE                              ~ "Others"
-  ))
+  )) %>% 
+  mutate(raceeth = factor(raceeth, levels=c("White Non-Hispanic", "Hispanic", "Black", "Others")))
 
 # Patient history ----
 # Create function to code disease stage for latest version and fit to older version
@@ -994,6 +995,7 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., Last_labs_dates %>% select(c("avatar_id", "labs_last_date")), by = "avatar_id") %>% 
   full_join(., OS_data, by = "avatar_id") %>% 
   full_join(., Staging_ISS, by = c("avatar_id", "collectiondt_germline")) %>% 
+  full_join(., Diagnosis_ISS, by = c("avatar_id")) %>% 
   full_join(., metastasis, by = "avatar_id") %>% 
   full_join(Demo_RedCap_V4ish %>% select(-TCC_ID), ., by = "avatar_id")
 # # write.csv(Global_data, paste0(path, "/Global_data.csv"))

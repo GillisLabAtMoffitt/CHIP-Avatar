@@ -259,19 +259,11 @@ Global_data <- Global_data %>%
       is.na(date_of_bmt_1) ~ "No Treatment",
     TRUE                   ~ "Treatment Given"
   )) %>% 
-  mutate(ISS_grp = ifelse(str_detect(ISS, "II"), "II-III", ISS)) #%>% 
-  # mutate(delay_to_treatment = interval(start = date_of_MMonly_diagnosis, end = line_start_date_1)/
-  #          duration(n=1, units = "days"))
+  mutate(ISS_grp = ifelse(str_detect(ISS, "II"), "II-III", ISS)) %>%
+  mutate(ISSdx_grp = ifelse(str_detect(ISS_at_MMdx, "II"), "II-III", ISS_at_MMdx))
   
-  
-  
+# Cleaning
 rm(all_dates, all_dates1, last_event, Last_labs_dates, Contact_lost, OS_data, Staging_ISS)
-
-# Global_data[, c("avatar_id", "pfs_progression_date", "Progression_event", "pfs_progression_date", "last_date_available", "last_event_available")]
-
-# d <- Global_data[which(!is.na(Global_data$date_contact_lost)), 
-#                  c("Dx_date_closest_germline", "date_last_follow_up", "date_contact_lost", "date_death", "last_date_available")]
-
 
 # write.csv(Global_data, paste0(path, "/Global_data updated.csv"))
 

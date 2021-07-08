@@ -208,11 +208,11 @@ MM_history <- dcast(setDT(mm_history), avatar_id+collectiondt_germline+Dx_date_c
   # code smoldering status
   mutate(smoldering_status = case_when(
     !is.na(sm_date_diagnosis) &
-      (disease_stage_2 == "active" |
-       disease_stage_3 == "active" |
-       disease_stage_4 == "active")             ~ "Progressed from Smoldering",
-    !is.na(sm_date_diagnosis)                   ~ "Is Smoldering", 
-    TRUE                                        ~ NA_character_
+      (str_detect(disease_stage_2, "active|relapse") |
+         str_detect(disease_stage_3, "active|relapse") |
+         str_detect(disease_stage_4, "active|relapse"))        ~ "Progressed from Smoldering",
+    !is.na(sm_date_diagnosis)                                    ~ "Is Smoldering", 
+    TRUE                                                         ~ NA_character_
     )) %>% 
   
   # unite(Dx_date_closest_germline, starts_with("Dx_date_closest_germline"), na.rm = TRUE, remove = TRUE) %>% 
@@ -222,11 +222,19 @@ MM_history <- dcast(setDT(mm_history), avatar_id+collectiondt_germline+Dx_date_c
   # Then when not "active" take the first date of Dx available (mgus or smoldering or NA without regarding order- 
   # usually mgus before smoldering)
   mutate(date_of_MMonly_diagnosis = case_when(
-    disease_stage_1 == "active"          ~ date_of_diagnosis_1,
-    disease_stage_2 == "active"          ~ date_of_diagnosis_2,
-    disease_stage_3 == "active"          ~ date_of_diagnosis_3,
-    disease_stage_4 == "active"          ~ date_of_diagnosis_4,
+    str_detect(disease_stage_1, "active|relapse")          ~ date_of_diagnosis_1
   )) %>% 
+  mutate(date_of_MMonly_diagnosis2 = case_when(
+    str_detect(disease_stage_2, "active|relapse")          ~ date_of_diagnosis_2
+  )) %>% 
+  mutate(date_of_MMonly_diagnosis3 = case_when(
+    str_detect(disease_stage_3, "active|relapse")          ~ date_of_diagnosis_3
+  )) %>% 
+  mutate(date_of_MMonly_diagnosis4 = case_when(
+    str_detect(disease_stage_4, "active|relapse")          ~ date_of_diagnosis_4
+  )) %>% 
+  mutate(date_of_MMonly_diagnosis = coalesce(date_of_MMonly_diagnosis, date_of_MMonly_diagnosis2, date_of_MMonly_diagnosis3, date_of_MMonly_diagnosis4)) %>% 
+  
   mutate(is_patient_MM = case_when(
     !is.na(date_of_MMonly_diagnosis) &
       smoldering_status == "Is Smoldering" ~ "No",

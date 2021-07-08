@@ -294,10 +294,10 @@ Global_data <- Global_data %>%
     Age_at_MMonly_diagnosis < 70    ~ "65-69",
     # Age_at_MMonly_diagnosis < 75    ~ "70-74",
     # Age_at_MMonly_diagnosis < 80    ~ "75-79",
-    Age_at_MMonly_diagnosis >= 70   ~ ">=70",
+    Age_at_MMonly_diagnosis >= 70   ~ ">=70"
   ), 
-  MM_age_cat5 = factor(MM_age_cat5, levels = c("<50", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79",
-                                               ">=80"))
+  MM_age_cat5 = factor(MM_age_cat5, levels = c("<50", "50-54", "55-59", "60-64", "65-69",
+                                               ">=70"))
   ) %>% 
   mutate(MM_age_cat3 = case_when(
     Age_at_MMonly_diagnosis < 50    ~ "<50",
@@ -313,11 +313,10 @@ Global_data <- Global_data %>%
     # Age_at_MMonly_diagnosis < 80    ~ "78-80",
     
     
-    Age_at_MMonly_diagnosis >= 71   ~ ">=71",
+    Age_at_MMonly_diagnosis >= 71   ~ ">=71"
   ), 
   MM_age_cat3 = factor(MM_age_cat3, levels = c("<50", "50-52", "53-55", "56-58", "59-61", "62-64", "65-67", "68-70", 
-                                               "71-73", "74-77", "78-80", 
-                                               ">=80"))
+                                               ">=71"))
   )
 
 # Global_data$MM_age_cat5 <- as.factor(findInterval(Global_data$Age_at_MMonly_diagnosis, c(0,50, 55,60, 65, 70, 75, 80)))

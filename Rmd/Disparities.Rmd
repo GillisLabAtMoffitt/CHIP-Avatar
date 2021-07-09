@@ -91,44 +91,12 @@ We will focus on patient with active MM who had WES analyzed on their blood and 
 
 # I. MM Avatar data description
 
-## 1.Demographics of MM patients with WES
-FTI, I left the "Others" in raceeth.
-
-<div class = "row">
-<div class = "col-md-5">
 ```{r}
-germ_data <- germline_patient_data %>% 
-  mutate(Whole = "MM patients with WES") %>% 
-  select(Age_at_MMonly_diagnosis, Gender, raceeth, Race, Race1, Ethnicity, Ethnicity1, Whole, ISS, ISS_grp, ISS_at_MMdx, ISSdx_grp) %>%
-  tbl_summary(by = Whole, 
-              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric", ISS_grp ~ "alphanumeric", ISS_at_MMdx ~ "alphanumeric", ISSdx_grp ~ "alphanumeric"),
-              digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
-              missing = "no") %>% 
-  bold_labels()
-germ_data
+germline_patient_data %>% 
+  filter(Race == "Others" | Race == "Unknown" | Ethnicity == "Unknown") %>% 
+  select(Race, Ethnicity)
 ```
-</div>
 
-<div class = "col-md-7">
-```{r}
-p <- qplot(x =Age_at_MMonly_diagnosis, data=subset(germline_patient_data,!is.na(Age_at_MMonly_diagnosis)), fill=..count.., geom="histogram") 
-p + scale_fill_viridis_c(
-  alpha = 1,
-  begin = 0,
-  end = 1,
-  direction = 1,
-  option = "D",
-  values = NULL,
-  space = "Lab",
-  na.value = "grey50",
-  guide = "colourbar",
-  aesthetics = "fill"
-) +
-  theme_minimal(base_size = 16) +
-  labs(x="Age at Diagnosis", y="Number of Patient", title="Repartition of Age at Diagnosis in MM Avatar")
-```
-</div>
-</div>
 
 <br>
 
@@ -146,9 +114,9 @@ germline_patient_data <- germline_patient_data %>%
 ```{r}
 germ_data <- germline_patient_data %>% 
   mutate(Whole = "MM patients with WES") %>% 
-  select(Age_at_MMonly_diagnosis, Gender, raceeth, Race, Race1, Ethnicity, Ethnicity1, Whole, ISS, ISS_grp, ISS_at_MMdx, ISSdx_grp) %>%
+  select(Age_at_MMonly_diagnosis, Gender, raceeth, Whole, ISS, ISS_grp) %>%
   tbl_summary(by = Whole, 
-              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric", ISS_grp ~ "alphanumeric", ISS_at_MMdx ~ "alphanumeric", ISSdx_grp ~ "alphanumeric"),
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
               digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
               missing = "no") %>% 
   bold_labels()
@@ -179,97 +147,18 @@ p + scale_fill_viridis_c(
 
 <br>
 
-Patients represented in MM Avatar data are characterized by a median age at diagnosis of `r inline_text(germ_data, variable = Age_at_MMonly_diagnosis, column = "MM patients with WES", pattern = "{median} years old")`. We saw slightly more male `r inline_text(germ_data, variable = Gender, level = "Male", column = "MM patients with WES")`, a majority of White Non-Hispanic `r inline_text(germ_data, variable = Race1, level = "White", column = "MM patients with WES")` and Non-Hispanic `r inline_text(germ_data, variable = Ethnicity1, level = "Non-Hispanic", column = "MM patients with WES")`.
-A higher proportion of patients have a lower clinical stage at diagnosis with `r inline_text(germ_data, variable = ISS_grp, level = "I", column = "MM patients with WES")` patients with ISS I and `r inline_text(germ_data, variable = ISS_grp, level = "II-III", column = "MM patients with WES")` patients with ISS II and III combined.
-
-
-## 2. CH
-
-```{r}
-ch_char <- germline_patient_data %>% 
-  mutate(Whole = "MM patients at time of blood with WES") %>% 
-  select(Whole, CH_status) %>%
-  tbl_summary(by = Whole, 
-              sort = list(everything() ~ "frequency"),
-              missing = "no") %>% 
-  bold_labels()
-ch_char
-```
-
-Whole Exome Sequencing data identified CH mutations in `r inline_text(ch_char, variable = CH_status, level = "CH", column = "MM patients at time of blood with WES")`.
-+ Add bioinfo results (oncoplot?).  
-Type of genes affected...
-
-
-```{r}
-# ch_samples <- germline_patient_data %>%
-#   select(CH_status) %>% 
-#   tbl_summary(sort = list(everything() ~ "frequency")) %>% 
-#   bold_labels()
-# ch_samples
-
-ch_demo <- germline_patient_data %>%
-  select(Age_at_MMonly_diagnosis, 
-         Gender, raceeth, Race1, Ethnicity1, ISS, ISS_grp, ISS_at_MMdx, ISSdx_grp, 
-         CH_status) %>% 
-  tbl_summary(by = CH_status, 
-              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
-              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric", ISS_grp ~ "alphanumeric", ISS_at_MMdx ~ "alphanumeric", ISSdx_grp ~ "alphanumeric"),
-              digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
-              missing = "no") %>% 
-  bold_labels() %>% add_p() %>% bold_p(t = .05)
-ch_demo
-```
-<br>
-
-A significant difference in the age at diagnosis was observed between CH and No CH patients with an older age for CH patients (`r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "CH")` vs `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "No CH")`, `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "p.value")`). While Gender and race/ethnicity are similarly distributed, we noticed a higher proportion of patients with more severe clinical stage (II-III) for CH patients (`r inline_text(ch_demo, variable = ISS_grp, column = "p.value")`).
+Patients represented in MM Avatar data are characterized by a median age at diagnosis of `r inline_text(germ_data, variable = Age_at_MMonly_diagnosis, column = "MM patients with WES", pattern = "{median} years old")`. We saw slightly more male `r inline_text(germ_data, variable = Gender, level = "Male", column = "MM patients with WES")`, a majority of White Non-Hispanic `r inline_text(germ_data, variable = raceeth, level = "White Non-Hispanic", column = "MM patients with WES")`(Blacks `r inline_text(germ_data, variable = raceeth, level = "Black", column = "MM patients with WES")`, Hispanic `r inline_text(germ_data, variable = raceeth, level = "Hispanic", column = "MM patients with WES")`).
+A higher proportion of patients have a lower clinical stage at blood with `r inline_text(germ_data, variable = ISS_grp, level = "I", column = "MM patients with WES")` patients with ISS I and `r inline_text(germ_data, variable = ISS_grp, level = "II-III", column = "MM patients with WES")` patients with ISS II and III combined.
 
 <br>
+<br>
 
-## 3. Disease Status (Just for us?)
-
-FYI  
-These patients are now all MM but at time of blood collection distribution of disease status is as below.  
-Few discrepancies I can remove...
-```{r}
-germline_patient_data %>%
-  mutate(Whole = "MM patients with WES") %>% 
-  select(Disease_Status_germline, Whole) %>% 
-  tbl_summary(by = Whole, 
-              label = list(Disease_Status_germline ~ "Disease Status at Blood Collection")) %>% 
-  bold_labels() %>% as_gt()  %>%
-  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
-
-# misclassified <- germline_patient_data %>%
-#   select(avatar_id,
-#          Disease_Status_germline, collectiondt_germline, date_of_MMonly_diagnosis, is_patient_MM,
-#          is_MMDx_close_to_blood, smoldering_status, 
-#          date_of_diagnosis_1, disease_stage_1, 
-#          date_of_diagnosis_2, disease_stage_2,
-#          date_of_diagnosis_3, disease_stage_3,
-#          date_of_diagnosis_4, disease_stage_4) %>% 
-#   filter(str_detect(Disease_Status_germline, "Soli|Smol|Mgus|Amyl|Myelofib")) %>% 
-#   arrange(Disease_Status_germline)
-
-germline_patient_data %>%
-  group_by(Disease_Status_germline) %>% count(Disease_Status_germline) %>% 
-  mutate(Disease_Status_germline = fct_reorder(as.character(Disease_Status_germline), desc(n))) %>%
-  arrange(n) %>% 
-  ggplot(aes(x="", y=n, fill=Disease_Status_germline)) +
-  geom_bar(stat="identity", width=1) +
-  scale_fill_manual("", values = c("hotpink", "orchid1", "mediumorchid1", "mediumpurple1", "lemonchiffon", "peachpuff", 
-                                                               "lightcyan", "lightblue", "cyan", "steelblue1", "blue", "darkblue")) +
-  theme_void(base_size = 16) +
-  theme(plot.title = element_text(hjust = -0.15))+
-  coord_polar("y", start=0, direction=-1) +
-  labs(x=NULL, y=NULL, title="Disease Status at Blood Collection in MM Avatar Data")
-```
-
+***
 
 # II. Age Distribution in Disparities
 
 ## Raceeth
-```{r, fig.height = 10}
+```{r}
 p <- ggplot(germline_patient_data, 
             aes(x=raceeth, y=Age_at_MMonly_diagnosis), fill=raceeth) + 
   geom_boxplot(color = c("darkred", "darkgreen", "blue")) + 
@@ -279,65 +168,26 @@ p + geom_jitter(shape=16, position=position_jitter(0.2)) +
   stat_compare_means()
 ```
 
-## Separated race / ethn
-<div class = "row">
-<div class = "col-md-5">
-```{r, fig.height = 10}
-p <- ggplot(germline_patient_data, 
-            aes(x=Ethnicity1, y=Age_at_MMonly_diagnosis), fill=Ethnicity1) + 
-  geom_boxplot(color = c("darkred", "darkgreen")) + 
-  theme_minimal(base_size = 23) +
-  labs(x=NULL, y="Age at Diagnosis", title="Age of MM Diagnosis Distribution")
-p + geom_jitter(shape=16, position=position_jitter(0.2)) +
-  stat_compare_means()
-```
-</div>
-
-<div class = "col-md-7">
-```{r, fig.height = 7}
-p <- germline_patient_data %>% 
-  filter(!is.na(Race1)) %>%
-  ggplot(aes(x=Race1, y=Age_at_MMonly_diagnosis), fill=Race1) + 
-  geom_boxplot(color= c("#A92E5EFF", "#E65D2FFF")) +
-  theme_minimal(base_size = 22) +
-  labs(x=NULL, y="Age at Diagnosis", title="Age of MM diagnosis Distribution")
-p + geom_jitter(shape=16, position=position_jitter(0.2)) +
-  stat_compare_means()
-```
-</div>
-</div>
-
-<br>
-
 ```{r tbl for number}
-eth_age <- germline_patient_data %>% 
-  mutate(Whole = "MM patients with WES") %>% 
-  select(Ethnicity1, Age_at_MMonly_diagnosis) %>%
-  tbl_summary(by = Ethnicity1, 
-              sort = list(everything() ~ "frequency"),
-              missing = "no") %>% 
-  bold_labels() %>% add_p()
-
-race_age <- germline_patient_data %>% 
-  mutate(Whole = "MM patients with WES") %>% 
-  select(Race1, Age_at_MMonly_diagnosis) %>%
-  tbl_summary(by = Race1, 
-              sort = list(everything() ~ "frequency"),
-              missing = "no") %>% 
-  bold_labels() %>% add_p()
-
 raceeth_age <- germline_patient_data %>% 
   select(raceeth, Age_at_MMonly_diagnosis) %>%
   tbl_summary(by = raceeth, 
               sort = list(everything() ~ "frequency"),
               missing = "no") %>% 
-  bold_labels() %>% add_p()
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
 ```
+<br>
 
-Interestingly, we noticed a significant difference between disparities on the age at diagnosis. White Hispanics are diagnosed at a median age of `r inline_text(raceeth_age, variable = Age_at_MMonly_diagnosis, column = "White Non-Hispanic", pattern = "{median} years old")`. A significant earlier age at diagnosis is measured for Hispanics, `r inline_text(eth_age, variable = Age_at_MMonly_diagnosis, column = "Hispanic", pattern = "{median} years old")` , and for Blacks, `r inline_text(race_age, variable = Age_at_MMonly_diagnosis, column = "Black", pattern = "{median} years old")`, compare to Whites Hispanics (`r inline_text(race_age, variable = Age_at_MMonly_diagnosis, column = "p.value")`).
+Interestingly, we noticed a significant difference between disparities on the age at diagnosis. White Hispanics are diagnosed at a median age of `r inline_text(raceeth_age, variable = Age_at_MMonly_diagnosis, column = "White Non-Hispanic", pattern = "{median} years old")`. A significant earlier age at diagnosis is measured for Hispanics, `r inline_text(raceeth_age, variable = Age_at_MMonly_diagnosis, column = "Hispanic", pattern = "{median} years old")` , and for Blacks, `r inline_text(raceeth_age, variable = Age_at_MMonly_diagnosis, column = "Black", pattern = "{median} years old")`, compare to Whites Hispanics (`r inline_text(raceeth_age, variable = Age_at_MMonly_diagnosis, column = "p.value")`).
 
+<br>
+<br>
+
+***
 
 # III. RaceEthnicity
+
+## Survivals
 
 <div class = "row">
 <div class = "col-md-6">
@@ -446,8 +296,75 @@ tbl2 <- coxph(Surv(time = raceeth_surv$month_at_progression_drug,
 </div>
 
 <br>
+<br>
 
-## CH & RaceEthnicity
+## Delay to Treatment
+
+```{r}
+germline_patient_data %>% 
+  select(time_to_drug, time_to_hct, raceeth) %>%
+  tbl_summary(by = raceeth, 
+              label = list(time_to_drug ~ "Time to drug (days)", time_to_hct ~ "Time to HCT (days)"),
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05)
+```
+
+<br>
+<br>
+
+***
+
+# IV. CH
+
+```{r}
+ch_char <- germline_patient_data %>% 
+  mutate(Whole = "MM patients at time of blood with WES") %>% 
+  select(Whole, CH_status) %>%
+  tbl_summary(by = Whole, 
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels()
+ch_char
+```
+<br>
+<br>
+
+Whole Exome Sequencing data identified CH mutations in `r inline_text(ch_char, variable = CH_status, level = "CH", column = "MM patients at time of blood with WES")`.
++ Add bioinfo results (oncoplot?).  
+Type of genes affected...
+
+<br>
+<br>
+
+```{r}
+# ch_samples <- germline_patient_data %>%
+#   select(CH_status) %>% 
+#   tbl_summary(sort = list(everything() ~ "frequency")) %>% 
+#   bold_labels()
+# ch_samples
+
+ch_demo <- germline_patient_data %>%
+  select(Age_at_MMonly_diagnosis, 
+         Gender, raceeth, ISS, ISS_grp,
+         CH_status) %>% 
+  tbl_summary(by = CH_status, 
+              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
+              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric", ISS_grp ~ "alphanumeric"),
+              digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
+              missing = "no") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
+ch_demo
+```
+<br>
+
+A significant difference in the age at diagnosis was observed between CH and No CH patients with an older age for CH patients (`r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "CH")` vs `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "No CH")`, `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "p.value")`). While Gender and race/ethnicity are similarly distributed, we noticed a higher proportion of patients with more severe clinical stage (II-III) for CH patients (`r inline_text(ch_demo, variable = ISS_grp, column = "p.value")`).
+
+<br>
+<br>
+
+***
+
+# IV. CH & RaceEthnicity
 ### PFS
 ```{r, fig.height = 7}
 mysurv <- Surv(time = raceeth_surv$month_at_progression_drug, event = raceeth_surv$drug_progression_event)
@@ -499,6 +416,61 @@ tbl2 <- coxph(Surv(time = raceeth_surv$month_at_progression_drug,
 tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 ```
 
+### OS
+```{r, fig.height = 7}
+mysurv <- Surv(time = raceeth_surv$month_at_os, event = raceeth_surv$os_event)
+myplot <- survfit(mysurv~raceeth + CH_status, data = raceeth_surv)
+ggsurvplot(myplot, data = raceeth_surv,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "",
+           # # legend.labs = c("Hispanic", "Non-Hispanic"),
+           color = "raceeth",
+           linetype = "CH_status",
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 3,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)+ guides(colour = guide_legend(nrow = 3), linetype = guide_legend(nrow = 2))
+```
+
+```{r}
+tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISS_grp, HCT_ever, CH_status) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = raceeth_surv$month_at_os, 
+                             event = raceeth_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = raceeth_surv$month_at_os, 
+                   event = raceeth_surv$os_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISS_grp + HCT_ever + CH_status, data =  raceeth_surv) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
+```
+<br>
+<br>
+
+
+***
 ```{r, fig.height = 7}
 # mysurv <- Surv(time = raceeth_surv$month_at_progression_drug, event = raceeth_surv$drug_progression_event)
 # myplot <- survfit(mysurv~raceeth + CH_status, data = raceeth_surv)
@@ -534,99 +506,17 @@ tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable*
 <br>
 <br>
 
-### OS
-```{r, fig.height = 7}
-mysurv <- Surv(time = raceeth_surv$month_at_os, event = raceeth_surv$os_event)
-myplot <- survfit(mysurv~raceeth + CH_status, data = raceeth_surv)
-ggsurvplot(myplot, data = raceeth_surv,
-           title = "OS",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "Race/Ethnicity",
-           # # legend.labs = c("Hispanic", "Non-Hispanic"),
-           color = "raceeth",
-           linetype = "CH_status",
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 3,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           censor = TRUE
-)+ guides(colour = guide_legend(nrow = 3), linetype = guide_legend(nrow = 2))
-```
-
-```{r}
-tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISS_grp, HCT_ever, CH_status) %>% 
-  tbl_uvregression(method = survival::coxph, 
-                   y = (Surv(time = raceeth_surv$month_at_os, 
-                             event = raceeth_surv$os_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
-  bold_labels() %>% italicize_levels()
-tbl2 <- coxph(Surv(time = raceeth_surv$month_at_os, 
-                   event = raceeth_surv$os_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISS_grp + HCT_ever + CH_status, data =  raceeth_surv) %>%
-  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
-tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
-```
-
-
-***
-
-# III. Ethnicity
-
-## Summary
-
-No difference in gender, ISS, CH and delay between diagnosis and treatment.
-Most patients received drugs. Should we check the one who didn't to justify if they are just lost of follow up?
-```{r}
-germline_patient_data %>% 
-  select(Age_at_MMonly_diagnosis,
-         Gender, raceeth, Race, Ethnicity1, ISS, ISS_grp, ISS_at_MMdx, ISSdx_grp, CH_status,
-         time_to_hct, time_to_drug,
-         Drugs_ever, HCT_ever) %>%
-  tbl_summary(by = Ethnicity1, 
-              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric", ISS_at_MMdx ~ "alphanumeric", ISSdx_grp ~ "alphanumeric"),
-              digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
-              missing = "no") %>% 
-  bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>%  
-  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
-```
-
-## Survivals
-
-No difference in OS within Ethnicity. The hazard ratio is decreased by 26% for Hispanic population but is not significant. Notably, age at diagnosis, ISS (ISS_grp) and receiving HCT are factor involved in OS in univariable and multivariable analysis. (Give data)
-We observed that Hispanic population is doing better for PFS with a HR of progression increased by 53% compare to NH and 77% when adjusting by age at diagnosis, gender, ISS (ISS_grp) and receiving HCT
-We noted that in multivariable analysis being a male increase significantly the HR of progression by 29% (add data, pval = 0.029). 
-Age at diagnosis is not a factor involved in PFS but is in OS.
-Not surprisingly ISS stage III have a worse survival (OS and PFS) and receiving HCT on the contrary increase it.
-
-
+## WNH
 <div class = "row">
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-germline_patient_surv <- germline_patient_data
-ethnicity_surv <- germline_patient_surv %>% filter(!is.na(Ethnicity1))
+nhis_surv <- germline_patient_data %>% 
+  filter(raceeth == "White Non-Hispanic")
 
-mysurv <- Surv(time = ethnicity_surv$month_at_os, event = ethnicity_surv$os_event)
-myplot <- survfit(mysurv~Ethnicity1, data = ethnicity_surv)
+mysurv <- Surv(time = nhis_surv$month_at_os, event = nhis_surv$os_event)
+myplot <- survfit(mysurv~CH_status, data = nhis_surv)
 # jpeg(paste0(path, "/Figures/Survivals/Demographic/OS Ethnicity.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = ethnicity_surv,
+ggsurvplot(myplot, data = nhis_surv,
            title = "OS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -639,7 +529,7 @@ ggsurvplot(myplot, data = ethnicity_surv,
            legend = "top",
            legend.title = "Ethnicity",
            # # legend.labs = c("Hispanic", "Non-Hispanic"),
-           palette = c("darkred", "darkgreen"),
+           # palette = c("darkred", "darkgreen"),
            pval = TRUE,
            conf.int = FALSE,
            # Add risk table
@@ -657,14 +547,14 @@ ggsurvplot(myplot, data = ethnicity_surv,
            censor = TRUE
 )
 
-tbl1 <- ethnicity_surv %>% select(Ethnicity1, Age_at_MMonly_diagnosis, Gender, ISS, Drugs_ever, HCT_ever) %>% 
+tbl1 <- nhis_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_grp, Drugs_ever, HCT_ever) %>% 
   tbl_uvregression(method = survival::coxph, 
-                   y = (Surv(time = ethnicity_surv$month_at_os, 
-                             event = ethnicity_surv$os_event)),
+                   y = (Surv(time = nhis_surv$month_at_os, 
+                             event = nhis_surv$os_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
-tbl2 <- coxph(Surv(time = ethnicity_surv$month_at_os, 
-             event = ethnicity_surv$os_event) ~ Ethnicity1 + Age_at_MMonly_diagnosis + Gender + ISS + Drugs_ever + HCT_ever, data =  ethnicity_surv) %>%
+tbl2 <- coxph(Surv(time = nhis_surv$month_at_os, 
+             event = nhis_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_grp + Drugs_ever + HCT_ever, data =  nhis_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 eth_cox_os <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 eth_cox_os
@@ -673,9 +563,9 @@ eth_cox_os
 
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-mysurv <- Surv(time = ethnicity_surv$month_at_progression_drug, event = ethnicity_surv$drug_progression_event)
-myplot <- survfit(mysurv~Ethnicity1, data = ethnicity_surv)
-ggsurvplot(myplot, data = ethnicity_surv,
+mysurv <- Surv(time = nhis_surv$month_at_progression_drug, event = nhis_surv$drug_progression_event)
+myplot <- survfit(mysurv~CH_status, data = nhis_surv)
+ggsurvplot(myplot, data = nhis_surv,
            title = "PFS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -707,14 +597,233 @@ ggsurvplot(myplot, data = ethnicity_surv,
            censor = TRUE
 )
 
-tbl1 <- ethnicity_surv %>% select(Ethnicity1, Age_at_MMonly_diagnosis, Gender, ISS, HCT_ever) %>% 
+tbl1 <- nhis_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_grp, HCT_ever) %>% 
   tbl_uvregression(method = survival::coxph, 
-                   y = (Surv(time = ethnicity_surv$month_at_progression_drug, 
-                             event = ethnicity_surv$drug_progression_event)),
+                   y = (Surv(time = nhis_surv$month_at_progression_drug, 
+                             event = nhis_surv$drug_progression_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
-tbl2 <- coxph(Surv(time = ethnicity_surv$month_at_progression_drug, 
-             event = ethnicity_surv$drug_progression_event) ~ Ethnicity1 + Age_at_MMonly_diagnosis + Gender + ISS + HCT_ever, data =  ethnicity_surv) %>%
+tbl2 <- coxph(Surv(time = nhis_surv$month_at_progression_drug, 
+             event = nhis_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_grp + HCT_ever, data =  nhis_surv) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+eth_cox_pfs <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
+eth_cox_pfs
+```
+</div>
+</div>
+
+<br>
+<br>
+
+## Bl
+<div class = "row">
+<div class = "col-md-6">
+```{r, fig.height = 7}
+bl_surv <- germline_patient_data %>% 
+  filter(raceeth == "Black")
+
+mysurv <- Surv(time = bl_surv$month_at_os, event = bl_surv$os_event)
+myplot <- survfit(mysurv~CH_status, data = bl_surv)
+# jpeg(paste0(path, "/Figures/Survivals/Demographic/OS Ethnicity.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = bl_surv,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "Ethnicity",
+           # # legend.labs = c("Hispanic", "Non-Hispanic"),
+           # palette = c("darkred", "darkgreen"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 4,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)
+
+tbl1 <- bl_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_grp, Drugs_ever, HCT_ever) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = bl_surv$month_at_os, 
+                             event = bl_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = bl_surv$month_at_os, 
+             event = bl_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_grp + Drugs_ever + HCT_ever, data =  bl_surv) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+eth_cox_os <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
+eth_cox_os
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = bl_surv$month_at_progression_drug, event = bl_surv$drug_progression_event)
+myplot <- survfit(mysurv~CH_status, data = bl_surv)
+ggsurvplot(myplot, data = bl_surv,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "Ethnicity",
+           # # legend.labs = c("Hispanic", "Non-Hispanic"),
+           palette = c("darkred", "darkgreen"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 4,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)
+
+tbl1 <- bl_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_grp, HCT_ever) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = bl_surv$month_at_progression_drug, 
+                             event = bl_surv$drug_progression_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = bl_surv$month_at_progression_drug, 
+             event = bl_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_grp + HCT_ever, data =  bl_surv) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+eth_cox_pfs <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
+eth_cox_pfs
+```
+</div>
+</div>
+
+<br>
+<br>
+
+## H
+
+<div class = "row">
+<div class = "col-md-6">
+```{r, fig.height = 7}
+his_surv <- germline_patient_data %>% 
+  filter(raceeth == "Hispanic")
+
+mysurv <- Surv(time = his_surv$month_at_os, event = his_surv$os_event)
+myplot <- survfit(mysurv~CH_status, data = his_surv)
+# jpeg(paste0(path, "/Figures/Survivals/Demographic/OS Ethnicity.jpeg"), width = 1200, height = 900)
+ggsurvplot(myplot, data = his_surv,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "Ethnicity",
+           # # legend.labs = c("Hispanic", "Non-Hispanic"),
+           # palette = c("darkred", "darkgreen"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 4,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+           # Censor
+           censor = TRUE
+)
+
+tbl1 <- his_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_grp, Drugs_ever, HCT_ever) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = his_surv$month_at_os, 
+                             event = his_surv$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = his_surv$month_at_os, 
+             event = his_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_grp + Drugs_ever + HCT_ever, data =  his_surv) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+eth_cox_os <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
+eth_cox_os
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = his_surv$month_at_progression_drug, event = his_surv$drug_progression_event)
+myplot <- survfit(mysurv~CH_status, data = his_surv)
+ggsurvplot(myplot, data = his_surv,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "Ethnicity",
+           # # legend.labs = c("Hispanic", "Non-Hispanic"),
+           palette = c("darkred", "darkgreen"),
+           pval = TRUE,
+           conf.int = FALSE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table (number(%))",
+           risk.table = "abs_pct",
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 4,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")
+           ),
+           # Censor
+           censor = TRUE
+)
+
+tbl1 <- his_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_grp, HCT_ever) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = his_surv$month_at_progression_drug, 
+                             event = his_surv$drug_progression_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = his_surv$month_at_progression_drug, 
+             event = his_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_grp + HCT_ever, data =  his_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 eth_cox_pfs <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 eth_cox_pfs
@@ -724,557 +833,78 @@ eth_cox_pfs
 
 <br>
 
-Age is significantly associated with OS `r inline_text(tbl1, variable = Age_at_MMonly_diagnosis, pattern = "(OR {estimate}; 95% CI {conf.low}, {conf.high}; {p.value})")`.
+<!-- Age is significantly associated with OS `r inline_text(tbl1, variable = Age_at_MMonly_diagnosis, pattern = "(OR {estimate}; 95% CI {conf.low}, {conf.high}; {p.value})")`. -->
 
 <br>
 
-I thought it could be a year effect compare to Taiga said (maybe earlier it wasn't a difference like he said but now that Hispanic may have more access to care we can see the difference) but no.
+<!-- I thought it could be a year effect compare to Taiga said (maybe earlier it wasn't a difference like he said but now that Hispanic may have more access to care we can see the difference) but no. -->
 
 ```{r}
-mysurv <- Surv(time = ethnicity_surv$month_at_progression_drug, event = ethnicity_surv$drug_progression_event)
-myplot <- survfit(mysurv~Ethnicity1+diagnosis_MM_year, data = ethnicity_surv)
-ggsurvplot_facet(myplot, data = ethnicity_surv, facet.by = "diagnosis_MM_year",
-           title = "PFS",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(10, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months",
-           palette = c("darkred", "darkgreen"),
-           conf.int = FALSE
-)
-```
-
-
-## CH & Ethnicity in PFS
-
-CH in not a factor in PFS as we observed a slight decrease of the HR of progression for patients with no CH
-```{r, fig.height = 7}
-mysurv <- Surv(time = ethnicity_surv$month_at_progression_drug, event = ethnicity_surv$drug_progression_event)
-myplot <- survfit(mysurv~Ethnicity1 + CH_status, data = ethnicity_surv)
-ggsurvplot(myplot, data = ethnicity_surv,
-           title = "PFS",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "Ethnicity",
-           # # legend.labs = c("Hispanic", "Non-Hispanic"),
-           color = "Ethnicity1",
-           linetype = "CH_status",
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 3,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           censor = TRUE
-)+ guides(colour = guide_legend(nrow = 2))
-```
-
-```{r}
-tbl1 <- ethnicity_surv %>% select(Ethnicity1, Age_at_MMonly_diagnosis, Gender, ISS, HCT_ever, CH_status) %>% 
-  tbl_uvregression(method = survival::coxph, 
-                   y = (Surv(time = ethnicity_surv$month_at_progression_drug, 
-                             event = ethnicity_surv$drug_progression_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
-  bold_labels() %>% italicize_levels()
-tbl2 <- coxph(Surv(time = ethnicity_surv$month_at_progression_drug, 
-             event = ethnicity_surv$drug_progression_event) ~ Ethnicity1 + Age_at_MMonly_diagnosis + Gender + ISS + HCT_ever + CH_status, data =  ethnicity_surv) %>%
-  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
-tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
-```
-
-```{r, fig.height = 7}
 # mysurv <- Surv(time = ethnicity_surv$month_at_progression_drug, event = ethnicity_surv$drug_progression_event)
-# myplot <- survfit(mysurv~Ethnicity1 + CH_status, data = ethnicity_surv)
-# ggsurvplot(myplot, data = ethnicity_surv, facet.by = "MM_age_cat5",
+# myplot <- survfit(mysurv~Ethnicity1+diagnosis_MM_year, data = ethnicity_surv)
+# ggsurvplot_facet(myplot, data = ethnicity_surv, facet.by = "diagnosis_MM_year",
 #            title = "PFS",
 #            font.main = c(24, "bold", "black"),
 #            font.x = c(20, "bold", "black"),
 #            font.y = c(20, "bold", "black"),
-#            font.legend = c(20, "bold", "black"),
+#            font.legend = c(10, "bold", "black"),
 #            font.tickslab = c(18, "bold", "black"),
 #            size = 1.5,
 #            
-#            xlab = "Time in months"
-# )+ guides(colour = guide_legend(nrow = 4))
-```
-
-```{r, fig.height = 7}
-# mysurv <- Surv(time = ethnicity_surv$month_at_progression_drug, event = ethnicity_surv$drug_progression_event)
-# myplot <- survfit(mysurv~Ethnicity1 + CH_status, data = ethnicity_surv)
-# ggsurvplot(myplot, data = ethnicity_surv, facet.by = "MM_age_cat3",
-#            title = "PFS",
-#            font.main = c(24, "bold", "black"),
-#            font.x = c(20, "bold", "black"),
-#            font.y = c(20, "bold", "black"),
-#            font.legend = c(20, "bold", "black"),
-#            font.tickslab = c(18, "bold", "black"),
-#            size = 1.5,
-#            
-#            xlab = "Time in months"
-# )+ guides(colour = guide_legend(nrow = 4))
-```
-<br>
-<br>
+#            xlab = "Time in months",
+#            palette = c("darkred", "darkgreen"),
+#            conf.int = FALSE
+# )
+```t
 
 ***
 
-# IV. Race
+# Drugs (only regimen1)
 
-## Summary
-
-We observed a difference in gender but no difference in ISS, CH and if or type of treatment received.
-Interestingly a longer delay to receive HCT was observed for Black population.
-
-```{r demo in germline}
+VCD?
+```{r}
 germline_patient_data %>% 
-  select(Age_at_MMonly_diagnosis,
-         Gender, raceeth, Race1, Ethnicity1, ISS, ISS_grp, ISS_at_MMdx, ISSdx_grp, CH_status,
-         time_to_hct, time_to_drug,
-         Drugs_ever, HCT_ever) %>%
-  tbl_summary(by = Race1, 
-              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric", ISS_grp ~ "alphanumeric", ISS_at_MMdx ~ "alphanumeric", ISSdx_grp ~ "alphanumeric"),
-              digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
+  mutate(Whole = "MM patients with WES") %>% 
+  select(regimen_category_1, raceeth) %>% 
+  tbl_summary(by = raceeth, 
+              sort = list(everything() ~ "frequency"),
               missing = "no") %>% 
-  bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>%  
-  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
 ```
+<br>
 
-
-## Survivals
-
-We observed that while PFS is not different between White and Black, Black shows a greater OS with a HR of death decreased by 49% (data) but this effect is not significant when adjusted by age, gender, ISS, and receiving a treatment. 
-Age at diagnosis ISS and receiving HCT are factor associated with OS in the multivariable analysis.
-In the multivariable analysis, Gender is associated to better progression free survival.
-
-<div class = "row">
-<div class = "col-md-6">
-```{r, fig.height = 7}
-race_surv <- germline_patient_surv #%>% 
-  # mutate(Race1 = factor(Race, levels=c("White", "Black")))  %>% filter(!is.na(Race))
-
-mysurv <- Surv(time = race_surv$month_at_os, event = race_surv$os_event)
-myplot <- survfit(mysurv~Race1, data = race_surv)
-# jpeg(paste0(path, "/Figures/Survivals/Demographic/OS Race1.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = race_surv,
-           title = "OS",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "Race",
-           # # legend.labs = c("White", "Black"),
-           palette = c("blue", "lightsalmon1"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 4,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")),
-           # Censor
-           censor = TRUE
-)
-
-tbl1 <- race_surv %>% select(Race1, Age_at_MMonly_diagnosis, Gender, ISS, Drugs_ever, HCT_ever) %>% 
-  tbl_uvregression(method = survival::coxph, 
-                   y = (Surv(time = race_surv$month_at_os, 
-                             event = race_surv$os_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
-  bold_labels() %>% italicize_levels()
-tbl2 <- coxph(Surv(time = race_surv$month_at_os, 
-             event = race_surv$os_event) ~ Race1 + Age_at_MMonly_diagnosis + Gender + ISS + Drugs_ever + HCT_ever, data =  race_surv) %>%
-  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
-race_cox_os <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
-race_cox_os
-```
-</div>
-
-<div class = "col-md-6">
-```{r, fig.height = 7}
-mysurv <- Surv(time = race_surv$month_at_progression_drug, event = race_surv$drug_progression_event)
-myplot <- survfit(mysurv~Race1, data = race_surv)
-ggsurvplot(myplot, data = race_surv,
-           title = "PFS",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "Race",
-           # # legend.labs = c("White", "Black"),
-           palette = c("blue", "lightsalmon1"),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 4,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           censor = TRUE
-)
-
-tbl1 <- race_surv %>% select(Race1, Age_at_MMonly_diagnosis, Gender, ISS, HCT_ever) %>% 
-  tbl_uvregression(method = survival::coxph, 
-                   y = (Surv(time = race_surv$month_at_progression_drug, 
-                             event = race_surv$drug_progression_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
-  bold_labels() %>% italicize_levels()
-tbl2 <- coxph(Surv(time = race_surv$month_at_progression_drug, 
-             event = race_surv$drug_progression_event) ~ Race1 + Age_at_MMonly_diagnosis + Gender + ISS + HCT_ever, data =  race_surv) %>%
-  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
-race_cox_pfs <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
-race_cox_pfs
-```
-</div>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+More than 20 patients
 ```{r}
-mysurv <- Surv(time = race_surv$month_at_os, event = race_surv$os_event)
-myplot <- survfit(mysurv~Race1+diagnosis_MM_year, data = race_surv)
-ggsurvplot_facet(myplot, data = race_surv, facet.by = "diagnosis_MM_year",
-           title = "OS",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(10, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months",
-           # legend = "top",
-           # legend.title = "Ethnicity",
-           # # legend.labs = c("Hispanic", "Non-Hispanic"),
-           # palette = c("darkred", "darkgreen"),
-           # # color = "diagnosis_MM_year",
-           # # linetype = "Ethnicity",
-           # pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 3,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(5, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")),
-           # Censor
-           censor = TRUE
-)
-```
-
-
-## Black & CH
-
-Very interestingly, we observed that while CH doesn't impact OS in white population, in Black population, presence of CH decrease drastically the survival rate by 80ish% (data).
-Age at diagnosis, ISS are associated with OS in blacks alone and in combined White/Black population.
-
-https://www.biorxiv.org/content/10.1101/782748v1.full.pdf
-```{r, fig.height = 7}
-mysurv <- Surv(time = race_surv$month_at_os, event = race_surv$os_event)
-myplot <- survfit(mysurv~Race1+ CH_status, data = race_surv)
-
-ggsurvplot(myplot, data = race_surv,
-           title = "OS",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "Race",
-           # # legend.labs = c("Hispanic", "Non-Hispanic"),
-           color = "Race1",
-           linetype = "CH_status",
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 4,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           censor = TRUE
-)+ guides(colour = guide_legend(nrow = 2))
-
-tbl1 <- race_surv %>% select(Race1, Age_at_MMonly_diagnosis, Gender, ISS, Drugs_ever, HCT_ever, CH_status) %>% 
-  tbl_uvregression(method = survival::coxph, 
-                   y = (Surv(time = race_surv$month_at_os, 
-                             event = race_surv$os_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
-  bold_labels() %>% italicize_levels()
-tbl2 <- coxph(Surv(time = race_surv$month_at_os, 
-             event = race_surv$os_event) ~ Race1 + Age_at_MMonly_diagnosis + Gender + ISS + Drugs_ever + HCT_ever + CH_status, data =  race_surv) %>%
-  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
-racech_cox_os <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
-racech_cox_os
-```
-
-
-### Summary
-```{r demo in black}
 germline_patient_data %>% 
-  select(Age_at_MMonly_diagnosis, diagnosis_MM_year, MM_age_cat3, MM_age_cat5,
-         time_to_drug, Drugs_ever, HCT_ever, Gender, Race1, Ethnicity1, ISS, CH_status) %>%
-  tbl_summary(by = CH_status, 
-              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
-              digits = list(c(Age_at_MMonly_diagnosis) ~ 2)) %>% bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>%  
-  gt::tab_source_note(gt::md("*ISS is reported for active MM patients only*"))
-```
-
-
-
-## In black
-
-```{r}
-# In black population only
-race_black <- race_surv %>% filter(Race == "Black")
-mysurv <- Surv(time = race_black$month_at_os, event = race_black$os_event)
-myplot <- survfit(mysurv~Race1 + CH_status, data = race_black)
-# jpeg(paste0(path, "/Figures/Moffitt Symposium/OS in Black CH.jpeg"), height = 600, width = 600)
-ggsurvplot(myplot, data = race_black,
-           title = "OS",
-           font.main = c(24, "bold", "black"),
-           font.x = c(20, "bold", "black"),
-           font.y = c(20, "bold", "black"),
-           font.legend = c(20, "bold", "black"),
-           font.tickslab = c(18, "bold", "black"),
-           size = 1.5,
-           
-           xlab = "Time in months", 
-           legend = "top",
-           legend.title = "",
-           color = "Race1",
-           linetype = "CH_status",
-           palette = c("lightsalmon1", "blue"),
-           xlim = c(-15, 400),
-           pval = TRUE,
-           conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (count(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           tables.theme = theme_survminer(font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
-           # Censor
-           censor = TRUE
-) + guides(linetype = guide_legend(nrow = 2, title = "")) + guides(colour = guide_legend(nrow = 2))
-# dev.off()
-
-tbl1 <- race_black %>% select(Age_at_MMonly_diagnosis, Gender, ISS, Drugs_ever, HCT_ever, CH_status) %>% 
-  tbl_uvregression(method = survival::coxph, 
-                   y = (Surv(time = race_black$month_at_os, 
-                             event = race_black$os_event)),
-                   exponentiate = TRUE,
-                   label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status",
-                                Drugs_ever ~ "Drugs ever", HCT_ever ~ "HCT ever")
-                   ) %>% bold_p(t = .05) %>% add_nevent() %>% 
-  bold_labels() %>% italicize_levels()
-tbl2 <- coxph(Surv(time = race_black$month_at_os, 
-                   event = race_black$os_event) ~ Age_at_MMonly_diagnosis + Gender + ISS + HCT_ever + CH_status, data =  race_black) %>%
-  tbl_regression(exponentiate = TRUE,
-                 label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status",
-                              HCT_ever ~ "HCT ever")
-                 ) %>% bold_p(t = .05)
-tbl <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**")) %>% as_gt() %>% 
-  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
-tbl
+  group_by(first_regimen_name) %>% 
+  mutate(n = n()) %>% 
+  ungroup() %>% 
+  filter(n > 20) %>% 
+  # select(first_regimen_name, n)
+  mutate(Whole = "MM patients with WES") %>% 
+  select(first_regimen_name, raceeth) %>% 
+  tbl_summary(by = raceeth, 
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
 ```
 <br>
-
-```{r, fig.height = 7}
-# mysurv <- Surv(time = race_black$month_at_os, event = race_black$os_event)
-# myplot <- survfit(mysurv~CH_status, data = race_black)
-# ggsurvplot(myplot, data = race_black, facet.by = "MM_age_cat5",
-#            title = "OS",
-#            font.main = c(24, "bold", "black"),
-#            font.x = c(20, "bold", "black"),
-#            font.y = c(20, "bold", "black"),
-#            font.legend = c(20, "bold", "black"),
-#            font.tickslab = c(18, "bold", "black"),
-#            size = 1.5,
-#            
-#            xlab = "Time in months", 
-#            legend.title = "",
-#            palette = "race"
-# )
-```
-
-```{r, fig.height = 7}
-# mysurv <- Surv(time = race_black$month_at_os, event = race_black$os_event)
-# myplot <- survfit(mysurv~CH_status, data = race_black)
-# ggsurvplot(myplot, data = race_black, facet.by = "MM_age_cat3",
-#            title = "O",
-#            font.main = c(24, "bold", "black"),
-#            font.x = c(20, "bold", "black"),
-#            font.y = c(20, "bold", "black"),
-#            font.legend = c(20, "bold", "black"),
-#            font.tickslab = c(18, "bold", "black"),
-#            size = 1.5,
-#            
-#            xlab = "Time in months", 
-#            legend.title = "",
-#            palette = ""
-# )
-
-germline_patient_data %>% 
-  select(diagnosis_MM_year, MM_age_cat3, MM_age_cat5, Race1, CH_status) %>%
-  tbl_summary(by = Race1, 
-              sort = list(everything() ~ "frequency")) %>%
-  bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05) %>% as_gt() %>%  
-  gt::tab_source_note(gt::md("*ISS is reported for active MM patients only*"))
-```
-
-
-
-
-
-<!-- #### -->
-<!-- <div class = "row"> -->
-<!-- <div class = "col-md-6"> -->
-<!-- ```{r, fig.height = 7} -->
-
-<!-- ``` -->
-<!-- </div> -->
-
-<!-- <div class = "col-md-6"> -->
-<!-- ```{r, fig.height = 7} -->
-
-<!-- ``` -->
-<!-- </div> -->
-<!-- </div> -->
- 
-
-<br>
-<br>
-<!-- Leave a space here -->
-
-# Others
 
 ***
-## 4.CH
 
-### Summary
+# Not shown
 
-We see **more male with CH** (66%) vs Female with CH (34%), more Female without CH (45%) vs Male without CH (55%) p=0.079.
-CH is more represented in **severe ISS** (II-III).
-<div class = "row">
-<div class = "col-md-6">
-```{r}
-
-germline_patient_data %>%
-  select(CH_status, ISS) %>% 
-  tbl_summary(by = ISS, 
-              sort = list(everything() ~ "frequency")) %>% add_p() %>% bold_p(t = .05) %>% bold_labels() %>% as_gt()
-germline_patient_data %>%
-  select(CH_status, ISS_grp) %>% 
-  tbl_summary(by = ISS_grp, 
-              sort = list(everything() ~ "frequency")) %>% add_p() %>% bold_p(t = .05) %>% bold_labels() %>% as_gt()
-race_surv %>%
-  select(CH_status, Race1) %>% 
-  tbl_summary(by = Race1, 
-              sort = list(everything() ~ "frequency")) %>% add_p() %>% bold_p(t = .05) %>% bold_labels() %>% as_gt()
-germline_patient_data %>%
-    filter(str_detect(Ethnicity, "Hispanic")) %>% 
-  select(CH_status, Ethnicity) %>% 
-  tbl_summary(by = Ethnicity, 
-              sort = list(everything() ~ "frequency")) %>% add_p() %>% bold_p(t = .05) %>% bold_labels() %>% as_gt()
-```
-
-</div>
-
-<div class = "col-md-6">
-```{r}
-
-```
-</div>
-</div>
+## CH
 
 ### Survivals
 
 <div class = "row">
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-mysurv <- Surv(time = germline_patient_surv$month_at_os, event = germline_patient_surv$os_event)
-myplot <- survfit(mysurv~CH_status, data = germline_patient_surv)
+mysurv <- Surv(time = germline_patient_data$month_at_os, event = germline_patient_data$os_event)
+myplot <- survfit(mysurv~CH_status, data = germline_patient_data)
 # jpeg(paste0(path, "/Figures/Survivals/CHIP/OS by CH.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_surv,
+ggsurvplot(myplot, data = germline_patient_data,
            title = "OS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -1306,9 +936,9 @@ ggsurvplot(myplot, data = germline_patient_surv,
 
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-mysurv <- Surv(time = germline_patient_surv$month_at_progression_drug, event = germline_patient_surv$drug_progression_event)
-myplot <- survfit(mysurv~CH_status, data = germline_patient_surv)
-ggsurvplot(myplot, data = germline_patient_surv,
+mysurv <- Surv(time = germline_patient_data$month_at_progression_drug, event = germline_patient_data$drug_progression_event)
+myplot <- survfit(mysurv~CH_status, data = germline_patient_data)
+ggsurvplot(myplot, data = germline_patient_data,
            title = "PFS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),

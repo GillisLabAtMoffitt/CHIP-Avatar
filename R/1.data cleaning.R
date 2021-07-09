@@ -218,8 +218,15 @@ mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2,
   )) %>% 
   
   # Create Dx_date_closest_blood date (general diagnosis, in not specific MM)
-  left_join(., Germline %>% distinct(avatar_id, .keep_all = TRUE) %>% select("avatar_id", "collectiondt_germline"), # For only 1 date of Dx when multiple germline collection
+  left_join(., Germline %>% select("avatar_id", "collectiondt_germline"), # For only 1 date of Dx when multiple germline collection
             by = "avatar_id") %>% 
+  # For 180
+  mutate(closest_date_180_cleaning = date_of_diagnosis-collectiondt_germline) %>% 
+  group_by(avatar_id, date_of_diagnosis, disease_stage) %>% 
+  arrange(closest_date_180_cleaning) %>% 
+  distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
+  ungroup() %>% 
+  
   mutate(interval = (interval(start= .$collectiondt_germline, end= .$date_of_diagnosis)/duration(n=1, unit="days"))) %>% 
   mutate(interval = if_else(interval>100, NA_real_, interval)) %>% 
   mutate(interval1 = abs(interval)) %>% 
@@ -988,7 +995,7 @@ rm(ClinicalCap_V12, ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4,
    Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1,
    Progr_V12, Progression_V12, ProgressionV2, Progression_V4, Progression_V4.1,
    #Contact_lost
-   Alc_SmoV12_L_2, BiopsyV12_L_2, Diagnosis_ISS, ImagingV12_L_2,
+   Alc_SmoV12_L_2, BiopsyV12_L_2, ImagingV12_L_2,
    LabsV12_L_2, MetastasisV12_L_2, MM_historyV12_L_2, PerformanceV12_L_2, 
    ProgressionV12_L_2, SCTV12_L_2, StagingV12_L_2, TreatmentV12_L_2, 
    VitalsV12_L_2, TumorMarkerV12_L_2, RadiationV12_L_2, ProgrV12_L_2

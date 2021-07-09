@@ -21,7 +21,7 @@ all_dates <- Global_data %>%
          "labs_last_date", "date_last_follow_up", "date_contact_lost", "date_death")
 all_dates1 <- Global_data %>% 
   distinct(avatar_id, .keep_all = TRUE) %>%
-  select("avatar_id", "Date_of_Birth", "Dx_date_closest_germline", "date_of_MMonly_diagnosis", "date_of_MMSMMGUSdiagnosis")
+  select("avatar_id", "Date_of_Birth", "Dx_date_closest_germline", "date_of_MM_diagnosis", "date_of_MMSMMGUSdiagnosis")
 # pivot both
 all_dates <- all_dates %>% 
   pivot_longer(cols = 2:ncol(.), names_to = "event", values_to = "date") %>% 
@@ -81,7 +81,7 @@ id <- paste(unique( Global_data$avatar_id[which(!is.na(Global_data$was_contact_l
 
 
 Global_data <- Global_data %>% 
-  mutate(diagnosis_MM_year = year(date_of_MMonly_diagnosis)) %>% 
+  mutate(diagnosis_MM_year = year(date_of_MM_diagnosis)) %>% 
   mutate(diagnosis_MM_year = case_when(
     diagnosis_MM_year < 2009     ~ "previous 2009",
     diagnosis_MM_year >= 2009 &
@@ -97,7 +97,7 @@ Global_data <- Global_data %>%
     smoldering_status == "Progressed from Smoldering"       ~ 1,
     smoldering_status == "Is Smoldering"                    ~ 0
     )) %>% 
-  mutate(pfs_sm_MM_date = round(interval(start = sm_date_diagnosis, end = date_of_MMonly_diagnosis)/                      
+  mutate(pfs_sm_MM_date = round(interval(start = sm_date_diagnosis, end = date_of_MM_diagnosis)/                      
            duration(n=1, unit="days"), 3)
   ) %>% 
 
@@ -226,7 +226,7 @@ Global_data <- Global_data %>%
   
   
   mutate(ISS = case_when(
-    !is.na(date_of_MMonly_diagnosis)            ~ ISS,
+    !is.na(date_of_MM_diagnosis)            ~ ISS,
     TRUE                                        ~ NA_character_
   )) %>% 
   mutate(Disease_Status_germline = tolower(Disease_Status_germline)) %>% 
@@ -279,7 +279,7 @@ Global_data$Age_at_diagnosis_closest_germline <- interval(start= Global_data$Dat
   duration(n=1, unit="years")
 Global_data$Age_at_diagnosis_closest_germline <- round(Global_data$Age_at_diagnosis_closest_germline, 3)
 # summary(Global_data$Age_at_diagnosis, na.rm = TRUE)
-Global_data$Age_at_MMonly_diagnosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_MMonly_diagnosis)/                      
+Global_data$Age_at_MMonly_diagnosis <- interval(start= Global_data$Date_of_Birth, end= Global_data$date_of_MM_diagnosis)/                      
   duration(n=1, unit="years")
 Global_data$Age_at_MMonly_diagnosis <- round(Global_data$Age_at_MMonly_diagnosis, 3)
 Global_data$MM_age_cat <- as.factor(findInterval(Global_data$Age_at_MMonly_diagnosis, c(0,50,60,70)))
@@ -357,7 +357,7 @@ Global_data$Age_at_firstbmt <- interval(start= Global_data$Date_of_Birth, end= G
 Global_data$Age_at_firstbmt <- round(Global_data$Age_at_firstbmt, 3)
 # summary(Global_data$Age_at_firstbmt, na.rm = TRUE)
 
-Global_data$days_at_firsthct <- interval(start= Global_data$date_of_MMonly_diagnosis, end= Global_data$date_of_bmt_1)/                      
+Global_data$days_at_firsthct <- interval(start= Global_data$date_of_MM_diagnosis, end= Global_data$date_of_bmt_1)/                      
   duration(n=1, unit="days")
 Global_data$days_at_firsthct <- round(Global_data$days_at_firsthct, 3)
 
@@ -405,7 +405,7 @@ Global_data$month_at_progression_hct <- round(Global_data$month_at_progression_h
 #   duration(n=1, unit="months")
 # Global_data$month_at_progression_treat <- round(Global_data$month_at_progression_treat, 3)
 
-Global_data$month_at_os <- interval(start= Global_data$date_of_MMonly_diagnosis, end= Global_data$os_date_surv)/                      
+Global_data$month_at_os <- interval(start= Global_data$date_of_MM_diagnosis, end= Global_data$os_date_surv)/                      
   duration(n=1, unit="months")
 Global_data$month_at_os <- round(Global_data$month_at_os, 3)
 # b <- Global_data[,c("avatar_id", "month_at_os", "date_death", "date_of_diagnosis_1", "os_date_surv", "os_event", "last_date_available"
@@ -414,11 +414,11 @@ Global_data$age_at_os <- interval(start= Global_data$Date_of_Birth, end= Global_
   duration(n=1, unit="years")
 Global_data$age_at_os <- round(Global_data$age_at_os, 3)
 
-Global_data$time_to_hct <- interval(start= Global_data$date_of_MMonly_diagnosis, end= Global_data$date_of_bmt_1)/                      
+Global_data$time_to_hct <- interval(start= Global_data$date_of_MM_diagnosis, end= Global_data$date_of_bmt_1)/                      
   duration(n=1, unit="days")
 Global_data$time_to_hct <- round(Global_data$time_to_hct, 3)
 
-Global_data$time_to_drug <- interval(start= Global_data$date_of_MMonly_diagnosis, end= Global_data$line_start_date_1)/                      
+Global_data$time_to_drug <- interval(start= Global_data$date_of_MM_diagnosis, end= Global_data$line_start_date_1)/                      
   duration(n=1, unit="days")
 Global_data$time_to_drug <- round(Global_data$time_to_drug, 3)
 

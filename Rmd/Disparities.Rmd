@@ -69,8 +69,8 @@ path <- ("/Users/colinccm/Documents/GitHub/Gillis/no vpn data/CHIP in Avatar")
 
 germline_patient_data <- germline_patient_data %>% 
   filter(is_patient_MM == "Yes" & is_MMDx_close_to_blood == "Yes") %>% 
-  distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(CH_status = str_replace(CH_status, "No_CH", "No CH"))
+  distinct(avatar_id, .keep_all = TRUE)
+
 ```
 <br>
 <br>
@@ -107,6 +107,13 @@ germline_patient_data <- germline_patient_data %>%
   filter(raceeth != "Others") %>% 
   mutate(raceeth = factor(raceeth, levels=c("White Non-Hispanic", "Hispanic", "Black")))
 
+germline_patient_data <- germline_patient_data %>% 
+  mutate(HCT_comparison = case_when(
+    is.na(date_of_bmt_1)              ~ "No HCT",
+    time_to_hct < 314                 ~ "Early HCT",
+    time_to_hct >= 314                ~ "Late HCT"
+  )) %>% 
+  mutate(HCT_comparison = factor(HCT_comparison, levels = c("No HCT", "Early HCT", "Late HCT")))
 ```
 
 <div class = "row">
@@ -305,6 +312,13 @@ germline_patient_data %>%
   select(time_to_drug, time_to_hct, raceeth) %>%
   tbl_summary(by = raceeth, 
               label = list(time_to_drug ~ "Time to drug (days)", time_to_hct ~ "Time to HCT (days)"),
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05)
+
+germline_patient_data %>% 
+  select(time_to_drug, HCT_comparison, raceeth) %>%
+  tbl_summary(by = raceeth, 
+              label = list(time_to_drug ~ "Time to drug (days)", HCT_comparison ~ "Time to HCT (days)"),
               sort = list(everything() ~ "frequency"),
               missing = "no") %>% bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05)
 ```
@@ -612,6 +626,8 @@ eth_cox_pfs
 </div>
 </div>
 
+Borderline association between CH and OS in non-Hispanic whites
+
 <br>
 <br>
 
@@ -855,7 +871,7 @@ eth_cox_pfs
 #            palette = c("darkred", "darkgreen"),
 #            conf.int = FALSE
 # )
-```t
+```
 
 ***
 

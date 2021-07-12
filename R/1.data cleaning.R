@@ -138,8 +138,9 @@ Demo_RedCap_V4ish <- Demo_RedCap_V4ish %>%
   mutate(Ethnicity1 = factor(Ethnicity, levels= c("Non-Hispanic", "Hispanic"))) %>% 
   mutate(raceeth = case_when(
     Race1 == "Black"                  ~ "Black",
-    # Race1 == "White" &
-      Ethnicity == "Hispanic"         ~ "Hispanic",
+    (Race1 == "Black" &
+      Ethnicity == "Hispanic")        ~ "Others",
+    Ethnicity == "Hispanic"           ~ "Hispanic",
     Race1 == "White" &
       Ethnicity == "Non-Hispanic"     ~ "White Non-Hispanic",
     TRUE                              ~ "Others"
@@ -301,13 +302,17 @@ MM_history <- dcast(setDT(mm_history),
            "sm_date_diagnosis", "smoldering_status", "date_of_MMSMMGUSdiagnosis", 
            interval_MM, is_MMDx_close_to_blood, everything(), -collectiondt_germline))
 
-
-  
-
-
-
 # write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
 
+
+# Staging ISS
+ISS_temp <- bind_rows(Staging_V12, StagingV12_L_2, StagingV4, StagingV4.1, .id = "verso") %>% 
+  filter(staging_type == "iss") %>% select(avatar_id, date_staging_results, iss = staging_value)
+
+ISS_df <- bind_rows(Staging %>% mutate(iss = as.character(iss)), StagingV2, ISS_temp) %>% 
+  arrange(avatar_id, date_staging_results)
+
+rm(ISS_temp)
 # Vitals ----
 # Bind and arrange to have dates in order within each Alive, Dead, and Lost
 Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
@@ -957,7 +962,11 @@ metastasis2 <- bind_rows(Metastasis_V12, MetastasisV4, MetastasisV4.1) %>%
 performance <- bind_rows(Performance_V12, PerformanceV2, PerformanceV4, PerformanceV4.1) %>% 
   drop_na() %>% 
   gather(., key = "event", value = "labs_last_date", 2)
-staging <- bind_rows(Staging, Staging_V12, StagingV2, StagingV4, StagingV4.1) %>% 
+staging <- bind_rows(Staging %>% select("avatar_id", "date_staging_results"), 
+                     Staging_V12 %>% select("avatar_id", "date_staging_results"), 
+                     StagingV2 %>% select("avatar_id", "date_staging_results"), 
+                     StagingV4 %>% select("avatar_id", "date_staging_results"), 
+                     StagingV4.1 %>% select("avatar_id", "date_staging_results")) %>% 
   drop_na() %>% 
   gather(., key = "event", value = "labs_last_date", 2)
 tumormarker <- bind_rows(TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1) %>% 

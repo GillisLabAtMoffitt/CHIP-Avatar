@@ -162,7 +162,7 @@ Metastasis_V12 <-
 Staging_V12 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx"),
                     sheet = "Staging") %>%
-  select(c("avatar_id", "date_staging_results"))
+  select(c("avatar_id", "date_staging_results", "staging_type", "staging_value"))
 #---
 Imaging_V12 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_modif_09282020.xlsx"),
@@ -241,7 +241,7 @@ MetastasisV12_L_2 <-
 StagingV12_L_2 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_04212020.xlsx"),
                     sheet = "Staging") %>%
-  select(c("avatar_id", "date_staging_results"))
+  select(c("avatar_id", "date_staging_results", "staging_type", "staging_value"))
 #
 ImagingV12_L_2 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V12, "/Avatar_Legacy_V4_04212020.xlsx"),
@@ -371,7 +371,7 @@ Biopsy <-
 Staging <- 
   readxl::read_xlsx(paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx"),
                     sheet = "Biopsy") %>%
-  select(c("avatar_id", "date_staging_results"))
+  select(c("avatar_id", "date_staging_results", iss = "international_staging_system"))
 #---
 Imaging <- 
   readxl::read_xlsx(paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx"),
@@ -463,7 +463,7 @@ ImagingV2 <-
 StagingV2 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx"),
                     sheet = "Staging") %>%
-  select(c("avatar_id", "date_staging_results"))
+  select(c("avatar_id", "date_staging_results", "iss"))
 #---
 LabsV2 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx"),
@@ -539,7 +539,7 @@ MetastasisV4 <-
 StagingV4 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx"),
                     sheet = "Staging") %>%
-  select(c("avatar_id", "date_staging_results"))
+  select(c("avatar_id", "date_staging_results", "staging_type", "staging_value"))
 #---
 ImagingV4 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_modif_04272020.xlsx"),
@@ -616,7 +616,7 @@ MetastasisV4.1 <-
 StagingV4.1 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),
                     sheet = "Staging") %>%
-  select(c("avatar_id", "date_staging_results"))
+  select(c("avatar_id", "date_staging_results", "staging_type", "staging_value"))
 #
 ImagingV4.1 <- 
   readxl::read_xlsx(paste0(ClinicalCap_V4, "/Avatar_MM_Clinical_Data_V4_OUT_08032020 .xlsx"),

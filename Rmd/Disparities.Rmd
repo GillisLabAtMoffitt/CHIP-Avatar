@@ -91,15 +91,6 @@ We will focus on patient with active MM who had WES analyzed on their blood and 
 
 # I. MM Avatar data description
 
-```{r}
-germline_patient_data %>% 
-  filter(Race == "Others" | Race == "Unknown" | Ethnicity == "Unknown") %>% 
-  select(Race, Ethnicity)
-```
-
-
-<br>
-
 From here, I removed the "Others" in raceeth.
 
 ```{r}
@@ -121,9 +112,9 @@ germline_patient_data <- germline_patient_data %>%
 ```{r}
 germ_data <- germline_patient_data %>% 
   mutate(Whole = "MM patients with WES") %>% 
-  select(Age_at_MMonly_diagnosis, Gender, raceeth, Whole, ISS, ISS_grp) %>%
+  select(Age_at_MMonly_diagnosis, Gender, raceeth, Whole, ISS_at_MMdx, ISSdx_grp) %>%
   tbl_summary(by = Whole, 
-              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric"),
+              sort = list(everything() ~ "frequency", ISS_at_MMdx ~ "alphanumeric"),
               digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
               missing = "no") %>% 
   bold_labels()
@@ -155,7 +146,7 @@ p + scale_fill_viridis_c(
 <br>
 
 Patients represented in MM Avatar data are characterized by a median age at diagnosis of `r inline_text(germ_data, variable = Age_at_MMonly_diagnosis, column = "MM patients with WES", pattern = "{median} years old")`. We saw slightly more male `r inline_text(germ_data, variable = Gender, level = "Male", column = "MM patients with WES")`, a majority of White Non-Hispanic `r inline_text(germ_data, variable = raceeth, level = "White Non-Hispanic", column = "MM patients with WES")`(Blacks `r inline_text(germ_data, variable = raceeth, level = "Black", column = "MM patients with WES")`, Hispanic `r inline_text(germ_data, variable = raceeth, level = "Hispanic", column = "MM patients with WES")`).
-A higher proportion of patients have a lower clinical stage at blood with `r inline_text(germ_data, variable = ISS_grp, level = "I", column = "MM patients with WES")` patients with ISS I and `r inline_text(germ_data, variable = ISS_grp, level = "II-III", column = "MM patients with WES")` patients with ISS II and III combined.
+A higher proportion of patients have a lower clinical stage at blood with `r inline_text(germ_data, variable = ISSdx_grp, level = "I", column = "MM patients with WES")` patients with ISS I and `r inline_text(germ_data, variable = ISSdx_grp, level = "II-III", column = "MM patients with WES")` patients with ISS II and III combined.
 
 <br>
 <br>
@@ -235,14 +226,14 @@ ggsurvplot(myplot, data = raceeth_surv,
            censor = TRUE
 ) + guides(colour = guide_legend(nrow = 3))
 
-tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISS_grp, HCT_ever) %>% 
+tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISSdx_grp, HCT_ever) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = raceeth_surv$month_at_os, 
                              event = raceeth_surv$os_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = raceeth_surv$month_at_os, 
-             event = raceeth_surv$os_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISS_grp + HCT_ever, data =  raceeth_surv) %>%
+             event = raceeth_surv$os_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISSdx_grp + HCT_ever, data =  raceeth_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 # eth_cox_os <- 
   tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
@@ -286,14 +277,14 @@ ggsurvplot(myplot, data = raceeth_surv,
            censor = TRUE
 ) + guides(colour = guide_legend(nrow = 3))
 
-tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISS_grp, HCT_ever) %>% 
+tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISSdx_grp, HCT_ever) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = raceeth_surv$month_at_progression_drug, 
                              event = raceeth_surv$drug_progression_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = raceeth_surv$month_at_progression_drug, 
-             event = raceeth_surv$drug_progression_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISS_grp + HCT_ever, data =  raceeth_surv) %>%
+             event = raceeth_surv$drug_progression_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISSdx_grp + HCT_ever, data =  raceeth_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 # eth_cox_pfs <- 
   tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
@@ -359,11 +350,11 @@ Type of genes affected...
 
 ch_demo <- germline_patient_data %>%
   select(Age_at_MMonly_diagnosis, 
-         Gender, raceeth, ISS, ISS_grp,
+         Gender, raceeth, ISS_at_MMdx, ISSdx_grp,
          CH_status) %>% 
   tbl_summary(by = CH_status, 
               label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
-              sort = list(everything() ~ "frequency", ISS ~ "alphanumeric", ISS_grp ~ "alphanumeric"),
+              sort = list(everything() ~ "frequency", ISS_at_MMdx ~ "alphanumeric", ISSdx_grp ~ "alphanumeric"),
               digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
               missing = "no") %>% 
   bold_labels() %>% add_p() %>% bold_p(t = .05)
@@ -371,7 +362,7 @@ ch_demo
 ```
 <br>
 
-A significant difference in the age at diagnosis was observed between CH and No CH patients with an older age for CH patients (`r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "CH")` vs `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "No CH")`, `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "p.value")`). While Gender and race/ethnicity are similarly distributed, we noticed a higher proportion of patients with more severe clinical stage (II-III) for CH patients (`r inline_text(ch_demo, variable = ISS_grp, column = "p.value")`).
+A significant difference in the age at diagnosis was observed between CH and No CH patients with an older age for CH patients (`r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "CH")` vs `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "No CH")`, `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "p.value")`). While Gender and race/ethnicity are similarly distributed (slightly more male), we noticed a higher proportion of patients with more severe clinical stage (II-III) for CH patients (`r inline_text(ch_demo, variable = ISSdx_grp, column = "p.value")`).
 
 <br>
 <br>
@@ -418,14 +409,14 @@ ggsurvplot(myplot, data = raceeth_surv,
 ```
 
 ```{r}
-tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISS_grp, HCT_ever, CH_status) %>% 
+tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISSdx_grp, HCT_ever, CH_status) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = raceeth_surv$month_at_progression_drug, 
                              event = raceeth_surv$drug_progression_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = raceeth_surv$month_at_progression_drug, 
-             event = raceeth_surv$drug_progression_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISS_grp + HCT_ever + CH_status, data =  raceeth_surv) %>%
+             event = raceeth_surv$drug_progression_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISSdx_grp + HCT_ever + CH_status, data =  raceeth_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 ```
@@ -469,14 +460,14 @@ ggsurvplot(myplot, data = raceeth_surv,
 ```
 
 ```{r}
-tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISS_grp, HCT_ever, CH_status) %>% 
+tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISSdx_grp, HCT_ever, CH_status) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = raceeth_surv$month_at_os, 
                              event = raceeth_surv$os_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = raceeth_surv$month_at_os, 
-                   event = raceeth_surv$os_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISS_grp + HCT_ever + CH_status, data =  raceeth_surv) %>%
+                   event = raceeth_surv$os_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISSdx_grp + HCT_ever + CH_status, data =  raceeth_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 ```
@@ -520,6 +511,7 @@ tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable*
 <br>
 <br>
 
+# Stratified by raceeth
 ## WNH
 <div class = "row">
 <div class = "col-md-6">
@@ -561,14 +553,14 @@ ggsurvplot(myplot, data = nhis_surv,
            censor = TRUE
 )
 
-tbl1 <- nhis_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_grp, Drugs_ever, HCT_ever) %>% 
+tbl1 <- nhis_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISSdx_grp, Drugs_ever, HCT_ever) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = nhis_surv$month_at_os, 
                              event = nhis_surv$os_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = nhis_surv$month_at_os, 
-             event = nhis_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_grp + Drugs_ever + HCT_ever, data =  nhis_surv) %>%
+             event = nhis_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISSdx_grp + Drugs_ever + HCT_ever, data =  nhis_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 eth_cox_os <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 eth_cox_os
@@ -611,14 +603,14 @@ ggsurvplot(myplot, data = nhis_surv,
            censor = TRUE
 )
 
-tbl1 <- nhis_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_grp, HCT_ever) %>% 
+tbl1 <- nhis_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISSdx_grp, HCT_ever) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = nhis_surv$month_at_progression_drug, 
                              event = nhis_surv$drug_progression_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = nhis_surv$month_at_progression_drug, 
-             event = nhis_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_grp + HCT_ever, data =  nhis_surv) %>%
+             event = nhis_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISSdx_grp + HCT_ever, data =  nhis_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 eth_cox_pfs <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 eth_cox_pfs
@@ -672,14 +664,14 @@ ggsurvplot(myplot, data = bl_surv,
            censor = TRUE
 )
 
-tbl1 <- bl_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_grp, Drugs_ever, HCT_ever) %>% 
+tbl1 <- bl_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISSdx_grp, Drugs_ever, HCT_ever) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = bl_surv$month_at_os, 
                              event = bl_surv$os_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = bl_surv$month_at_os, 
-             event = bl_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_grp + Drugs_ever + HCT_ever, data =  bl_surv) %>%
+             event = bl_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISSdx_grp + Drugs_ever + HCT_ever, data =  bl_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 eth_cox_os <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 eth_cox_os
@@ -722,14 +714,14 @@ ggsurvplot(myplot, data = bl_surv,
            censor = TRUE
 )
 
-tbl1 <- bl_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_grp, HCT_ever) %>% 
+tbl1 <- bl_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISSdx_grp, HCT_ever) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = bl_surv$month_at_progression_drug, 
                              event = bl_surv$drug_progression_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = bl_surv$month_at_progression_drug, 
-             event = bl_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_grp + HCT_ever, data =  bl_surv) %>%
+             event = bl_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISSdx_grp + HCT_ever, data =  bl_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 eth_cox_pfs <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 eth_cox_pfs
@@ -782,14 +774,14 @@ ggsurvplot(myplot, data = his_surv,
            censor = TRUE
 )
 
-tbl1 <- his_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_grp, Drugs_ever, HCT_ever) %>% 
+tbl1 <- his_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISSdx_grp, Drugs_ever, HCT_ever) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = his_surv$month_at_os, 
                              event = his_surv$os_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = his_surv$month_at_os, 
-             event = his_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_grp + Drugs_ever + HCT_ever, data =  his_surv) %>%
+             event = his_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISSdx_grp + Drugs_ever + HCT_ever, data =  his_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 eth_cox_os <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 eth_cox_os
@@ -832,14 +824,14 @@ ggsurvplot(myplot, data = his_surv,
            censor = TRUE
 )
 
-tbl1 <- his_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_grp, HCT_ever) %>% 
+tbl1 <- his_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISSdx_grp, HCT_ever) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = his_surv$month_at_progression_drug, 
                              event = his_surv$drug_progression_event)),
                    exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = his_surv$month_at_progression_drug, 
-             event = his_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_grp + HCT_ever, data =  his_surv) %>%
+             event = his_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISSdx_grp + HCT_ever, data =  his_surv) %>%
   tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
 eth_cox_pfs <- tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 eth_cox_pfs

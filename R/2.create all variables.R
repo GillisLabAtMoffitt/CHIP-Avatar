@@ -263,7 +263,7 @@ Global_data <- Global_data %>%
   mutate(ISSdx_grp = ifelse(str_detect(ISS_at_MMdx, "II"), "II-III", ISS_at_MMdx))
   
 # Cleaning
-rm(all_dates, all_dates1, last_event, Last_labs_dates, Contact_lost, OS_data, Staging_ISS)
+rm(all_dates, all_dates1, last_event, Last_labs_dates, Contact_lost, OS_data, Staging_ISS, capwords)
 
 # write.csv(Global_data, paste0(path, "/Global_data updated.csv"))
 

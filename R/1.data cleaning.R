@@ -310,9 +310,27 @@ ISS_temp <- bind_rows(Staging_V12, StagingV12_L_2, StagingV4, StagingV4.1, .id =
   filter(staging_type == "iss") %>% select(avatar_id, date_staging_results, iss = staging_value)
 
 ISS_df <- bind_rows(Staging %>% mutate(iss = as.character(iss)), StagingV2, ISS_temp) %>% 
-  arrange(avatar_id, date_staging_results)
+  left_join(., MM_history %>% select(avatar_id, date_of_MM_diagnosis),
+            by = "avatar_id") %>% 
+  drop_na(iss) %>% 
+  mutate(interval = (interval(start= date_staging_results, end= date_of_MM_diagnosis)/duration(n=1, unit="days"))) %>% 
+  mutate(interval = abs(interval)) %>% 
+  arrange(interval) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  mutate(iss = case_when(
+    str_detect(iss, "3|III")          ~ "III",
+    str_detect(iss, "2|II")          ~ "II",
+    str_detect(iss, "1|I")          ~ "I",
+    TRUE                          ~ NA_character_
+  ))
 
-rm(ISS_temp)
+Diagnosis_ISS <- Diagnosis_ISS %>% 
+  full_join(., ISS_df %>% select(avatar_id, iss), by = "avatar_id") %>% 
+  mutate(ISS_at_MMdx = coalesce(ISS_at_MMdx, iss)) %>% 
+  select(avatar_id, last_mrn, ISS_at_MMdx)
+
+
+rm(ISS_temp, ISS_df, history_disease())
 # Vitals ----
 # Bind and arrange to have dates in order within each Alive, Dead, and Lost
 Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
@@ -994,7 +1012,7 @@ Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis2, performan
   filter(is.na(labs_before_diag)) %>% 
   arrange(desc(labs_last_date)) %>% 
   distinct(avatar_id, .keep_all = TRUE)
-rm(labs_dates, biopsy, imaging, performance, staging, tumormarker)
+rm(labs_dates, biopsy, imaging, metastasis2, performance, staging, tumormarker)
 
 
 # Cleaning
@@ -1007,7 +1025,8 @@ rm(ClinicalCap_V12, ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4,
    Alc_SmoV12_L_2, BiopsyV12_L_2, ImagingV12_L_2,
    LabsV12_L_2, MetastasisV12_L_2, MM_historyV12_L_2, PerformanceV12_L_2, 
    ProgressionV12_L_2, SCTV12_L_2, StagingV12_L_2, TreatmentV12_L_2, 
-   VitalsV12_L_2, TumorMarkerV12_L_2, RadiationV12_L_2, ProgrV12_L_2
+   VitalsV12_L_2, TumorMarkerV12_L_2, RadiationV12_L_2, ProgrV12_L_2,
+   Diagnosis_ISS, Dx_date
    )
 
 
@@ -1055,7 +1074,7 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., Last_labs_dates %>% select(c("avatar_id", "labs_last_date")), by = "avatar_id") %>% 
   full_join(., OS_data, by = "avatar_id") %>% 
   full_join(., Staging_ISS, by = c("avatar_id", "collectiondt_germline")) %>% 
-  full_join(., Diagnosis_ISS %>% select(avatar_id, ISS_at_MMdx), by = c("avatar_id")) %>% 
+  full_join(., Diagnosis_ISS, by = c("avatar_id")) %>% 
   full_join(., metastasis, by = "avatar_id") %>% 
   full_join(Demo_RedCap_V4ish %>% select(-TCC_ID), ., by = "avatar_id")
 # # write.csv(Global_data, paste0(path, "/Global_data.csv"))

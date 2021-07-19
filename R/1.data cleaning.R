@@ -330,7 +330,7 @@ Diagnosis_ISS <- Diagnosis_ISS %>%
   select(avatar_id, last_mrn, ISS_at_MMdx)
 
 
-rm(ISS_temp, ISS_df, history_disease())
+rm(ISS_temp, ISS_df, history_disease)
 # Vitals ----
 # Bind and arrange to have dates in order within each Alive, Dead, and Lost
 Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
@@ -1027,7 +1027,7 @@ rm(ClinicalCap_V12, ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4,
    LabsV12_L_2, MetastasisV12_L_2, MM_historyV12_L_2, PerformanceV12_L_2, 
    ProgressionV12_L_2, SCTV12_L_2, StagingV12_L_2, TreatmentV12_L_2, 
    VitalsV12_L_2, TumorMarkerV12_L_2, RadiationV12_L_2, ProgrV12_L_2,
-   Diagnosis_ISS, Dx_date
+   Dx_date
    )
 
 

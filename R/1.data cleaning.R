@@ -492,6 +492,7 @@ Treatment_V12 <- Treatment_V12 %>%
 
 # ready to bind
 treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, TreatmentV4.1, .id = "versionTreat") %>%
+  filter(!str_detect(treatment_site, "smoldering")) %>% 
   mutate(treatment_line_ = case_when(
     str_detect(treatment_line_, "Tenth|10") ~ 10,
     str_detect(treatment_line_, "Eleventh|11") ~ 11,
@@ -646,7 +647,7 @@ Treatment1 <- treatment1 %>%
     drug_count == 3 &
       str_detect(drug_name_, "cyclophos") &
       str_detect(drug_name_, "dex") &
-      str_detect(drug_name_, "bort")                ~ "CyBorD or VCd",
+      str_detect(drug_name_, "bort")                ~ "VCd",
     drug_count == 3 &
       str_detect(drug_name_, "doxil") &
       str_detect(drug_name_, "dex") &

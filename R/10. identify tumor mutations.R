@@ -1,4 +1,4 @@
-# Litterature tumor mutation
+############################################################################################ I ### Gene known to be mutated in tumor / Literature 
 
 library(tidyverse)
 library(datapasta)
@@ -175,20 +175,6 @@ Somatic_tumor_mutation <- full_join(bolli_2018, Chapman_2011, by = "Gene") %>%
   
 write_csv(Somatic_tumor_mutation, paste0(path, "/TumorMuts/literature/Somatic_tumor_mutation.csv"))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Already in previous papers
 
 # cancer_cell_lohr <- 
@@ -219,8 +205,111 @@ write_csv(Somatic_tumor_mutation, paste0(path, "/TumorMuts/literature/Somatic_tu
 #   separate(col = 'Gene Group Samples_with_mutation_in_group_(%)_n=648', into = c('Gene', 'Group_Walker_2015', 'Walker_2015'), sep = " ") %>% 
 #   select(-Group_Walker_2015)
   
-  
-  
-  
-  
-  
+
+
+############################################################################################ II ### Investigate these gene in Avatar
+library(maftools)
+
+path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "merging slid ID")
+
+tumor <- read_csv(paste0(path, "/List tumor SLID earliest or closest to germline.csv")) %>% 
+  select(avatar_id, SLID_tumor) %>% 
+  rename(Tumor_Sample_Barcode = SLID_tumor)
+
+germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/germline_patient_data.rds")
+
+germline_patient_data <- germline_patient_data %>% 
+  filter(is_patient_MM == "Yes" & is_MMDx_close_to_blood == "Yes") %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  filter(raceeth != "Others") %>% 
+  mutate(raceeth = factor(raceeth, levels=c("White Non-Hispanic", "Hispanic", "Black"))) %>% 
+  left_join(., tumor, by = "avatar_id")
+
+path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
+
+gene_list <- c("KRAS", "NRAS", "FAM46C", "DIS3", "BRAF", "TP53", "RYR1", "DNAH5", "LRP1B",
+               "TRAF3", "EGR1", "SP140", "PRKD2", "CYLD", "RB1", "IRF4", "CSMD3", "PTCHD3", 
+               "AUTS2", "ABI3BP", "GRM7", "PARP4", "BCL7A", "SPEF2", "MYH13", "BRWD3", 
+               "MAX", "RPL10", "DDX17", "SAMHD1", "PLD1", "ANKRD26", "ATM", "CCND1", "SETD2")
+
+tumor_mutation <- read_csv(paste0(path, "/TumorMuts/processed data/somatic mutation from Jamie MAF file.csv")) %>% 
+  filter(Hugo_Symbol %in% gene_list)
+
+tumor_mutation_avatar <- right_join(tumor_mutation, germline_patient_data, by = "avatar_id")
+
+tbl <- tumor_mutation_avatar %>% 
+  distinct(avatar_id, Hugo_Symbol, .keep_all = TRUE) %>% 
+  select(Hugo_Symbol) %>% 
+  tbl_summary(sort = list(everything() ~ "frequency")) %>% 
+  as_gt() %>% 
+  gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
+
+gt::gtsave(tbl, zoom = 1, paste0(path, "/TumorMuts/Output/Tumor Mutations in MM Avatar.pdf"))
+
+tbl <- tumor_mutation_avatar %>% 
+  distinct(avatar_id, Hugo_Symbol, .keep_all = TRUE) %>% 
+  select(Hugo_Symbol, raceeth) %>% 
+  tbl_summary(by = raceeth,
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels() %>% add_p() %>% 
+  as_gt() %>% 
+  gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
+
+gt::gtsave(tbl, zoom = 1, paste0(path, "/TumorMuts/Output/Tumor Mutations in MM Avatar by race.pdf"))
+
+
+system.file()
+
+laml.maf <- system.file("extdata", "tcga_laml.maf.gz", package = "maftools")
+
+laml.clin = system.file('extdata', 'tcga_laml_annot.tsv', package = 'maftools')
+laml <- read.maf(maf = laml.maf, clinicalData = laml.clin)
+
+laml <- 
+  read.maf(maf = paste0(path, "/TumorMuts/raw data/Nancy650AF.maf"), 
+           vc_nonSyn=c("frameshift_deletion", "frameshift_insertion", "frameshift_substitution", 
+                       "nonframeshift_deletion", "nonframeshift_insertion", "nonframeshift_substitution", 
+                       "nonsynonymous_SNV", "splicing", "stopgain_SNV", "stoploss_SNV", "synonymous_SNV"))
+
+laml <- 
+  read.maf(maf = paste0(path, "/TumorMuts/raw data/Nancy650AF.maf"), 
+           vc_nonSyn=c("frameshift_deletion", "frameshift_insertion",
+                       "nonframeshift_deletion", "nonframeshift_insertion",
+                       "splicing", "stopgain_SNV", "stoploss_SNV", "nonsynonymous_SNV"), 
+           clinicalData = germline_patient_data)
+
+plotmafSummary(maf = laml, rmOutlier = TRUE, addStat = 'median', dashboard = TRUE, titvRaw = FALSE)
+
+# col = RColorBrewer::brewer.pal(n = 11, name = 'Paired')
+col = c("yellow", "red", "black", "blue", "yellow", "darkolivegreen", "steelblue2", "darkorchid", "chartreuse3", "maroon1", "darkblue")
+# col = viridis(11)
+names(col) = c("frameshift_deletion", "frameshift_insertion", "frameshift_substitution", 
+               "nonframeshift_deletion", "nonframeshift_insertion", "nonframeshift_substitution", 
+               "nonsynonymous_SNV", "splicing", "stopgain_SNV", "stoploss_SNV", "synonymous_SNV")
+
+# jpeg(paste0(path, "/TumorMuts/Output/Figures/oncoplot by raceeth.jpeg"), height = 600, width = 900)
+oncoplot(laml, genes = gene_list, colors = col,  clinicalFeatures = "raceeth", sortByAnnotation = TRUE)
+# dev.off()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,6 +1,7 @@
 ############################################################################################ I ### Gene known to be mutated in tumor / Literature 
 
 library(tidyverse)
+library(gtsummary)
 library(datapasta)
 
 
@@ -210,6 +211,36 @@ write_csv(Somatic_tumor_mutation, paste0(path, "/TumorMuts/literature/Somatic_tu
 ############################################################################################ II ### Investigate these gene in Avatar
 library(maftools)
 
+# maf_file <- read_delim(file.choose(), delim = "\t")
+# 
+# path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger")
+# 
+# final <- read_csv(paste0(path, "/merging slid ID/List tumor SLID earliest or closest to germline.csv")) %>% 
+#   select(avatar_id, SLID_germline, collectiondt_germline, SLID_tumor, collectiondt_tumor) %>% 
+#   left_join(., maf_file, by = c("SLID_tumor" = "Tumor_Sample_Barcode"))
+# 
+# final <- final %>% 
+#   mutate(tumor_VAF = t_alt_count / t_depth) %>% 
+#   mutate(normal_VAF = n_alt_count / n_depth) %>% 
+#   purrr::keep(~!all(is.na(.))) %>% 
+#   
+#   filter(Variant_Classification != "0", 
+#          Variant_Classification != "synonymous_SNV", 
+#          Variant_Classification != "nonframeshift_substitution",
+#          Variant_Classification != "frameshift_substitution") %>% 
+#   
+#   select("avatar_id", "SLID_germline", "collectiondt_germline", "SLID_tumor", 
+#          "collectiondt_tumor", "Hugo_Symbol", "NCBI_Build", "Chromosome",
+#          "Start_Position", "End_Position", "Strand", 
+#          "Variant_Classification", "Variant_Type", "Reference_Allele", 
+#          "Tumor_Seq_Allele1", "Tumor_Seq_Allele2",
+#          "HGVSc", "HGVSp_Short", "Transcript_ID", "Exon_Number", 
+#          "tumor_VAF", "normal_VAF",
+#          "t_depth", "t_ref_count", "t_alt_count", "n_depth", "n_ref_count",
+#          "n_alt_count", everything())
+# 
+# write_csv(final, paste0(path, "/CHIP in Avatar/TumorMuts/processed data/somatic mutation from Jamie MAF file.csv"))
+
 path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "merging slid ID")
 
 tumor <- read_csv(paste0(path, "/List tumor SLID earliest or closest to germline.csv")) %>% 
@@ -220,10 +251,10 @@ germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/g
 
 germline_patient_data <- germline_patient_data %>% 
   filter(is_patient_MM == "Yes" & is_MMDx_close_to_blood == "Yes") %>% 
-  distinct(avatar_id, .keep_all = TRUE) %>% 
   filter(raceeth != "Others") %>% 
   mutate(raceeth = factor(raceeth, levels=c("White Non-Hispanic", "Hispanic", "Black"))) %>% 
-  left_join(., tumor, by = "avatar_id")
+  left_join(., tumor, by = "avatar_id") %>% 
+  distinct(avatar_id, .keep_all = TRUE) 
 
 path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
 
@@ -237,16 +268,78 @@ tumor_mutation <- read_csv(paste0(path, "/TumorMuts/processed data/somatic mutat
 
 tumor_mutation_avatar <- right_join(tumor_mutation, germline_patient_data, by = "avatar_id")
 
-tbl <- tumor_mutation_avatar %>% 
+tumor_mutation_avatar %>% filter(!is.na(Hugo_Symbol)) %>% distinct(avatar_id) %>% nrow()
+
+
+tumor_mutation_avatar %>% 
   distinct(avatar_id, Hugo_Symbol, .keep_all = TRUE) %>% 
   select(Hugo_Symbol) %>% 
   tbl_summary(sort = list(everything() ~ "frequency")) %>% 
   as_gt() %>% 
   gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
 
-gt::gtsave(tbl, zoom = 1, paste0(path, "/TumorMuts/Output/Tumor Mutations in MM Avatar.pdf"))
+df <- tumor_mutation_avatar %>% 
+  distinct(avatar_id, Hugo_Symbol, .keep_all = TRUE) %>% 
+  mutate(KRAS = ifelse(Hugo_Symbol == "KRAS", "Yes", NA_character_)) %>% 
+  mutate(NRAS = ifelse(Hugo_Symbol == "NRAS", "Yes", NA_character_)) %>% 
+  mutate(FAM46C = ifelse(Hugo_Symbol == "FAM46C", "Yes", NA_character_)) %>% 
+  mutate(DIS3 = ifelse(Hugo_Symbol == "DIS3", "Yes", NA_character_)) %>% 
+  mutate(BRAF = ifelse(Hugo_Symbol == "BRAF", "Yes", NA_character_)) %>% 
+  mutate(TP53 = ifelse(Hugo_Symbol == "TP53", "Yes", NA_character_)) %>% 
+  mutate(RYR1 = ifelse(Hugo_Symbol == "RYR1", "Yes", NA_character_)) %>% 
+  mutate(DNAH5 = ifelse(Hugo_Symbol == "DNAH5", "Yes", NA_character_)) %>% 
+  mutate(LRP1B = ifelse(Hugo_Symbol == "LRP1B", "Yes", NA_character_)) %>% 
+  mutate(TRAF3 = ifelse(Hugo_Symbol == "TRAF3", "Yes", NA_character_)) %>% 
+  mutate(EGR1 = ifelse(Hugo_Symbol == "EGR1", "Yes", NA_character_)) %>% 
+  mutate(SP140 = ifelse(Hugo_Symbol == "SP140", "Yes", NA_character_)) %>% 
+  mutate(PRKD2 = ifelse(Hugo_Symbol == "PRKD2", "Yes", NA_character_)) %>% 
+  mutate(CYLD = ifelse(Hugo_Symbol == "CYLD", "Yes", NA_character_)) %>% 
+  mutate(RB1 = ifelse(Hugo_Symbol == "RB1", "Yes", NA_character_)) %>% 
+  mutate(IRF4 = ifelse(Hugo_Symbol == "IRF4", "Yes", NA_character_)) %>% 
+  mutate(CSMD3 = ifelse(Hugo_Symbol == "CSMD3", "Yes", NA_character_)) %>% 
+  mutate(PTCHD3 = ifelse(Hugo_Symbol == "PTCHD3", "Yes", NA_character_)) %>% 
+  mutate(AUTS2 = ifelse(Hugo_Symbol == "AUTS2", "Yes", NA_character_)) %>% 
+  mutate(ABI3BP = ifelse(Hugo_Symbol == "ABI3BP", "Yes", NA_character_)) %>% 
+  mutate(GRM7 = ifelse(Hugo_Symbol == "GRM7", "Yes", NA_character_)) %>% 
+  mutate(PARP4 = ifelse(Hugo_Symbol == "PARP4", "Yes", NA_character_)) %>% 
+  mutate(BCL7A = ifelse(Hugo_Symbol == "BCL7A", "Yes", NA_character_)) %>% 
+  mutate(SPEF2 = ifelse(Hugo_Symbol == "SPEF2", "Yes", NA_character_)) %>%
+  mutate(MYH13 = ifelse(Hugo_Symbol == "MYH13", "Yes", NA_character_)) %>% 
+  mutate(BRWD3 = ifelse(Hugo_Symbol == "BRWD3", "Yes", NA_character_)) %>%
+  mutate(MAX = ifelse(Hugo_Symbol == "MAX", "Yes", NA_character_)) %>% 
+  mutate(RPL10 = ifelse(Hugo_Symbol == "RPL10", "Yes", NA_character_)) %>% 
+  mutate(DDX17 = ifelse(Hugo_Symbol == "DDX17", "Yes", NA_character_)) %>%
+  mutate(SAMHD1 = ifelse(Hugo_Symbol == "SAMHD1", "Yes", NA_character_)) %>%
+  mutate(PLD1 = ifelse(Hugo_Symbol == "PLD1", "Yes", NA_character_)) %>% 
+  mutate(ANKRD26 = ifelse(Hugo_Symbol == "ANKRD26", "Yes", NA_character_)) %>% 
+  mutate(ATM = ifelse(Hugo_Symbol == "ATM", "Yes", NA_character_)) %>% 
+  mutate(CCND1 = ifelse(Hugo_Symbol == "CCND1", "Yes", NA_character_)) %>% 
+  mutate(SETD2 = ifelse(Hugo_Symbol == "SETD2", "Yes", NA_character_)) %>% 
+  
+  select("KRAS", "NRAS", "TP53", "DIS3", "BRAF", "LRP1B", "FAM46C",
+         "TRAF3", "CSMD3", "SP140", "CYLD", "DNAH5", "RYR1", 
+         "ATM", "MAX", 
+         "IRF4", "BCL7A", "CCND1", "EGR1", "AUTS2", "PRKD2", "MYH13", "RB1",
+         "PARP4", "SETD2", 
+         "ANKRD26", "RPL10", "SAMHD1", "ABI3BP", "BRWD3",
+         "GRM7", "PLD1",
+         "SPEF2", "DDX17", "PTCHD3", raceeth, avatar_id) %>% 
+  group_by(avatar_id) %>% 
+  fill(everything(), .direction = "updown") %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(-avatar_id) %>% 
+  mutate(across(where(is.character), .fns = ~ replace_na(., "No"))) 
 
-tbl <- tumor_mutation_avatar %>% 
+tbl <- df %>% 
+  select(-raceeth) %>% 
+  tbl_summary(sort = list(all_dichotomous() ~ "frequency")) %>% 
+  as_gt() %>% 
+  gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
+
+gt::gtsave(tbl, zoom = 1, paste0(path, "/TumorMuts/Output/Tables/Tumor Mutations in MM Avatar.pdf"))
+
+tumor_mutation_avatar %>% 
   distinct(avatar_id, Hugo_Symbol, .keep_all = TRUE) %>% 
   select(Hugo_Symbol, raceeth) %>% 
   tbl_summary(by = raceeth,
@@ -256,30 +349,39 @@ tbl <- tumor_mutation_avatar %>%
   as_gt() %>% 
   gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
 
-gt::gtsave(tbl, zoom = 1, paste0(path, "/TumorMuts/Output/Tumor Mutations in MM Avatar by race.pdf"))
+tbl <- df %>% 
+  tbl_summary(by = raceeth,
+              sort = list(everything() ~ "frequency"),
+              type = list(all_categorical() ~ "dichotomous"),
+              missing = "no") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05) %>% 
+  as_gt() %>% 
+  gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
+
+gt::gtsave(tbl, zoom = 1, paste0(path, "/TumorMuts/Output/Tables/Tumor Mutations in MM Avatar by race.pdf"))
 
 
-system.file()
 
-laml.maf <- system.file("extdata", "tcga_laml.maf.gz", package = "maftools")
-
-laml.clin = system.file('extdata', 'tcga_laml_annot.tsv', package = 'maftools')
-laml <- read.maf(maf = laml.maf, clinicalData = laml.clin)
-
-laml <- 
+maf1 <- 
   read.maf(maf = paste0(path, "/TumorMuts/raw data/Nancy650AF.maf"), 
-           vc_nonSyn=c("frameshift_deletion", "frameshift_insertion", "frameshift_substitution", 
-                       "nonframeshift_deletion", "nonframeshift_insertion", "nonframeshift_substitution", 
-                       "nonsynonymous_SNV", "splicing", "stopgain_SNV", "stoploss_SNV", "synonymous_SNV"))
+           vc_nonSyn=c("frameshift_deletion", "frameshift_insertion",
+                       "nonframeshift_deletion", "nonframeshift_insertion",
+                       "splicing", "stopgain_SNV", "stoploss_SNV", "nonsynonymous_SNV"))
 
-laml <- 
+oncoplot(maf1, genes = gene_list, colors = col, sortByAnnotation = TRUE)
+
+maf1 <- 
   read.maf(maf = paste0(path, "/TumorMuts/raw data/Nancy650AF.maf"), 
            vc_nonSyn=c("frameshift_deletion", "frameshift_insertion",
                        "nonframeshift_deletion", "nonframeshift_insertion",
                        "splicing", "stopgain_SNV", "stoploss_SNV", "nonsynonymous_SNV"), 
            clinicalData = germline_patient_data)
 
-plotmafSummary(maf = laml, rmOutlier = TRUE, addStat = 'median', dashboard = TRUE, titvRaw = FALSE)
+
+disparities_maf <- subsetMaf(maf = maf1, tsb = c(germline_patient_data$Tumor_Sample_Barcode))
+
+
+plotmafSummary(maf = disparities_maf, rmOutlier = TRUE, addStat = 'median', dashboard = TRUE, titvRaw = FALSE)
 
 # col = RColorBrewer::brewer.pal(n = 11, name = 'Paired')
 col = c("yellow", "red", "black", "blue", "yellow", "darkolivegreen", "steelblue2", "darkorchid", "chartreuse3", "maroon1", "darkblue")
@@ -288,13 +390,12 @@ names(col) = c("frameshift_deletion", "frameshift_insertion", "frameshift_substi
                "nonframeshift_deletion", "nonframeshift_insertion", "nonframeshift_substitution", 
                "nonsynonymous_SNV", "splicing", "stopgain_SNV", "stoploss_SNV", "synonymous_SNV")
 
-# jpeg(paste0(path, "/TumorMuts/Output/Figures/oncoplot by raceeth.jpeg"), height = 600, width = 900)
-oncoplot(laml, genes = gene_list, colors = col,  clinicalFeatures = "raceeth", sortByAnnotation = TRUE)
+# tiff(paste0(path, "/TumorMuts/Output/Figures/oncoplot by raceeth.tiff"), height = 600, width = 900)
+# pdf(paste0(path, "/TumorMuts/Output/Figures/oncoplot by raceeth.pdf"), height = 6, width = 9)
+oncoplot(disparities_maf, genes = gene_list, colors = col,  clinicalFeatures = "raceeth", sortByAnnotation = TRUE)
 # dev.off()
 
-
-
-
+oncoplot(disparities_maf, colors = col,  clinicalFeatures = "raceeth", sortByAnnotation = TRUE)
 
 
 

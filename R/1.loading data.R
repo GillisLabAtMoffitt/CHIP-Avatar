@@ -648,9 +648,11 @@ Staging_ISS <- readxl::read_xlsx(paste0(path, "/Raghu MM/Other raw data/Staging_
   mutate(ISS = str_replace(ISS, pattern = "NA", replacement = NA_character_)) %>% 
   arrange(collectiondt_germline) %>% 
   distinct(avatar_id, .keep_all = TRUE) # remove the duplicate of patient 180
-Diagnosis_ISS <- readxl::read_xlsx(paste0(path, "/Raghu MM/Other raw data/Staging_MM_Diagnosis 06282021.xlsx")) %>% 
+Diagnosis_ISS <- readxl::read_xlsx(paste0(path, "/Raghu MM/Other raw data/Staging_MM_Diagnosis_07262021_OUT.xlsx")) %>% 
   mutate(iss = str_replace(iss, pattern = "Unknown/Not Reported", replacement = NA_character_)) %>% 
   select(avatar_id, last_mrn = mrn, MM_date_dx = date_of_diagnosis, ISS_at_MMdx = iss)
+EHR_ISS <- readxl::read_xlsx(paste0(path, "/Raghu MM/Other raw data/Myeloma_ISS_NG_07282021.xlsx")) %>% 
+  select("avatar_id", "date_of_MM_diagnosis", "ISS_EHR", "B2", "date_B2", "albumin", "date_albumin")
 #
 CHIP_status <- read_csv(paste0(path, "/Nancy's working files/CHcalls_12.10.20.csv")) %>% 
   mutate(CH_status = str_replace(CH_status, "No_CH", "No CH")) %>% 

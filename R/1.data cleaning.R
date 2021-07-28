@@ -324,9 +324,19 @@ ISS_df <- bind_rows(Staging %>% mutate(iss = as.character(iss)), StagingV2, ISS_
     TRUE                          ~ NA_character_
   ))
 
+EHR_ISS <- EHR_ISS %>% 
+  mutate(ISS_EHR = str_remove(ISS_EHR, "stage ")) %>% 
+  # mutate(interval = abs(interval(start = date_of_MM_diagnosis, end = date_B2)/
+  #                         duration(n= 1, units = "days"))) %>% 
+  # filter() %>% 
+  # mutate(interval = abs(interval(start = date_of_MM_diagnosis, end = date_albumin)/
+  #                           duration(n= 1, units = "days"))) %>% 
+  filter(!is.na(ISS_EHR) | !is.na(B2) | !is.na(albumin))
+    
 Diagnosis_ISS <- Diagnosis_ISS %>% 
   full_join(., ISS_df %>% select(avatar_id, iss), by = "avatar_id") %>% 
-  mutate(ISS_at_MMdx = coalesce(ISS_at_MMdx, iss)) %>% 
+  full_join(., EHR_ISS %>% select(avatar_id, ISS_EHR), by = "avatar_id") %>% 
+  mutate(ISS_at_MMdx = coalesce(ISS_at_MMdx, iss, ISS_EHR)) %>% 
   select(avatar_id, last_mrn, ISS_at_MMdx)
 
 

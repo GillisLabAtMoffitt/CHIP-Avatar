@@ -325,6 +325,7 @@ ISS_df <- bind_rows(Staging %>% mutate(iss = as.character(iss)), StagingV2, ISS_
   ))
 
 EHR_ISS <- EHR_ISS %>% 
+  mutate(ISS_EHR = coalesce(ISS_EHR, ISS_calculated)) %>% 
   mutate(ISS_EHR = str_remove(ISS_EHR, "stage ")) %>% 
   # mutate(interval = abs(interval(start = date_of_MM_diagnosis, end = date_B2)/
   #                         duration(n= 1, units = "days"))) %>% 
@@ -340,7 +341,7 @@ Diagnosis_ISS <- Diagnosis_ISS %>%
   select(avatar_id, last_mrn, ISS_at_MMdx)
 
 
-rm(ISS_temp, ISS_df, history_disease)
+rm(ISS_temp, ISS_df, EHR_ISS, history_disease)
 # Vitals ----
 # Bind and arrange to have dates in order within each Alive, Dead, and Lost
 Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
@@ -502,7 +503,7 @@ Treatment_V12 <- Treatment_V12 %>%
 
 # ready to bind
 treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, TreatmentV4.1, .id = "versionTreat") %>%
-  filter(!str_detect(treatment_site, "smoldering")) %>% 
+  filter(!str_detect(treatment_site, "moldering") | is.na(treatment_site)) %>% 
   mutate(treatment_line_ = case_when(
     str_detect(treatment_line_, "Tenth|10") ~ 10,
     str_detect(treatment_line_, "Eleventh|11") ~ 11,

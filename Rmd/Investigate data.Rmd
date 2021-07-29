@@ -69,7 +69,7 @@ library(survminer)
 germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/germline_patient_data.rds")
 path <- ("/Users/colinccm/Documents/GitHub/Gillis/no vpn data/CHIP in Avatar")
 
-germline_patient_data <- germline_patient_data %>% filter(!is.na(date_of_MMonly_diagnosis)) %>% 
+germline_patient_data <- germline_patient_data %>% filter(!is.na(date_of_MM_diagnosis)) %>% 
     distinct(avatar_id, .keep_all = TRUE)
 ```
 <br>

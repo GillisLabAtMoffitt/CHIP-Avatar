@@ -764,6 +764,15 @@ Treatment1 <- treatment1 %>%
   mutate(regimen_category = case_when(
     str_detect(regimen_name, "VCd")                ~ "VCd", 
     is_PI == "PI" & received_IMIDs == "IMIDs"      ~ "PI + IMIDs",
+    is.na(is_PI) & 
+      is.na(received_IMIDs)                        ~ "Others",
+    TRUE                                           ~ coalesce(is_PI, received_IMIDs)
+  )) %>% 
+  mutate(regimen_categoryVCD = case_when(
+    str_detect(regimen_name, "VCd")                ~ "PI", 
+    is_PI == "PI" & received_IMIDs == "IMIDs"      ~ "PI + IMIDs",
+    is.na(is_PI) & 
+      is.na(received_IMIDs)                        ~ "Others",
     TRUE                                           ~ coalesce(is_PI, received_IMIDs)
   ))
 
@@ -792,7 +801,7 @@ Treatment1 <- treatment1 %>%
 # Summarize by avatar_id
 Treatment <- dcast(setDT(Treatment1), mrn+avatar_id ~ rowid(avatar_id), 
                    value.var = c("treatment_line_", "line_start_date", "drug_name_",
-                                 "regimen_name", "regimen_category",
+                                 "regimen_name", "regimen_category", "regimen_categoryVCD",
                                  "line_stop_date", "drug_start_date", "drug_stop_date"))
 
 regimen_changed_id <- c("A000180", "A000414", "A014308", "A014310", "A015461", "A022588", "A025760")

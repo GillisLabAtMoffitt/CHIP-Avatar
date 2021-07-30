@@ -68,9 +68,11 @@ germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/g
 path <- ("/Users/colinccm/Documents/GitHub/Gillis/no vpn data/CHIP in Avatar")
 
 germline_patient_data <- germline_patient_data %>% 
+  rename(Sex = Gender) %>% 
   filter(is_patient_MM == "Yes" & is_MMDx_close_to_blood == "Yes") %>% 
-  distinct(avatar_id, .keep_all = TRUE)
-
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  filter(raceeth != "Others") %>% 
+  mutate(raceeth = factor(raceeth, levels=c("White Non-Hispanic", "Hispanic", "Black")))
 ```
 <br>
 <br>
@@ -92,13 +94,16 @@ We will focus on patient with active MM who had WES analyzed on their blood and 
 # I. MM Avatar data description
 
 
-From here, I removed the "Others" in raceeth.
-
 ```{r}
 germline_patient_data <- germline_patient_data %>% 
-  filter(raceeth != "Others") %>% 
-  mutate(raceeth = factor(raceeth, levels=c("White Non-Hispanic", "Hispanic", "Black")))
+  mutate(HCT_comparison = case_when(
+    is.na(date_of_bmt_1)              ~ "No HCT",
+    time_to_hct < 314                 ~ "Early HCT",
+    time_to_hct >= 314                ~ "Late HCT"
+  )) %>% 
+  mutate(HCT_comparison = factor(HCT_comparison, levels = c("No HCT", "Early HCT", "Late HCT")))
 
+contamination_tumor_ids <- paste("A025767", "A025771", "A007368", "A007322", "A000111", sep = "|")
 ```
 
 
@@ -152,14 +157,14 @@ ggsurvplot(myplot, data = raceeth_surv,
            censor = TRUE
 ) + guides(colour = guide_legend(nrow = 3))
 
-# tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISS_at_MMdx, HCT_ever) %>% 
+# tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever) %>% 
   # tbl_uvregression(method = survival::coxph, 
   #                  y = (Surv(time = raceeth_surv$month_at_os, 
   #                            event = raceeth_surv$os_event)),
   #                  exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   # bold_labels() %>% italicize_levels()
 coxph(Surv(time = raceeth_surv$month_at_os, 
-             event = raceeth_surv$os_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISS_at_MMdx + HCT_ever, data =  raceeth_surv) %>%
+             event = raceeth_surv$os_event) ~ raceeth + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + HCT_ever, data =  raceeth_surv) %>%
   cox.zph()
 # eth_cox_os <- 
   # tbl_merge(list(# tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
@@ -203,14 +208,14 @@ ggsurvplot(myplot, data = raceeth_surv,
            censor = TRUE
 ) + guides(colour = guide_legend(nrow = 3))
 
-# tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISS_at_MMdx, HCT_ever) %>% 
+# tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever) %>% 
   # tbl_uvregression(method = survival::coxph, 
   #                  y = (Surv(time = raceeth_surv$month_at_progression_drug, 
   #                            event = raceeth_surv$drug_progression_event)),
   #                  exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   # bold_labels() %>% italicize_levels()
 coxph(Surv(time = raceeth_surv$month_at_progression_drug, 
-             event = raceeth_surv$drug_progression_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISS_at_MMdx + HCT_ever, data =  raceeth_surv) %>%
+             event = raceeth_surv$drug_progression_event) ~ raceeth + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + strata(HCT_ever), data =  raceeth_surv) %>%
   cox.zph()
 # eth_cox_pfs <- 
   # tbl_merge(list(# tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
@@ -222,26 +227,20 @@ coxph(Surv(time = raceeth_surv$month_at_progression_drug,
 <br>
 <br>
 
-## Delay to Treatment
-
-```{r}
-germline_patient_data %>% 
-  select(time_to_drug, time_to_hct, raceeth) %>%
-  tbl_summary(by = raceeth, 
-              label = list(time_to_drug ~ "Time to drug (days)", time_to_hct ~ "Time to HCT (days)"),
-              sort = list(everything() ~ "frequency"),
-              missing = "no") %>% bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t = .05)
-```
-
-<br>
-<br>
 
 ***
 
 # IV. CH
 
+From here, remove 5 patients with tumor contamination
+
 ```{r}
-ch_char <- germline_patient_data %>% 
+patients_clean_tumor <- germline_patient_data %>% 
+  filter(!str_detect(avatar_id, contamination_tumor_ids))
+```
+
+```{r}
+ch_char <- patients_clean_tumor %>% 
   mutate(Whole = "MM patients at time of blood with WES") %>% 
   select(Whole, CH_status) %>%
   tbl_summary(by = Whole, 
@@ -261,15 +260,9 @@ Type of genes affected...
 <br>
 
 ```{r}
-# ch_samples <- germline_patient_data %>%
-#   select(CH_status) %>% 
-#   tbl_summary(sort = list(everything() ~ "frequency")) %>% 
-#   bold_labels()
-# ch_samples
-
-ch_demo <- germline_patient_data %>%
+ch_demo <- patients_clean_tumor %>%
   select(Age_at_MMonly_diagnosis, 
-         Gender, raceeth, ISS_at_MMdx, ISSdx_grp,
+         Sex, raceeth, ISS_at_MMdx, ISSdx_grp,
          CH_status) %>% 
   tbl_summary(by = CH_status, 
               label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
@@ -281,7 +274,7 @@ ch_demo
 ```
 <br>
 
-A significant difference in the age at diagnosis was observed between CH and No CH patients with an older age for CH patients (`r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "CH")` vs `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "No CH")`, `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "p.value")`). While Gender and race/ethnicity are similarly distributed, we noticed a higher proportion of patients with more severe clinical stage (II-III) for CH patients.
+A significant difference in the age at diagnosis was observed between CH and No CH patients with an older age for CH patients (`r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "CH")` vs `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "No CH")`, `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "p.value")`). While Sex and race/ethnicity are similarly distributed, we noticed a higher proportion of patients with more severe clinical stage (II-III) for CH patients.
 
 <br>
 <br>
@@ -291,9 +284,9 @@ A significant difference in the age at diagnosis was observed between CH and No 
 # IV. CH & RaceEthnicity
 ### PFS
 ```{r, fig.height = 7}
-mysurv <- Surv(time = raceeth_surv$month_at_progression_drug, event = raceeth_surv$drug_progression_event)
-myplot <- survfit(mysurv~raceeth + CH_status, data = raceeth_surv)
-ggsurvplot(myplot, data = raceeth_surv,
+mysurv <- Surv(time = patients_clean_tumor$month_at_progression_drug, event = patients_clean_tumor$drug_progression_event)
+myplot <- survfit(mysurv~raceeth + CH_status, data = patients_clean_tumor)
+ggsurvplot(myplot, data = patients_clean_tumor,
            title = "PFS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -328,23 +321,23 @@ ggsurvplot(myplot, data = raceeth_surv,
 ```
 
 ```{r}
-# tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISS_at_MMdx, HCT_ever, CH_status) %>% 
+# tbl1 <- patients_clean_tumor %>% select(raceeth, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever, CH_status) %>% 
   # tbl_uvregression(method = survival::coxph, 
-  #                  y = (Surv(time = raceeth_surv$month_at_progression_drug, 
-  #                            event = raceeth_surv$drug_progression_event)),
+  #                  y = (Surv(time = patients_clean_tumor$month_at_progression_drug, 
+  #                            event = patients_clean_tumor$drug_progression_event)),
   #                  exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   # bold_labels() %>% italicize_levels()
-coxph(Surv(time = raceeth_surv$month_at_progression_drug, 
-             event = raceeth_surv$drug_progression_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISS_at_MMdx + HCT_ever + CH_status, data =  raceeth_surv) %>%
+coxph(Surv(time = patients_clean_tumor$month_at_progression_drug, 
+             event = patients_clean_tumor$drug_progression_event) ~ raceeth + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + strata(HCT_ever) + CH_status, data =  patients_clean_tumor) %>%
   cox.zph()
 # tbl_merge(list(# tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 ```
 
 ### OS
 ```{r, fig.height = 7}
-mysurv <- Surv(time = raceeth_surv$month_at_os, event = raceeth_surv$os_event)
-myplot <- survfit(mysurv~raceeth + CH_status, data = raceeth_surv)
-ggsurvplot(myplot, data = raceeth_surv,
+mysurv <- Surv(time = patients_clean_tumor$month_at_os, event = patients_clean_tumor$os_event)
+myplot <- survfit(mysurv~raceeth + CH_status, data = patients_clean_tumor)
+ggsurvplot(myplot, data = patients_clean_tumor,
            title = "OS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -379,14 +372,14 @@ ggsurvplot(myplot, data = raceeth_surv,
 ```
 
 ```{r}
-# tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Gender, ISS_at_MMdx, HCT_ever, CH_status) %>% 
+# tbl1 <- patients_clean_tumor %>% select(raceeth, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever, CH_status) %>% 
   # tbl_uvregression(method = survival::coxph, 
-  #                  y = (Surv(time = raceeth_surv$month_at_os, 
-  #                            event = raceeth_surv$os_event)),
+  #                  y = (Surv(time = patients_clean_tumor$month_at_os, 
+  #                            event = patients_clean_tumor$os_event)),
   #                  exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   # bold_labels() %>% italicize_levels()
-coxph(Surv(time = raceeth_surv$month_at_os, 
-                   event = raceeth_surv$os_event) ~ raceeth + Age_at_MMonly_diagnosis + Gender + ISS_at_MMdx + HCT_ever + CH_status, data =  raceeth_surv) %>%
+coxph(Surv(time = patients_clean_tumor$month_at_os, 
+                   event = patients_clean_tumor$os_event) ~ raceeth + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + HCT_ever + CH_status, data =  patients_clean_tumor) %>%
   cox.zph()
 # tbl_merge(list(# tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 ```
@@ -396,9 +389,9 @@ coxph(Surv(time = raceeth_surv$month_at_os,
 
 ***
 ```{r, fig.height = 7}
-# mysurv <- Surv(time = raceeth_surv$month_at_progression_drug, event = raceeth_surv$drug_progression_event)
-# myplot <- survfit(mysurv~raceeth + CH_status, data = raceeth_surv)
-# ggsurvplot(myplot, data = raceeth_surv, facet.by = "MM_age_cat5",
+# mysurv <- Surv(time = patients_clean_tumor$month_at_progression_drug, event = patients_clean_tumor$drug_progression_event)
+# myplot <- survfit(mysurv~raceeth + CH_status, data = patients_clean_tumor)
+# ggsurvplot(myplot, data = patients_clean_tumor, facet.by = "MM_age_cat5",
 #            title = "PFS",
 #            font.main = c(24, "bold", "black"),
 #            font.x = c(20, "bold", "black"),
@@ -413,9 +406,9 @@ coxph(Surv(time = raceeth_surv$month_at_os,
 ```
 
 ```{r, fig.height = 7}
-# mysurv <- Surv(time = raceeth_surv$month_at_progression_drug, event = raceeth_surv$drug_progression_event)
-# myplot <- survfit(mysurv~raceeth + CH_status, data = raceeth_surv)
-# ggsurvplot(myplot, data = raceeth_surv, facet.by = "MM_age_cat3",
+# mysurv <- Surv(time = patients_clean_tumor$month_at_progression_drug, event = patients_clean_tumor$drug_progression_event)
+# myplot <- survfit(mysurv~raceeth + CH_status, data = patients_clean_tumor)
+# ggsurvplot(myplot, data = patients_clean_tumor, facet.by = "MM_age_cat3",
 #            title = "PFS",
 #            font.main = c(24, "bold", "black"),
 #            font.x = c(20, "bold", "black"),
@@ -434,7 +427,7 @@ coxph(Surv(time = raceeth_surv$month_at_os,
 <div class = "row">
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-nhis_surv <- germline_patient_data %>% 
+nhis_surv <- patients_clean_tumor %>% 
   filter(raceeth == "White Non-Hispanic")
 
 mysurv <- Surv(time = nhis_surv$month_at_os, event = nhis_surv$os_event)
@@ -471,14 +464,14 @@ ggsurvplot(myplot, data = nhis_surv,
            censor = TRUE
 )
 
-# tbl1 <- nhis_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_at_MMdx, Drugs_ever, HCT_ever) %>% 
+# tbl1 <- nhis_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, Drugs_ever, HCT_ever) %>% 
   # tbl_uvregression(method = survival::coxph, 
   #                  y = (Surv(time = nhis_surv$month_at_os, 
   #                            event = nhis_surv$os_event)),
   #                  exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   # bold_labels() %>% italicize_levels()
 coxph(Surv(time = nhis_surv$month_at_os, 
-             event = nhis_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_at_MMdx + Drugs_ever + HCT_ever, data =  nhis_surv) %>%
+             event = nhis_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + Drugs_ever + HCT_ever, data =  nhis_surv) %>%
   cox.zph()
 ```
 </div>
@@ -519,14 +512,14 @@ ggsurvplot(myplot, data = nhis_surv,
            censor = TRUE
 )
 
-# tbl1 <- nhis_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_at_MMdx, HCT_ever) %>% 
+# tbl1 <- nhis_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever) %>% 
   # tbl_uvregression(method = survival::coxph, 
   #                  y = (Surv(time = nhis_surv$month_at_progression_drug, 
   #                            event = nhis_surv$drug_progression_event)),
   #                  exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   # bold_labels() %>% italicize_levels()
 coxph(Surv(time = nhis_surv$month_at_progression_drug, 
-             event = nhis_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_at_MMdx + HCT_ever, data =  nhis_surv) %>%
+             event = nhis_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + HCT_ever, data =  nhis_surv) %>%
   cox.zph()
 
 ```
@@ -540,7 +533,7 @@ coxph(Surv(time = nhis_surv$month_at_progression_drug,
 <div class = "row">
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-bl_surv <- germline_patient_data %>% 
+bl_surv <- patients_clean_tumor %>% 
   filter(raceeth == "Black")
 
 mysurv <- Surv(time = bl_surv$month_at_os, event = bl_surv$os_event)
@@ -577,14 +570,14 @@ ggsurvplot(myplot, data = bl_surv,
            censor = TRUE
 )
 
-# tbl1 <- bl_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_at_MMdx, Drugs_ever, HCT_ever) %>% 
+# tbl1 <- bl_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, Drugs_ever, HCT_ever) %>% 
   # tbl_uvregression(method = survival::coxph, 
   #                  y = (Surv(time = bl_surv$month_at_os, 
   #                            event = bl_surv$os_event)),
   #                  exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   # bold_labels() %>% italicize_levels()
 coxph(Surv(time = bl_surv$month_at_os, 
-             event = bl_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_at_MMdx + Drugs_ever + HCT_ever, data =  bl_surv) %>%
+             event = bl_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + Drugs_ever + HCT_ever, data =  bl_surv) %>%
   cox.zph()
 
 ```
@@ -626,14 +619,14 @@ ggsurvplot(myplot, data = bl_surv,
            censor = TRUE
 )
 
-# tbl1 <- bl_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_at_MMdx, HCT_ever) %>% 
+# tbl1 <- bl_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever) %>% 
   # tbl_uvregression(method = survival::coxph, 
   #                  y = (Surv(time = bl_surv$month_at_progression_drug, 
   #                            event = bl_surv$drug_progression_event)),
   #                  exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   # bold_labels() %>% italicize_levels()
 coxph(Surv(time = bl_surv$month_at_progression_drug, 
-             event = bl_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_at_MMdx + HCT_ever, data =  bl_surv) %>%
+             event = bl_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + HCT_ever, data =  bl_surv) %>%
   cox.zph()
 
 ```
@@ -648,7 +641,7 @@ coxph(Surv(time = bl_surv$month_at_progression_drug,
 <div class = "row">
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-his_surv <- germline_patient_data %>% 
+his_surv <- patients_clean_tumor %>% 
   filter(raceeth == "Hispanic")
 
 mysurv <- Surv(time = his_surv$month_at_os, event = his_surv$os_event)
@@ -685,14 +678,14 @@ ggsurvplot(myplot, data = his_surv,
            censor = TRUE
 )
 
-# tbl1 <- his_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_at_MMdx, Drugs_ever, HCT_ever) %>% 
+# tbl1 <- his_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, Drugs_ever, HCT_ever) %>% 
   # tbl_uvregression(method = survival::coxph, 
   #                  y = (Surv(time = his_surv$month_at_os, 
   #                            event = his_surv$os_event)),
   #                  exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   # bold_labels() %>% italicize_levels()
 coxph(Surv(time = his_surv$month_at_os, 
-             event = his_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_at_MMdx + Drugs_ever + HCT_ever, data =  his_surv) %>%
+             event = his_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + Drugs_ever + HCT_ever, data =  his_surv) %>%
   cox.zph()
 
 ```
@@ -734,14 +727,14 @@ ggsurvplot(myplot, data = his_surv,
            censor = TRUE
 )
 
-# tbl1 <- his_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Gender, ISS_at_MMdx, HCT_ever) %>% 
+# tbl1 <- his_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever) %>% 
   # tbl_uvregression(method = survival::coxph, 
   #                  y = (Surv(time = his_surv$month_at_progression_drug, 
   #                            event = his_surv$drug_progression_event)),
   #                  exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
   # bold_labels() %>% italicize_levels()
 coxph(Surv(time = his_surv$month_at_progression_drug, 
-             event = his_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Gender + ISS_at_MMdx + HCT_ever, data =  his_surv) %>%
+             event = his_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + HCT_ever, data =  his_surv) %>%
   cox.zph()
 
 ```
@@ -784,10 +777,10 @@ coxph(Surv(time = his_surv$month_at_progression_drug,
 <div class = "row">
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-mysurv <- Surv(time = germline_patient_data$month_at_os, event = germline_patient_data$os_event)
-myplot <- survfit(mysurv~CH_status, data = germline_patient_data)
+mysurv <- Surv(time = patients_clean_tumor$month_at_os, event = patients_clean_tumor$os_event)
+myplot <- survfit(mysurv~CH_status, data = patients_clean_tumor)
 # jpeg(paste0(path, "/Figures/Survivals/CHIP/OS by CH.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = germline_patient_data,
+ggsurvplot(myplot, data = patients_clean_tumor,
            title = "OS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -819,9 +812,9 @@ ggsurvplot(myplot, data = germline_patient_data,
 
 <div class = "col-md-6">
 ```{r, fig.height = 7}
-mysurv <- Surv(time = germline_patient_data$month_at_progression_drug, event = germline_patient_data$drug_progression_event)
-myplot <- survfit(mysurv~CH_status, data = germline_patient_data)
-ggsurvplot(myplot, data = germline_patient_data,
+mysurv <- Surv(time = patients_clean_tumor$month_at_progression_drug, event = patients_clean_tumor$drug_progression_event)
+myplot <- survfit(mysurv~CH_status, data = patients_clean_tumor)
+ggsurvplot(myplot, data = patients_clean_tumor,
            title = "PFS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),

@@ -73,6 +73,7 @@ germline_patient_data <- germline_patient_data %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   filter(raceeth != "Others") %>% 
   mutate(raceeth = factor(raceeth, levels=c("White Non-Hispanic", "Hispanic", "Black"))) %>%
+  mutate(ISS_at_MMdx = replace_na(ISS_at_MMdx, "Unknown")) %>%
   mutate(regimen_categoryVCD_1 = factor(regimen_categoryVCD_1, levels = c(
     "PI + IMIDs", "PI", "IMIDs", "Others"
   )))
@@ -81,6 +82,7 @@ germline_patient_data <- germline_patient_data %>%
 <br>
 
 I removed the "Others" in raceeth.
+Missing values for ISS are imputed to the "unknown" category.
 
 
 ***
@@ -158,6 +160,26 @@ A higher proportion of patients have a lower clinical stage at blood with `r inl
 <br>
 <br>
 
+## Cytogenetics
+```{r}
+germline_patient_data %>% 
+  select(fish_cytogenetics, cytogenetics_risk) %>% 
+  tbl_summary(
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels()
+
+germline_patient_data %>% 
+  select(c("amp_dup_1q21", "del_1p", "del_17p", "del_13q",
+              "t11_14", "t14_16", "t4_14")) %>% 
+  tbl_summary(
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels()
+```
+
+<br>
+<br>
+
 ***
 
 # II. Age Distribution in Disparities
@@ -201,7 +223,7 @@ Interestingly, we noticed a significant difference between disparities on the ag
 ```{r}
 tbl1 <-
   germline_patient_data %>% 
-  select(Age_at_MMonly_diagnosis, Sex, raceeth, ISS_at_MMdx,
+  select(Age_at_MMonly_diagnosis, Age_at_death, Sex, raceeth, ISS_at_MMdx,
          CH_status,
          HCT_ever, regimen_categoryVCD_1) %>% 
   tbl_summary(by = raceeth, 
@@ -341,6 +363,24 @@ tbl2 <- coxph(Surv(time = raceeth_surv$month_at_progression_drug,
 <br>
 <br>
 
+## Cytogenetics
+```{r}
+germline_patient_data %>% 
+  select(fish_cytogenetics, cytogenetics_risk, raceeth) %>% 
+  tbl_summary(by = raceeth, 
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
+
+germline_patient_data %>% 
+  select(c("amp_dup_1q21", "del_1p", "del_17p", "del_13q",
+              "t11_14", "t14_16", "t4_14", raceeth)) %>% 
+  tbl_summary(by = raceeth, 
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
+```
+
+
 ***
 
 # IV. CH
@@ -406,6 +446,23 @@ A significant difference in the age at diagnosis was observed between CH and No 
 
 <br>
 <br>
+
+## Cytogenetics
+```{r}
+patients_clean_tumor %>% 
+  select(fish_cytogenetics, cytogenetics_risk, CH_status) %>% 
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
+
+patients_clean_tumor %>% 
+  select(c("amp_dup_1q21", "del_1p", "del_17p", "del_13q",
+              "t11_14", "t14_16", "t4_14", CH_status)) %>% 
+  tbl_summary(by = CH_status, 
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
+```
 
 ***
 
@@ -863,7 +920,7 @@ eth_cox_pfs
 
 <!-- I thought it could be a year effect compare to Taiga said (maybe earlier it wasn't a difference like he said but now that Hispanic may have more access to care we can see the difference) but no. -->
 
-## KM by decade
+# KM by decade
 ### Raceeth
 ```{r}
 table(patients_clean_tumor$MM_age_cat)
@@ -878,12 +935,12 @@ ggsurvplot_facet(myplot, data = patients_clean_tumor, facet.by = "MM_age_cat",
 ```
 
 ```{r}
-mysurv <- Surv(time = patients_clean_tumor$month_at_progression_drug, event = patients_clean_tumor$drug_progression_event)
-myplot <- survfit(mysurv~raceeth+MM_age_cat, data = patients_clean_tumor)
-ggsurvplot_facet(myplot, data = patients_clean_tumor, facet.by = "MM_age_cat",
-           title = "PFS",
-           conf.int = FALSE
-)
+# mysurv <- Surv(time = patients_clean_tumor$month_at_progression_drug, event = patients_clean_tumor$drug_progression_event)
+# myplot <- survfit(mysurv~raceeth+MM_age_cat, data = patients_clean_tumor)
+# ggsurvplot_facet(myplot, data = patients_clean_tumor, facet.by = "MM_age_cat",
+#            title = "PFS",
+#            conf.int = FALSE
+# )
 ```
 
 
@@ -917,7 +974,15 @@ ggsurvplot_facet(myplot, data = patients_clean_tumor, facet.by = "MM_age_cat",
            conf.int = FALSE
 )
 
+# mysurv <- Surv(time = patients_clean_tumor$month_at_progression_drug, event = patients_clean_tumor$drug_progression_event)
+# myplot <- survfit(mysurv~CH_status+MM_age_cat, data = patients_clean_tumor)
+# ggsurvplot_facet(myplot, data = patients_clean_tumor, facet.by = "MM_age_cat",
+#            title = "PFS",
+#            conf.int = FALSE
+# )
+```
 
+```{r}
 temp <- patients_clean_tumor %>% filter(raceeth != "Hispanic")
 mysurv <- Surv(time = temp$month_at_os, event = temp$os_event)
 
@@ -929,15 +994,96 @@ ggsurvplot_facet(myplot, data = temp, facet.by = "MM_age_cat",
 ) + guides(colour = guide_legend(nrow = 4))
 ```
 
-```{r}
-mysurv <- Surv(time = patients_clean_tumor$month_at_progression_drug, event = patients_clean_tumor$drug_progression_event)
-myplot <- survfit(mysurv~CH_status+MM_age_cat, data = patients_clean_tumor)
-ggsurvplot_facet(myplot, data = patients_clean_tumor, facet.by = "MM_age_cat",
-           title = "PFS",
-           conf.int = FALSE
-)
+### <50
+```{r, fig.height=7}
+temp <- patients_clean_tumor %>% filter(raceeth != "Hispanic") %>% 
+  filter(MM_age_cat == "<50")
+mysurv <- Surv(time = temp$month_at_os, event = temp$os_event)
+
+myplot <- survfit(mysurv~CH_status+raceeth, data = temp)
+ggsurvplot(myplot, data = temp,
+           title = "OS",
+           short.panel.labs = TRUE,
+           conf.int = FALSE,
+           risk.table = TRUE
+) + guides(colour = guide_legend(nrow = 4))
 ```
 
+### 50-59
+```{r, fig.height=7}
+temp <- patients_clean_tumor %>% filter(raceeth != "Hispanic") %>% 
+  filter(MM_age_cat == "50-59")
+mysurv <- Surv(time = temp$month_at_os, event = temp$os_event)
+
+myplot <- survfit(mysurv~CH_status+raceeth, data = temp)
+ggsurvplot(myplot, data = temp,
+           title = "OS",
+           short.panel.labs = TRUE,
+           conf.int = FALSE,
+           risk.table = TRUE
+) + guides(colour = guide_legend(nrow = 4))
+```
+
+### 60-69
+```{r, fig.height=7}
+temp <- patients_clean_tumor %>% filter(raceeth != "Hispanic") %>% 
+  filter(MM_age_cat == "60-69")
+mysurv <- Surv(time = temp$month_at_os, event = temp$os_event)
+
+myplot <- survfit(mysurv~CH_status+raceeth, data = temp)
+ggsurvplot(myplot, data = temp,
+           title = "OS",
+           short.panel.labs = TRUE,
+           conf.int = FALSE,
+           risk.table = TRUE
+) + guides(colour = guide_legend(nrow = 4))
+```
+
+### >70
+```{r, fig.height=7}
+temp <- patients_clean_tumor %>% filter(raceeth != "Hispanic") %>% 
+  filter(MM_age_cat == "≥70")
+mysurv <- Surv(time = temp$month_at_os, event = temp$os_event)
+
+myplot <- survfit(mysurv~CH_status+raceeth, data = temp)
+ggsurvplot(myplot, data = temp,
+           title = "OS",
+           short.panel.labs = TRUE,
+           conf.int = FALSE,
+           risk.table = TRUE
+) + guides(colour = guide_legend(nrow = 4))
+```
+
+### Per group
+### <60
+```{r, fig.height=7}
+temp <- patients_clean_tumor %>% filter(raceeth != "Hispanic") %>% 
+  filter(MM_age_group == "<60")
+mysurv <- Surv(time = temp$month_at_os, event = temp$os_event)
+
+myplot <- survfit(mysurv~CH_status+raceeth, data = temp)
+ggsurvplot(myplot, data = temp,
+           title = "OS",
+           short.panel.labs = TRUE,
+           conf.int = FALSE,
+           risk.table = TRUE
+) + guides(colour = guide_legend(nrow = 4))
+```
+
+### ≥60
+```{r, fig.height=7}
+temp <- patients_clean_tumor %>% filter(raceeth != "Hispanic") %>% 
+  filter(MM_age_group == "≥60")
+mysurv <- Surv(time = temp$month_at_os, event = temp$os_event)
+
+myplot <- survfit(mysurv~CH_status+raceeth, data = temp)
+ggsurvplot(myplot, data = temp,
+           title = "OS",
+           short.panel.labs = TRUE,
+           conf.int = FALSE,
+           risk.table = TRUE
+) + guides(colour = guide_legend(nrow = 4))
+```
 
 
 # Tumor mutations

@@ -46,7 +46,7 @@ div.blue { background-color:#0099CC; border-radius: 5px; padding: 20px; font-siz
 </style>
 <div class = "blue">
 
-<span style="color: white;">Manuscript</span>
+<span style="color: white;">Proportional Assumption</span>
 
 </div>
 <br>
@@ -72,7 +72,11 @@ germline_patient_data <- germline_patient_data %>%
   filter(is_patient_MM == "Yes" & is_MMDx_close_to_blood == "Yes") %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   filter(raceeth != "Others") %>% 
-  mutate(raceeth = factor(raceeth, levels=c("White Non-Hispanic", "Hispanic", "Black")))
+  mutate(raceeth = factor(raceeth, levels=c("White Non-Hispanic", "Hispanic", "Black"))) %>%
+  mutate(ISS_at_MMdx = replace_na(ISS_at_MMdx, "Unknown")) %>%
+  mutate(regimen_categoryVCD_1 = factor(regimen_categoryVCD_1, levels = c(
+    "PI + IMIDs", "PI", "IMIDs", "Others"
+  )))
 ```
 <br>
 <br>
@@ -252,33 +256,6 @@ ch_char
 <br>
 <br>
 
-Whole Exome Sequencing data identified CH mutations in `r inline_text(ch_char, variable = CH_status, level = "CH", column = "MM patients at time of blood with WES")`.
-+ Add bioinfo results (oncoplot?).  
-Type of genes affected...
-
-<br>
-<br>
-
-```{r}
-ch_demo <- patients_clean_tumor %>%
-  select(Age_at_MMonly_diagnosis, 
-         Sex, raceeth, ISS_at_MMdx, ISSdx_grp,
-         CH_status) %>% 
-  tbl_summary(by = CH_status, 
-              label = list(Age_at_MMonly_diagnosis ~ "Age at MM diagnosis", CH_status ~ "CH status"),
-              sort = list(everything() ~ "frequency", ISS_at_MMdx ~ "alphanumeric", ISSdx_grp ~ "alphanumeric"),
-              digits = list(c(Age_at_MMonly_diagnosis) ~ 2),
-              missing = "no") %>% 
-  bold_labels() %>% add_p() %>% bold_p(t = .05)
-ch_demo
-```
-<br>
-
-A significant difference in the age at diagnosis was observed between CH and No CH patients with an older age for CH patients (`r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "CH")` vs `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "No CH")`, `r inline_text(ch_demo, variable = Age_at_MMonly_diagnosis, column = "p.value")`). While Sex and race/ethnicity are similarly distributed, we noticed a higher proportion of patients with more severe clinical stage (II-III) for CH patients.
-
-<br>
-<br>
-
 ***
 
 # IV. CH & RaceEthnicity
@@ -384,42 +361,9 @@ coxph(Surv(time = patients_clean_tumor$month_at_os,
 # tbl_merge(list(# tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
 ```
 <br>
-<br>
-
 
 ***
-```{r, fig.height = 7}
-# mysurv <- Surv(time = patients_clean_tumor$month_at_progression_drug, event = patients_clean_tumor$drug_progression_event)
-# myplot <- survfit(mysurv~raceeth + CH_status, data = patients_clean_tumor)
-# ggsurvplot(myplot, data = patients_clean_tumor, facet.by = "MM_age_cat5",
-#            title = "PFS",
-#            font.main = c(24, "bold", "black"),
-#            font.x = c(20, "bold", "black"),
-#            font.y = c(20, "bold", "black"),
-#            font.legend = c(20, "bold", "black"),
-#            font.tickslab = c(18, "bold", "black"),
-#            size = 1.5,
-# color = "raceeth",
-#            linetype = "CH_status",
-#            xlab = "Time in months"
-# )+ guides(colour = guide_legend(nrow = 4))
-```
 
-```{r, fig.height = 7}
-# mysurv <- Surv(time = patients_clean_tumor$month_at_progression_drug, event = patients_clean_tumor$drug_progression_event)
-# myplot <- survfit(mysurv~raceeth + CH_status, data = patients_clean_tumor)
-# ggsurvplot(myplot, data = patients_clean_tumor, facet.by = "MM_age_cat3",
-#            title = "PFS",
-#            font.main = c(24, "bold", "black"),
-#            font.x = c(20, "bold", "black"),
-#            font.y = c(20, "bold", "black"),
-#            font.legend = c(20, "bold", "black"),
-#            font.tickslab = c(18, "bold", "black"),
-#            size = 1.5,
-#            
-#            xlab = "Time in months"
-# )+ guides(colour = guide_legend(nrow = 4))
-```
 <br>
 <br>
 

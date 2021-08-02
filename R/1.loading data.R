@@ -667,7 +667,8 @@ CHIP_tageted_seq <- readxl::read_xlsx(paste0(path, "/Nancy's working files/M4M_M
 IMIDS_maintenance <- readxl::read_xlsx(paste0(path, "/Raghu MM/MM_Maintainance_Regimen.xlsx"))
 #
 migration_patients <- readxl::read_xlsx(paste0(path, "/Raghu MM/Avatar List For Migration.xlsx"))
-
+#
+Cytogenetics <- readxl::read_xlsx(paste0(path, "/Raghu MM/Cytogenetics/FISH_QC'd_Data_07282021.xlsx"))
 # Somatic mutations
 # load(file = paste0(path, "/TumorMuts/Nancy650AF.DP.AF.rda"))
 

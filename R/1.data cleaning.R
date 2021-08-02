@@ -342,6 +342,31 @@ Diagnosis_ISS <- Diagnosis_ISS %>%
 
 
 rm(ISS_temp, ISS_df, EHR_ISS, history_disease)
+
+# Cytogenetics
+
+Cytogenetics <- Cytogenetics %>% 
+  # fish_cytogenetics == 4 means not performed for that biopsy
+  filter(fish_cytogenetics != 4) %>% 
+  # mutate_at(c("amp_dup_1q21", "del_1p", "del_17p", "del_13q",
+  #                 "t11_14", "t14_16", "t4_14"), ~ as.character(.)) %>% 
+  mutate_at(c("amp_dup_1q21", "del_1p", "del_17p", "del_13q",
+              "t11_14", "t14_16", "t4_14"), ~ case_when(
+                . == 1                                    ~ "Yes",
+                fish_cytogenetics == 1 & is.na(.)         ~ "No"
+              )) %>% 
+  mutate(fish_cytogenetics = case_when(
+    fish_cytogenetics == 1                                ~ "abnormal",
+    fish_cytogenetics == 2                                ~ "normal"
+  )) %>% 
+  left_join(., MM_history %>% select("avatar_id", "date_of_MM_diagnosis"),
+            by = "avatar_id") %>% 
+  mutate(interval = (interval(start= cytogenetics_date, end= date_of_MM_diagnosis)/duration(n=1, unit="days"))) %>% 
+  mutate(interval = abs(interval)) %>% 
+  arrange(interval) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(avatar_id : t4_14)
+
 # Vitals ----
 # Bind and arrange to have dates in order within each Alive, Dead, and Lost
 Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
@@ -1097,7 +1122,8 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_
   full_join(., Staging_ISS, by = c("avatar_id", "collectiondt_germline")) %>% 
   full_join(., Diagnosis_ISS, by = c("avatar_id")) %>% 
   full_join(., metastasis, by = "avatar_id") %>% 
-  full_join(Demo_RedCap_V4ish %>% select(-TCC_ID), ., by = "avatar_id")
+  full_join(Demo_RedCap_V4ish %>% select(-TCC_ID), ., by = "avatar_id") %>% 
+  full_join(., Cytogenetics, by = "avatar_id")
 # # write.csv(Global_data, paste0(path, "/Global_data.csv"))
 Global_data <- 
   left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id")) %>% 

@@ -260,7 +260,28 @@ Global_data <- Global_data %>%
     TRUE                   ~ "Treatment Given"
   )) %>% 
   mutate(ISS_grp = ifelse(str_detect(ISS, "II"), "II-III", ISS)) %>%
-  mutate(ISSdx_grp = ifelse(str_detect(ISS_at_MMdx, "II"), "II-III", ISS_at_MMdx))
+  mutate(ISSdx_grp = ifelse(str_detect(ISS_at_MMdx, "II"), "II-III", ISS_at_MMdx)) %>% 
+  mutate(cytogenetics_risk = case_when(
+    del_17p == "Yes" |
+      t14_16 == "Yes"                      ~ "High-risk",
+    t4_14 == "Yes" |
+      amp_dup_1q21 == "Yes"                ~ "Intermediate-risk",
+    fish_cytogenetics == 1                 ~ "Standard-risk",
+    fish_cytogenetics == 2                 ~ "Standard-risk"
+  ))
+
+
+
+# del_17p, t14_16, t14_20 then it is  "High-risk" (if any 1 abnormality is present);
+# 
+# t4_14, amp_dup_1q21 then it is "Intermediate-risk" (if any 1 abnormality is present);
+# 
+# Normal panels then " Standard-risk ";
+# 
+# Otherwise = "Standard-risk";
+
+
+
   
 # Cleaning
 rm(all_dates, all_dates1, last_event, Last_labs_dates, Contact_lost, OS_data, Staging_ISS, capwords)
@@ -283,9 +304,13 @@ Global_data$Age_at_MMonly_diagnosis <- interval(start= Global_data$Date_of_Birth
   duration(n=1, unit="years")
 Global_data$Age_at_MMonly_diagnosis <- round(Global_data$Age_at_MMonly_diagnosis, 3)
 Global_data$MM_age_cat <- as.factor(findInterval(Global_data$Age_at_MMonly_diagnosis, c(0,50,60,70)))
-levels(Global_data$MM_age_cat) <- c("<50", "50-59", "60-69", ">70")
+levels(Global_data$MM_age_cat) <- c("<50", "50-59", "60-69", "≥70")
 
 Global_data <- Global_data %>% 
+  mutate(MM_age_group = case_when(
+    Age_at_MMonly_diagnosis < 60    ~ "<60",
+    Age_at_MMonly_diagnosis >= 60    ~ "≥60"
+    )) %>% 
   mutate(MM_age_cat5 = case_when(
     Age_at_MMonly_diagnosis < 50    ~ "<50",
     Age_at_MMonly_diagnosis < 55    ~ "50-54",
@@ -294,7 +319,7 @@ Global_data <- Global_data %>%
     Age_at_MMonly_diagnosis < 70    ~ "65-69",
     # Age_at_MMonly_diagnosis < 75    ~ "70-74",
     # Age_at_MMonly_diagnosis < 80    ~ "75-79",
-    Age_at_MMonly_diagnosis >= 70   ~ ">=70"
+    Age_at_MMonly_diagnosis >= 70   ~ "≥70"
   ), 
   MM_age_cat5 = factor(MM_age_cat5, levels = c("<50", "50-54", "55-59", "60-64", "65-69",
                                                ">=70"))
@@ -313,10 +338,10 @@ Global_data <- Global_data %>%
     # Age_at_MMonly_diagnosis < 80    ~ "78-80",
     
     
-    Age_at_MMonly_diagnosis >= 71   ~ ">=71"
+    Age_at_MMonly_diagnosis >= 71   ~ "≥71"
   ), 
   MM_age_cat3 = factor(MM_age_cat3, levels = c("<50", "50-52", "53-55", "56-58", "59-61", "62-64", "65-67", "68-70", 
-                                               ">=71"))
+                                               "≥71"))
   )
 
 # Global_data$MM_age_cat5 <- as.factor(findInterval(Global_data$Age_at_MMonly_diagnosis, c(0,50, 55,60, 65, 70, 75, 80)))

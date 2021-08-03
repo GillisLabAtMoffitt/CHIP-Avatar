@@ -1085,6 +1085,72 @@ ggsurvplot(myplot, data = temp,
 ) + guides(colour = guide_legend(nrow = 4))
 ```
 
+# CH genes
+```{r}
+path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
+
+ch_genes <- read_csv(paste0(path, "/Nancy's working files/CH calls_WES_genes_12.10.20.csv")) %>% 
+  distinct(patient_id, GENE) %>% 
+  mutate(patient_id = str_remove(patient_id, "_normal")) %>% 
+  mutate(ARID1B = ifelse(GENE == "ARID1B", "Yes", NA_character_)) %>% 
+  mutate(ASXL1 = ifelse(GENE == "ASXL1", "Yes", NA_character_)) %>% 
+  mutate(ATM = ifelse(GENE == "ATM", "Yes", NA_character_)) %>% 
+  mutate(CBL = ifelse(GENE == "CBL", "Yes", NA_character_)) %>% 
+  mutate(CHEK2 = ifelse(GENE == "CHEK2", "Yes", NA_character_)) %>% 
+  mutate(DNMT3A = ifelse(GENE == "DNMT3A", "Yes", NA_character_)) %>% 
+  mutate(FLT3 = ifelse(GENE == "FLT3", "Yes", NA_character_)) %>% 
+  mutate(IDH1 = ifelse(GENE == "IDH1", "Yes", NA_character_)) %>%
+  mutate(JAK1 = ifelse(GENE == "JAK1", "Yes", NA_character_)) %>%
+  mutate(JAK2 = ifelse(GENE == "JAK2", "Yes", NA_character_)) %>%
+  mutate(KMT2D = ifelse(GENE == "KMT2D", "Yes", NA_character_)) %>%
+  mutate(NOTCH1 = ifelse(GENE == "NOTCH1", "Yes", NA_character_)) %>%
+  mutate(PPM1D = ifelse(GENE == "PPM1D", "Yes", NA_character_)) %>%
+  mutate(RUNX1 = ifelse(GENE == "RUNX1", "Yes", NA_character_)) %>%
+  mutate(SF3B1 = ifelse(GENE == "SF3B1", "Yes", NA_character_)) %>%
+  mutate(STAG2 = ifelse(GENE == "STAG2", "Yes", NA_character_)) %>%
+  mutate(STAT5B = ifelse(GENE == "STAT5B", "Yes", NA_character_)) %>%
+  mutate(TET2 = ifelse(GENE == "TET2", "Yes", NA_character_)) %>%
+  mutate(TP53 = ifelse(GENE == "TP53", "Yes", NA_character_)) %>%
+  mutate(ZRSR2 = ifelse(GENE == "ZRSR2", "Yes", NA_character_)) %>%
+  select(patient_id, ARID1B : ZRSR2) %>% 
+  group_by(patient_id) %>% 
+  fill(everything(), .direction = "updown") %>% 
+  ungroup() %>% 
+  distinct(patient_id, .keep_all = TRUE) %>% 
+  mutate(across(where(is.character), .fns = ~ replace_na(., "No"))) %>% 
+  right_join(., patients_clean_tumor, by = c("patient_id" = "SLID_germline"))
+  
+ch_genes %>% 
+  select("ASXL1", "DNMT3A", "TET2", "TP53", "PPM1D",
+         "SF3B1", "CBL", "JAK1", "STAT5B", 
+         "ATM", "CHEK2",
+         "FLT3", 
+         "JAK2", "KMT2D", "NOTCH1", "RUNX1",
+         "ZRSR2",
+         "ARID1B", "IDH1", "STAG2"
+         ) %>% 
+  tbl_summary(type = list(all_categorical() ~ "dichotomous"),
+              missing = "no") %>% 
+  as_gt() %>% 
+  gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
+
+ch_genes %>% 
+  select("ASXL1", "DNMT3A", "TET2", "TP53", "PPM1D",
+         "SF3B1", "CBL", "JAK1", "STAT5B", 
+         "ATM", "CHEK2",
+         "FLT3", 
+         "JAK2", "KMT2D", "NOTCH1", "RUNX1",
+         "ZRSR2",
+         "ARID1B", "IDH1", "STAG2", raceeth) %>% 
+  tbl_summary(by = raceeth,
+              type = list(all_categorical() ~ "dichotomous"),
+              missing = "no") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05) %>%
+  as_gt() %>% 
+  gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
+
+```
+
 
 # Tumor mutations
 

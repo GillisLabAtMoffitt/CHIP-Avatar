@@ -1331,22 +1331,51 @@ maf1 <-
                        "nonframeshift_deletion", "nonframeshift_insertion",
                        "splicing", "stopgain_SNV", "stoploss_SNV", "nonsynonymous_SNV"), 
            clinicalData = tumor_mutation_avatar)
+
+# maf_file <- read_delim(paste0(path, "/TumorMuts/raw data/Nancy650AF.maf"),
+#                        delim = "\t") %>% 
+#   filter(Variant_Classification == "frameshift_deletion"|
+#          Variant_Classification == "frameshift_insertion"|
+#          Variant_Classification == "nonframeshift_deletion"|
+#          Variant_Classification == "nonframeshift_insertion"|
+#          Variant_Classification == "splicing"|
+#          Variant_Classification == "stopgain_SNV"|
+#          Variant_Classification == "stoploss_SNV"|
+#          Variant_Classification == "nonsynonymous_SNV"
+#          ) %>%
+#   mutate(Variant_Classification = str_replace(Variant_Classification, "_", " "),
+#          Variant_Classification = str_to_sentence(Variant_Classification), 
+#          Variant_Classification = str_replace(Variant_Classification, "snv", "SNV"))
+#   
+# 
+# maf2 <- read.maf(maf = maf_file, 
+#          vc_nonSyn=c("Frameshift deletion", "Frameshift insertion",
+#                      "Nonframeshift deletion", "Nonframeshift insertion",
+#                      "Splicing", "Stopgain SNV", "Stoploss SNV", "Nonsynonymous SNV"), 
+#          clinicalData = tumor_mutation_avatar)
 ```
 
 
 ```{r oncoplot}
 disparities_maf <- subsetMaf(maf = maf1, tsb = c(tumor_mutation_avatar$Tumor_Sample_Barcode))
+# disparities_maf2 <- subsetMaf(maf = maf2, tsb = c(tumor_mutation_avatar$Tumor_Sample_Barcode))
 
 fabcolors = c("#03051AFF", "blue", "red")
 names(fabcolors) = c("White Non-Hispanic", "Hispanic", "Black")
 fabcolors = list(raceeth = fabcolors)
 # print(fabcolors)
 
-col = c("yellow", "chartreuse3", "steelblue2", "blue", "darkviolet", "cyan", "red", "darkblue", "black"
+col = c("yellow", "chartreuse3", "black", "steelblue2", "darkviolet", "cyan", "blue", "darkblue", "red"
         )
-names(col) = c("frameshift_deletion", "frameshift_insertion", 
-               "nonframeshift_deletion", "nonframeshift_insertion",
-               "splicing", "stopgain_SNV", "stoploss_SNV", "nonsynonymous_SNV", "Multi_Hit")
+names(col) = c("frameshift_deletion", "frameshift_insertion",
+                       "nonframeshift_deletion", "nonframeshift_insertion",
+                       "splicing", "stopgain_SNV", "stoploss_SNV", "nonsynonymous_SNV", "Multi_Hit")
+
+# col1 = c("yellow", "chartreuse3", "black", "steelblue2", "darkviolet", "cyan", "blue", "darkblue", "red"
+#         )
+# names(col1) = c("Frameshift deletion", "Frameshift insertion",
+#                      "Nonframeshift deletion", "Nonframeshift insertion",
+#                      "Splicing", "Stopgain SNV", "Stoploss SNV", "Nonsynonymous SNV", "Multi_Hit")
 # tiff(paste0(path, "/TumorMuts/Output/Figures/oncoplot by raceeth.tiff"))
 # tiff(paste0(path, "/Disparities manuscript/oncoplot by raceeth.tiff"))
 
@@ -1356,6 +1385,11 @@ oncoplot(disparities_maf, genes = gene_list2, colors = col,  clinicalFeatures = 
          annotationColor = fabcolors, annotationOrder = c("White Non-Hispanic", "Hispanic", "Black"),
          anno_height = .5, legend_height = 3, groupAnnotationBySize = FALSE
          )
+# text(0.3, 0.5, "White Non-Hispnic", cex = 2, col = "red")
+# oncoplot(disparities_maf2, genes = gene_list2, colors = col1,  clinicalFeatures = "raceeth", sortByAnnotation = TRUE, 
+#          annotationColor = fabcolors, annotationOrder = c("White Non-Hispanic", "Hispanic", "Black"),
+#          anno_height = .5, legend_height = 3, groupAnnotationBySize = FALSE
+#          )
 # dev.off()
 ```
 

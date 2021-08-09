@@ -362,8 +362,9 @@ Cytogenetics <- Cytogenetics %>%
   left_join(., MM_history %>% select("avatar_id", "date_of_MM_diagnosis"),
             by = "avatar_id") %>% 
   mutate(interval = (interval(start= cytogenetics_date, end= date_of_MM_diagnosis)/duration(n=1, unit="days"))) %>% 
-  mutate(interval = abs(interval)) %>% 
-  arrange(interval) %>% 
+  mutate(interval = abs(interval)) %>%
+  filter(interval < 60) %>% 
+  arrange(interval) %>%
   distinct(avatar_id, .keep_all = TRUE) %>% 
   select(avatar_id : t4_14)
 

@@ -159,6 +159,16 @@ A higher proportion of patients have a lower clinical stage at blood with `r inl
 
 <br>
 <br>
+```{r}
+germline_patient_data %>% 
+  select(Disease_Status_germline) %>% 
+  tbl_summary(
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels()
+```
+<br>
+<br>
+
 
 ## Cytogenetics
 ```{r}
@@ -192,10 +202,15 @@ p <- ggplot(germline_patient_data,
   geom_boxplot(color = c("#03051AFF", "blue", "red"),
                alpha = 0.3,
                fill = c("#03051AFF", "blue", "red")) + 
-  theme_minimal(base_size = 23) +
+  theme_classic(base_size = 23) +
   labs(x=NULL, y="Age at Diagnosis", title="Age of MM Diagnosis Distribution")
 p + geom_jitter(shape=16, position=position_jitter(0.2)) +
-  stat_compare_means(label.x = 1.75)
+  stat_compare_means(label.x = 1.75, 
+                     # aes(label = paste0("p = ", ..p.format..))
+                   aes(
+  label=ifelse(..p.format.. == 1e-04, "p<0.001", "Other")
+  )
+)
 # dev.off()
 ```
 
@@ -223,6 +238,7 @@ Interestingly, we noticed a significant difference between disparities on the ag
 ```{r}
 tbl1 <-
   germline_patient_data %>% 
+  mutate(ISS_at_MMdx = str_replace(ISS_at_MMdx, "Unknown", NA_character_)) %>% 
   select(Age_at_MMonly_diagnosis, Age_at_death, Sex, raceeth, ISS_at_MMdx,
          CH_status,
          HCT_ever, regimen_categoryVCD_1) %>% 
@@ -275,7 +291,7 @@ mysurv <- Surv(time = raceeth_surv$month_at_os, event = raceeth_surv$os_event)
 myplot <- survfit(mysurv~raceeth, data = raceeth_surv)
 # jpeg(paste0(path, "/Figures/Survivals/Demographic/OS Ethnicity.jpeg"), width = 1200, height = 900)
 # pdf(paste0(path, "/Disparities manuscript/OS raceeth.pdf"))
-ggsurvplot(myplot, data = raceeth_surv,
+myplot <- ggsurvplot(myplot, data = raceeth_surv,
            title = "OS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -290,20 +306,24 @@ ggsurvplot(myplot, data = raceeth_surv,
            legend.labs = c("White Non-Hispanic", "Hispanic", "Black"),
            palette = c("#03051AFF", "blue", "red"),
            pval = TRUE,
+           pval.coord = c(0, 0.1),
            conf.int = FALSE,
-           # xlim = c(-15, 400),
-
+           xlim = c(0, 400),
 
            # Censor
            censor = TRUE
 ) + guides(colour = guide_legend(nrow = 3))
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
 # dev.off()
 
 tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever, regimen_categoryVCD_1) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = raceeth_surv$month_at_os, 
                              event = raceeth_surv$os_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent(location = "level") %>% add_n(location = "level") %>%
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = raceeth_surv$month_at_os, 
              event = raceeth_surv$os_event) ~ raceeth + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + HCT_ever + regimen_categoryVCD_1, data =  raceeth_surv) %>%
@@ -320,7 +340,7 @@ mysurv <- Surv(time = raceeth_surv$month_at_progression_drug, event = raceeth_su
 myplot <- survfit(mysurv~raceeth, data = raceeth_surv)
 # pdf(paste0(path, "/Disparities manuscript/PFS raceeth.pdf"))
 
-ggsurvplot(myplot, data = raceeth_surv,
+myplot <- ggsurvplot(myplot, data = raceeth_surv,
            title = "PFS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -335,20 +355,24 @@ ggsurvplot(myplot, data = raceeth_surv,
            legend.labs = c("White Non-Hispanic", "Hispanic", "Black"),
            palette = c("#03051AFF", "blue", "red"),
            pval = TRUE,
+           pval.coord = c(0, 0.1),
            conf.int = FALSE,
-           # xlim = c(-10, 250),
-
+           xlim = c(0, 400),
 
            # Censor
            censor = TRUE
 ) + guides(colour = guide_legend(nrow = 3))
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
 # dev.off()
 
 tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever, regimen_categoryVCD_1) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = raceeth_surv$month_at_progression_drug, 
                              event = raceeth_surv$drug_progression_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent(location = "level") %>% add_n(location = "level") %>%
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = raceeth_surv$month_at_progression_drug, 
              event = raceeth_surv$drug_progression_event) ~ raceeth + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + strata(HCT_ever) + regimen_categoryVCD_1, data =  raceeth_surv) %>%
@@ -360,6 +384,16 @@ tbl2 <- coxph(Surv(time = raceeth_surv$month_at_progression_drug,
 </div>
 </div>
 
+<br>
+<br>
+
+```{r}
+germline_patient_data %>% 
+  select(Disease_Status_germline, raceeth) %>% 
+  tbl_summary(by = raceeth, 
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% add_p(test.args = Disease_Status_germline ~ list(workspace=2e9))
+```
 <br>
 <br>
 
@@ -419,6 +453,7 @@ Type of genes affected...
 #   bold_labels()
 # ch_samples
 patients_clean_tumor %>%
+  mutate(ISS_at_MMdx = str_replace(ISS_at_MMdx, "Unknown", NA_character_)) %>% 
   select(Age_at_MMonly_diagnosis, 
          Sex, raceeth, ISS_at_MMdx, ISS_at_MMdx,
          CH_status) %>% 
@@ -430,6 +465,7 @@ patients_clean_tumor %>%
   bold_labels() %>% add_p() %>% bold_p(t = .05)
 
 ch_demo <- patients_clean_tumor %>%
+  mutate(ISS_at_MMdx = str_replace(ISS_at_MMdx, "Unknown", NA_character_)) %>% 
   select(Age_at_MMonly_diagnosis, 
          Sex, raceeth, ISS_at_MMdx, ISS_at_MMdx,
          CH_status) %>% 
@@ -475,7 +511,7 @@ mysurv <- Surv(time = raceeth_surv$month_at_progression_drug, event = raceeth_su
 myplot <- survfit(mysurv~raceeth + CH_status, data = raceeth_surv)
 # tiff(paste0(path, "/Disparities manuscript/PFS CH raceeth.tiff"))
 
-ggsurvplot(myplot, data = raceeth_surv,
+myplot <- ggsurvplot(myplot, data = raceeth_surv,
            title = "PFS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -492,11 +528,17 @@ ggsurvplot(myplot, data = raceeth_surv,
            linetype = "CH_status",
            palette = c("red", "blue", "#03051AFF"),
            pval = TRUE,
+           pval.coord = c(0, 0.1),
            conf.int = FALSE,
+           xlim = c(0, 400),
 
            # Censor
            censor = TRUE
 )+ guides(colour = guide_legend(nrow = 3), linetype = guide_legend(nrow = 2))
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
 # dev.off()
 ```
 
@@ -505,7 +547,7 @@ tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Sex, ISS_at_MM
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = raceeth_surv$month_at_progression_drug, 
                              event = raceeth_surv$drug_progression_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent(location = "level") %>% add_n(location = "level") %>%
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = raceeth_surv$month_at_progression_drug, 
              event = raceeth_surv$drug_progression_event) ~ raceeth + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + strata(HCT_ever) + regimen_categoryVCD_1 + CH_status, data =  raceeth_surv) %>%
@@ -519,7 +561,7 @@ mysurv <- Surv(time = raceeth_surv$month_at_os, event = raceeth_surv$os_event)
 myplot <- survfit(mysurv~raceeth + CH_status, data = raceeth_surv)
 # tiff(paste0(path, "/Disparities manuscript/OS CH raceeth.tiff"))
 
-ggsurvplot(myplot, data = raceeth_surv,
+myplot <- ggsurvplot(myplot, data = raceeth_surv,
            title = "OS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -536,11 +578,17 @@ ggsurvplot(myplot, data = raceeth_surv,
            linetype = "CH_status",
            palette = c("red", "blue", "#03051AFF"),
            pval = TRUE,
+           pval.coord = c(0, 0.1),
            conf.int = FALSE,
+           xlim = c(0, 400),
 
            # Censor
            censor = TRUE
 )+ guides(colour = guide_legend(nrow = 3), linetype = guide_legend(nrow = 2))
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
 # dev.off()
 ```
 
@@ -549,7 +597,7 @@ tbl1 <- raceeth_surv %>% select(raceeth, Age_at_MMonly_diagnosis, Sex, ISS_at_MM
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = raceeth_surv$month_at_os, 
                              event = raceeth_surv$os_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent(location = "level") %>% add_n(location = "level") %>%
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = raceeth_surv$month_at_os, 
                    event = raceeth_surv$os_event) ~ raceeth + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + HCT_ever + regimen_categoryVCD_1 + CH_status, data =  raceeth_surv) %>%
@@ -609,7 +657,7 @@ myplot <- survfit(mysurv~CH_status, data = nhis_surv)
 # jpeg(paste0(path, "/Figures/Survivals/Demographic/OS Ethnicity.jpeg"), width = 1200, height = 900)
 # tiff(paste0(path, "/Disparities manuscript/OS NHW.tiff"))
 
-ggsurvplot(myplot, data = nhis_surv,
+myplot <- ggsurvplot(myplot, data = nhis_surv,
            title = "OS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -625,18 +673,24 @@ ggsurvplot(myplot, data = nhis_surv,
            linetype = "CH_status",
            color = "#03051AFF",
            pval = TRUE,
+           pval.coord = c(0, 0.1),
            conf.int = FALSE,
+           xlim = c(0, 400),
 
            # Censor
            censor = TRUE
 )
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
 # dev.off()
 
 tbl1 <- nhis_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever, regimen_categoryVCD_1) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = nhis_surv$month_at_os, 
                              event = nhis_surv$os_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent(location = "level") %>% add_n(location = "level") %>%
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = nhis_surv$month_at_os, 
              event = nhis_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + HCT_ever + regimen_categoryVCD_1, data =  nhis_surv) %>%
@@ -650,7 +704,7 @@ eth_cox_os
 ```{r, fig.height = 7}
 mysurv <- Surv(time = nhis_surv$month_at_progression_drug, event = nhis_surv$drug_progression_event)
 myplot <- survfit(mysurv~CH_status, data = nhis_surv)
-ggsurvplot(myplot, data = nhis_surv,
+myplot <- ggsurvplot(myplot, data = nhis_surv,
            title = "PFS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -666,30 +720,23 @@ ggsurvplot(myplot, data = nhis_surv,
            linetype = "CH_status",
            color = "#03051AFF",
            pval = TRUE,
+           pval.coord = c(0, 0.1),
            conf.int = FALSE,
-           xlim = c(-15, 250),
+           xlim = c(0, 400),
 
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 4,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
            # Censor
            censor = TRUE
 )
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
 
 tbl1 <- nhis_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever, regimen_categoryVCD_1) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = nhis_surv$month_at_progression_drug, 
                              event = nhis_surv$drug_progression_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent(location = "level") %>% add_n(location = "level") %>%
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = nhis_surv$month_at_progression_drug, 
              event = nhis_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + strata(HCT_ever) + regimen_categoryVCD_1, data =  nhis_surv) %>%
@@ -715,7 +762,7 @@ myplot <- survfit(mysurv~CH_status, data = bl_surv)
 # jpeg(paste0(path, "/Figures/Survivals/Demographic/OS Ethnicity.jpeg"), width = 1200, height = 900)
 # tiff(paste0(path, "/Disparities manuscript/OS Bl.tiff"))
 
-ggsurvplot(myplot, data = bl_surv,
+myplot <- ggsurvplot(myplot, data = bl_surv,
            title = "OS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -731,18 +778,24 @@ ggsurvplot(myplot, data = bl_surv,
            linetype = "CH_status",
            color = "red",
            pval = TRUE,
+           pval.coord = c(0, 0.1),
            conf.int = FALSE,
+           xlim = c(0, 400),
  
            # Censor
            censor = TRUE
 )
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
 # dev.off()
 
 tbl1 <- bl_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever, regimen_categoryVCD_1) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = bl_surv$month_at_os, 
                              event = bl_surv$os_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent(location = "level") %>% add_n(location = "level") %>%
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = bl_surv$month_at_os, 
              event = bl_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + HCT_ever + regimen_categoryVCD_1, data =  bl_surv) %>%
@@ -756,7 +809,7 @@ eth_cox_os
 ```{r, fig.height = 7}
 mysurv <- Surv(time = bl_surv$month_at_progression_drug, event = bl_surv$drug_progression_event)
 myplot <- survfit(mysurv~CH_status, data = bl_surv)
-ggsurvplot(myplot, data = bl_surv,
+myplot <- ggsurvplot(myplot, data = bl_surv,
            title = "PFS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -772,30 +825,23 @@ ggsurvplot(myplot, data = bl_surv,
            linetype = "CH_status",
            color = "red",
            pval = TRUE,
+           pval.coord = c(0, 0.1),
            conf.int = FALSE,
-           xlim = c(-15, 250),
+           xlim = c(0, 400),
 
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 4,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
            # Censor
            censor = TRUE
 )
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
 
 tbl1 <- bl_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever, regimen_categoryVCD_1) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = bl_surv$month_at_progression_drug, 
                              event = bl_surv$drug_progression_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent(location = "level") %>% add_n(location = "level") %>%
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = bl_surv$month_at_progression_drug, 
              event = bl_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + strata(HCT_ever) + regimen_categoryVCD_1, data =  bl_surv) %>%
@@ -822,7 +868,7 @@ myplot <- survfit(mysurv~CH_status, data = his_surv)
 # jpeg(paste0(path, "/Figures/Survivals/Demographic/OS Ethnicity.jpeg"), width = 1200, height = 900)
 # tiff(paste0(path, "/Disparities manuscript/OS His.tiff"))
 
-ggsurvplot(myplot, data = his_surv,
+myplot <- ggsurvplot(myplot, data = his_surv,
            title = "OS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -838,18 +884,23 @@ ggsurvplot(myplot, data = his_surv,
            linetype = "CH_status",
            color = "blue",
            pval = TRUE,
+           pval.coord = c(0, 0.1),
            conf.int = FALSE,
+           xlim = c(0, 400),
 
            # Censor
            censor = TRUE
 )
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
 # dev.off()
 
 tbl1 <- his_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever, regimen_categoryVCD_1) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = his_surv$month_at_os, 
                              event = his_surv$os_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent(location = "level") %>% add_n(location = "level") %>%
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = his_surv$month_at_os, 
              event = his_surv$os_event) ~ CH_status + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + HCT_ever + regimen_categoryVCD_1, data =  his_surv) %>%
@@ -863,7 +914,7 @@ eth_cox_os
 ```{r, fig.height = 7}
 mysurv <- Surv(time = his_surv$month_at_progression_drug, event = his_surv$drug_progression_event)
 myplot <- survfit(mysurv~CH_status, data = his_surv)
-ggsurvplot(myplot, data = his_surv,
+myplot <- ggsurvplot(myplot, data = his_surv,
            title = "PFS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -878,30 +929,23 @@ ggsurvplot(myplot, data = his_surv,
            # # legend.labs = c("Hispanic", "Non-Hispanic"),
            linetype = "CH_status",
            color = "blue",
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
            conf.int = FALSE,
-           xlim = c(-15, 100),
+           xlim = c(0, 400),
 
-           # Add risk table
-           tables.height = 0.3,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 4,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black")
-           ),
            # Censor
            censor = TRUE
 )
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
 
 tbl1 <- his_surv %>% select(CH_status, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever, regimen_categoryVCD_1) %>% 
   tbl_uvregression(method = survival::coxph, 
                    y = (Surv(time = his_surv$month_at_progression_drug, 
                              event = his_surv$drug_progression_event)),
-                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent() %>% 
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent(location = "level") %>% add_n(location = "level") %>%
   bold_labels() %>% italicize_levels()
 tbl2 <- coxph(Surv(time = his_surv$month_at_progression_drug, 
              event = his_surv$drug_progression_event) ~ CH_status + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + strata(HCT_ever) + regimen_categoryVCD_1, data =  his_surv) %>%
@@ -1478,7 +1522,7 @@ patients_clean_tumor %>%
 mysurv <- Surv(time = patients_clean_tumor$month_at_os, event = patients_clean_tumor$os_event)
 myplot <- survfit(mysurv~CH_status, data = patients_clean_tumor)
 # jpeg(paste0(path, "/Figures/Survivals/CHIP/OS by CH.jpeg"), width = 1200, height = 900)
-ggsurvplot(myplot, data = patients_clean_tumor,
+myplot <- ggsurvplot(myplot, data = patients_clean_tumor,
            title = "OS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -1490,21 +1534,17 @@ ggsurvplot(myplot, data = patients_clean_tumor,
            xlab = "Time in months", 
            legend = "top",
            legend.title = "", 
-           # # legend.labs = c("CH", "No CH"),
+           linetype = "CH_status",
+           color = "steelblue3",
            pval = TRUE,
+           pval.coord = c(0, 0.1),
            conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.17,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 4,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black"))
+           xlim = c(0, 400)
 )
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
 ```
 </div>
 
@@ -1512,7 +1552,7 @@ ggsurvplot(myplot, data = patients_clean_tumor,
 ```{r, fig.height = 7}
 mysurv <- Surv(time = patients_clean_tumor$month_at_progression_drug, event = patients_clean_tumor$drug_progression_event)
 myplot <- survfit(mysurv~CH_status, data = patients_clean_tumor)
-ggsurvplot(myplot, data = patients_clean_tumor,
+myplot <- ggsurvplot(myplot, data = patients_clean_tumor,
            title = "PFS",
            font.main = c(24, "bold", "black"),
            font.x = c(20, "bold", "black"),
@@ -1524,21 +1564,18 @@ ggsurvplot(myplot, data = patients_clean_tumor,
            xlab = "Time in months", 
            legend = "top",
            legend.title = "", 
+           linetype = "CH_status",
+           color = "steelblue3",
            # # legend.labs = c("CH", "No CH"),
            pval = TRUE,
+           pval.coord = c(0, 0.1),
            conf.int = FALSE,
-           # Add risk table
-           tables.height = 0.17,
-           risk.table.title = "Risk table (number(%))",
-           risk.table = "abs_pct",
-           risk.table.y.text = FALSE,
-           risk.table.fontsize = 4,
-           tables.theme = theme_survminer(base_size = 5,
-                                          font.main = c(16, "bold", "black"),
-                                          font.x = c(16, "bold", "black"),
-                                          font.y = c(16, "bold", "transparent"),
-                                          font.tickslab = c(19, "bold", "black"))
-)
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
 ```
 </div>
 </div>

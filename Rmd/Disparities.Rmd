@@ -1335,6 +1335,22 @@ df %>%
   gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
 
 df %>% 
+  select(gene_list2, raceeth) %>%
+  mutate(across(everything(), na_if, "No")) %>% 
+  pivot_longer(cols = KRAS:SETD2) %>% 
+  filter(!is.na(value)) %>% 
+  
+  group_by(raceeth,name) %>% 
+  summarise(count=n()) %>% 
+  mutate(percent=(count/sum(count)*100)
+  ) %>% 
+  ggplot(aes(x=raceeth, y= percent, fill=name))+
+  geom_bar(stat="identity") +
+  scale_fill_viridis_d() +
+  labs(fill = "Genes \nmutated", x = NULL, y = "Prevalence of Genes Mutations (percent)")+
+  theme_classic()
+
+df %>% 
   select(gene_list2, raceeth) %>% 
   mutate(raceeth = factor(raceeth, levels = c("White Non-Hispanic", "Hispanic"))) %>% 
   tbl_summary(by = raceeth,

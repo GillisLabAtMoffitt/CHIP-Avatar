@@ -399,15 +399,21 @@ oncoplot(disparities_maf, colors = col,  clinicalFeatures = "raceeth", sortByAnn
 
 
 
+############# CH_calls_genes
 
+path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
 
+CHIP_stat <- read_csv(paste0(path, "/Nancy's working files/CH calls_WES_genes_12.10.20.csv")) %>% 
+  mutate(patient_id = str_remove(patient_id, "_normal")) %>% 
+  left_join(., patients_clean_tumor, by = c("patient_id" = "SLID_germline")) %>% 
+  filter(CH_status == "CH")
 
+median(CHIP_stat$VAF_normal)
+range(CHIP_stat$VAF_normal)
 
+length(unique(CHIP_stat$patient_id))
 
-
-
-
-
+length(CHIP_stat[duplicated(CHIP_stat$patient_id),]$patient_id)
 
 
 

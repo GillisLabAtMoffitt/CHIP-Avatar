@@ -1399,13 +1399,15 @@ df %>%
                "SP140", "IRF4", "BCL7A", "AUTS2", "PARP4", "SETD2"))) %>% 
   pivot_wider(names_from = name, values_from = percent) %>% 
   mutate(across(everything(), ~ replace_na(., 0)))  %>%
-  # mutate_at(vars(-raceeth), rescale) %>%
-  ggradar(#c("0%", "10%", "30%"), 
+  ggradar(
     grid.min = 0, grid.mid = 15,
           grid.max = 30,
     values.radar = c("0", "15%", "30%"),
-    # centre.y = grid.min - ((1/5) * (grid.max - grid.min)),
-    gridline.label.offset = 7 ,
+    group.point.size = 3,
+    label.gridline.min = FALSE, 
+    label.gridline.mid = FALSE,
+    label.gridline.max = FALSE,
+    # gridline.label.offset = 7 ,
     group.colours = mycols,
     axis.line.colour = "gray",
         gridline.min.colour = "gray",
@@ -1537,10 +1539,71 @@ oncoplot(disparities_maf, genes = gene_list2, colors = col,  clinicalFeatures = 
 # dev.off()
 ```
 
-<!-- ## Top 20 automatically picked -->
 ```{r}
-# oncoplot(disparities_maf, colors = col,  clinicalFeatures = "raceeth", sortByAnnotation = TRUE)
-# dev.off()
+mmgenes <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/mmgenes.rds")
+
+mmgenes %>% 
+    ggplot(aes(x = raceeth, y = expression, fill = raceeth, color = raceeth))+
+    geom_boxplot(
+      # color = c("#03051AFF", "blue", "red"),
+                 alpha = 0.3,
+                 # fill = c("#03051AFF", "blue", "red")
+      ) +
+    scale_color_manual(values = c("#03051AFF", "blue", "red"))+
+    scale_fill_manual(values = c("#03051AFF", "blue", "red"))+
+    theme_classic()+
+    scale_x_discrete(labels=c("White Non-Hispanic" = "White \nNon-Hispanic"))+
+    theme(legend.position = "none", axis.title.x = element_blank())+
+    facet_grid(.~ gene)
+
+mmgenes %>% 
+  group_by(raceeth, gene) %>% 
+  summarize(mean = mean(expression),
+            sd = sd(expression)) %>%
+  mutate(fold = case_when(
+    raceeth == "White Non-Hispanic"  ~ 1,
+    gene == "BCL7A"                  ~ (mean / 3.95)-1,
+    gene == "SPEF2"                  ~ (mean / 6.46)-1,
+    gene == "ANKRD26"                ~ (mean / 7.10)-1
+  )) %>% 
+  mutate(sdfold = case_when(
+    raceeth == "White Non-Hispanic"  ~ 0,
+    gene == "BCL7A"                  ~ (sd / 2.14)-1,
+    gene == "SPEF2"                  ~ (sd / 1.60)-1,
+    gene == "ANKRD26"                ~ (sd / 0.821)-1
+  )) %>% 
+  filter(raceeth != "White Non-Hispanic") %>% 
+  ggplot(aes(x=raceeth, y= fold, fill=raceeth))+
+  geom_bar(stat="identity") +
+  geom_errorbar(aes(x = raceeth,
+                    ymin = fold - sdfold,
+                    ymax = fold + sdfold),
+                width = 0.2, alpha = 0.5,
+                position=position_dodge(width=0.9))+
+  scale_fill_viridis_d() +
+  labs(fill = "Genes \nmutated", x = NULL, y = "Prevalence of Genes Mutations (percent)")+
+  theme_classic()+
+    facet_grid(.~ gene)
+  
+# mmgenes %>% 
+#   group_by(raceeth, gene) %>% 
+#   summarize(mean = mean(expression),
+#             sd = sd(expression)) %>% 
+#     ggplot(aes(x = raceeth, y = mean, fill = raceeth, color = raceeth))+
+#     geom_point(
+#       ) +
+#   geom_errorbar(aes(x = raceeth,
+#                     ymin = mean - sd,
+#                     ymax = mean + sd),
+#                 width = 0.2, alpha = 0.5,
+#                 position=position_dodge(width=0.9))+
+#     scale_color_manual(values = c("#03051AFF", "blue", "red"))+
+#     scale_fill_manual(values = c("#03051AFF", "blue", "red"))+
+#     theme_classic()+
+#     scale_x_discrete(labels=c("White Non-Hispanic" = "White \nNon-Hispanic"))+
+#     theme(legend.position = "none", axis.title.x = element_blank())+
+#     facet_grid(.~ gene)
+
 ```
 
 <!-- ## BRAF V600 -->

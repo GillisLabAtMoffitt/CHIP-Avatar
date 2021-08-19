@@ -415,6 +415,75 @@ length(unique(CHIP_stat$patient_id))
 
 length(CHIP_stat[duplicated(CHIP_stat$patient_id),]$patient_id)
 
+############
+load(paste0(path, "/Mingxiang Teng/mmgene.rda"))
+
+
+pval <- bind_cols(gene = gene35, pval = round(p35, 3))
+
+mmgenes <- 
+  bind_cols(gene = gene35, dat35) %>% 
+  t() %>% as.data.frame() %>% janitor::row_to_names(1) %>% 
+  select(c("BCL7A", "SPEF2", "ANKRD26")) %>% 
+  bind_cols(sample = names, .) %>% 
+  bind_cols(., raceeth = race) %>% 
+  `rownames<-`(NULL) %>% 
+  pivot_longer(cols = -c(sample, raceeth), names_to = "gene", values_to = "expression") %>% 
+  mutate(expression = as.numeric(expression)) %>% 
+  full_join(., pval, by = "gene") %>% 
+  mutate(raceeth = case_when(
+    raceeth == "White"                     ~ "White Non-Hispanic",
+    raceeth == "Hispanic"                  ~ "Hispanic",
+    raceeth == "Black"                     ~ "Black"
+  )) %>% 
+  mutate(raceeth = factor(raceeth, levels=c("White Non-Hispanic", "Hispanic", "Black"))) %>%
+  mutate(gene = factor(gene, levels=c("BCL7A", "SPEF2", "ANKRD26"))) %>%
+  drop_na(expression)
+write_rds(mmgenes, "mmgenes.rds")
+mmgenes %>% 
+    ggplot(aes(x = raceeth, y = expression, fill = raceeth, color = raceeth))+
+    geom_boxplot(
+      # color = c("#03051AFF", "blue", "red"),
+                 alpha = 0.3,
+                 # fill = c("#03051AFF", "blue", "red")
+      ) +
+    scale_color_manual(values = c("#03051AFF", "blue", "red"))+
+    scale_fill_manual(values = c("#03051AFF", "blue", "red"))+
+    theme_classic()+
+    theme(legend.position = "none", axis.title.x = element_blank())+
+    facet_grid(.~ gene)
+    
+library(ggridges)
+
+bind_cols(gene = gene35, dat35) %>% 
+    t() %>% as.data.frame() %>% janitor::row_to_names(1) %>% 
+    select(c("BCL7A", "SPEF2", "ANKRD26")) %>% 
+    bind_cols(sample = names, .) %>% 
+    bind_cols(., raceeth = race) %>% 
+    `rownames<-`(NULL) %>% 
+    pivot_longer(cols = -c(sample, raceeth), names_to = "gene", values_to = "expression") %>% 
+    mutate(expression = as.numeric(expression)) %>% 
+    full_join(., pval, by = "gene") %>% 
+    mutate(raceeth = case_when(
+      raceeth == "White"                     ~ "White Non-Hispanic",
+      raceeth == "Hispanic"                  ~ "Hispanic",
+      raceeth == "Black"                     ~ "Black"
+    )) %>% 
+    mutate(raceeth = factor(raceeth, levels=c("White Non-Hispanic", "Hispanic", "Black"))) %>%
+    mutate(gene = factor(gene, levels=c("BCL7A", "SPEF2", "ANKRD26"))) %>%
+    drop_na(expression) %>% 
+  
+  ggplot(aes(y=gene, x=expression,  fill=raceeth)) +
+  geom_density_ridges(alpha=0.2, scale = 2) +
+  scale_fill_manual(values = c("#03051AFF", "blue", "red"))+
+  theme_ridges()+
+  theme(# axis.text.y = element_blank(),
+        panel.spacing = unit(0.1, "lines"),
+        strip.text.x = element_text(size = 8)
+  ) 
+
+
+
 
 
 

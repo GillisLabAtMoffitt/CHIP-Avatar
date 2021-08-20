@@ -306,16 +306,29 @@ myplot <- ggsurvplot(myplot, data = raceeth_surv,
            legend.labs = c("White Non-Hispanic", "Hispanic", "Black"),
            palette = c("#03051AFF", "blue", "red"),
            pval = TRUE,
-           pval.coord = c(0, 0.1),
+           pval.coord = c(0, 0.08),
            conf.int = FALSE,
            xlim = c(0, 400),
 
            # Censor
-           censor = TRUE
-) + guides(colour = guide_legend(nrow = 3))
+           censor = TRUE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table",
+           risk.table = TRUE,
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 4,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+) #+ guides(colour = guide_legend(nrow = 3))
 myplot$plot <- myplot$plot + 
   scale_x_continuous(breaks = c(seq(0, 400, 100)))
-myplot$plot
+myplot$table <- myplot$table + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot
 
 # dev.off()
 
@@ -355,16 +368,29 @@ myplot <- ggsurvplot(myplot, data = raceeth_surv,
            legend.labs = c("White Non-Hispanic", "Hispanic", "Black"),
            palette = c("#03051AFF", "blue", "red"),
            pval = TRUE,
-           pval.coord = c(0, 0.1),
+           pval.coord = c(0, 0.08),
            conf.int = FALSE,
            xlim = c(0, 400),
 
            # Censor
-           censor = TRUE
-) + guides(colour = guide_legend(nrow = 3))
+           censor = TRUE,
+           # Add risk table
+           tables.height = 0.3,
+           risk.table.title = "Risk table",
+           risk.table = TRUE,
+           risk.table.y.text = FALSE,
+           risk.table.fontsize = 4,
+           tables.theme = theme_survminer(base_size = 5,
+                                          font.main = c(16, "bold", "black"),
+                                          font.x = c(16, "bold", "black"),
+                                          font.y = c(16, "bold", "transparent"),
+                                          font.tickslab = c(19, "bold", "black")),
+) #+ guides(colour = guide_legend(nrow = 3))
 myplot$plot <- myplot$plot + 
   scale_x_continuous(breaks = c(seq(0, 400, 100)))
-myplot$plot
+myplot$table <- myplot$table + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot
 
 # dev.off()
 
@@ -1320,12 +1346,33 @@ df <- tumor_mutation_avatar %>%
   bold_labels() %>% add_p() %>% bold_p(t = .05) %>%
   as_gt() %>% 
   gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
+  
+df %>% 
+  mutate(raceeth = factor(raceeth, levels = c("White Non-Hispanic", "Hispanic"))) %>% 
+  tbl_summary(by = raceeth,
+              sort = list(everything() ~ "frequency"),
+              type = list(all_categorical() ~ "dichotomous"),
+              missing = "no") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05) %>%
+  as_gt() %>% 
+  gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
+
+df %>% 
+  mutate(raceeth = factor(raceeth, levels = c("White Non-Hispanic", "Black"))) %>% 
+  tbl_summary(by = raceeth,
+              sort = list(everything() ~ "frequency"),
+              type = list(all_categorical() ~ "dichotomous"),
+              missing = "no") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05) %>%
+  as_gt() %>% 
+  gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
+
 
 gene_list2 <- c("KRAS", "NRAS", "TP53", "DIS3", "BRAF",
                "SP140", "IRF4", "BCL7A", "AUTS2", "PARP4", "SETD2")
 
 df %>% 
-  select(gene_list2, raceeth) %>% 
+  select(all_of(gene_list2), raceeth) %>% 
   tbl_summary(by = raceeth,
               sort = list(everything() ~ "frequency"),
               type = list(all_categorical() ~ "dichotomous"),

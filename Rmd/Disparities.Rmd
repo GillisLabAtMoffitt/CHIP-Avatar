@@ -370,7 +370,7 @@ myplot <- ggsurvplot(myplot, data = raceeth_surv,
            pval = TRUE,
            pval.coord = c(0, 0.08),
            conf.int = FALSE,
-           xlim = c(400),
+           xlim = c(0, 400),
 
            # Censor
            censor = TRUE,
@@ -1475,14 +1475,6 @@ gene_list2 <- c("KRAS", "NRAS", "TP53", "DIS3", "BRAF",
                "SP140", "IRF4", "BCL7A", "AUTS2", "PARP4", "SETD2")
 
 
-
-
-
-
-
-
-
-
 df %>% 
   select(gene_list2, raceeth) %>% 
   mutate(raceeth = factor(raceeth, levels = c("White Non-Hispanic", "Hispanic"))) %>% 
@@ -1586,8 +1578,11 @@ oncoplot(disparities_maf, genes = gene_list2, colors = col,  clinicalFeatures = 
 # dev.off()
 ```
 
-```{r}
+```{r RNA}
 mmgenes <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/mmgenes.rds")
+
+# mmgenes %>% distinct(sample, .keep_all = TRUE) %>% select(gene) %>% tbl_summary()
+
 
 mmgenes %>% 
     ggplot(aes(x = raceeth, y = expression, fill = raceeth, color = raceeth))+
@@ -1602,6 +1597,35 @@ mmgenes %>%
     scale_x_discrete(labels=c("White Non-Hispanic" = "White \nNon-Hispanic"))+
     theme(legend.position = "none", axis.title.x = element_blank())+
     facet_grid(.~ gene)
+
+mmgenes %>% 
+  select(raceeth, gene, expression) %>% 
+  group_by(raceeth, gene) %>% 
+  summarize(median = median(expression)) %>%
+  ggplot(aes(x = raceeth, y = gene, fill = median)) +
+  geom_tile()+
+  scale_fill_gradient(low = "white", high = "blue")+
+  theme_classic()
+
+mmgenes %>% 
+  select(raceeth, gene, expression) %>% 
+group_by(raceeth, gene) %>% 
+  summarize(median = median(expression)) %>%
+  ggplot(aes(x = raceeth, y = gene, fill = median)) +  geom_tile()+
+  scale_fill_distiller(palette = "RdBu")+
+  theme_classic()
+
+mmgenes %>% 
+  select(raceeth, gene, expression) %>% 
+group_by(raceeth, gene) %>% 
+  summarize(median = median(expression)) %>%
+  ggplot(aes(x = raceeth, y = gene, fill = median)) +  geom_tile()+
+  scale_fill_viridis()+
+  theme_classic()
+
+
+
+
 
 mmgenes %>% 
   group_by(raceeth, gene) %>% 

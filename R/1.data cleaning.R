@@ -348,8 +348,6 @@ rm(ISS_temp, ISS_df, EHR_ISS, history_disease)
 Cytogenetics <- Cytogenetics %>% 
   # fish_cytogenetics == 4 means not performed for that biopsy
   filter(fish_cytogenetics != 4) %>% 
-  # mutate_at(c("amp_dup_1q21", "del_1p", "del_17p", "del_13q",
-  #                 "t11_14", "t14_16", "t4_14"), ~ as.character(.)) %>% 
   mutate_at(c("amp_dup_1q21", "del_1p", "del_17p", "del_13q",
               "t11_14", "t14_16", "t4_14"), ~ case_when(
                 . == 1                                    ~ "Yes",

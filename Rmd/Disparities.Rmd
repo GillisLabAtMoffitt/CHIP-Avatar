@@ -1571,10 +1571,10 @@ oncoplot(disparities_maf, genes = gene_list2, colors = col,  clinicalFeatures = 
          anno_height = .5, legend_height = 3, groupAnnotationBySize = FALSE
          )
 # text(0.3, 0.5, "White Non-Hispnic", cex = 2, col = "red")
-# oncoplot(disparities_maf2, genes = gene_list2, colors = col1,  clinicalFeatures = "raceeth", sortByAnnotation = TRUE, 
-#          annotationColor = fabcolors, annotationOrder = c("White Non-Hispanic", "Hispanic", "Black"),
-#          anno_height = .5, legend_height = 3, groupAnnotationBySize = FALSE
-#          )
+oncoplot(disparities_maf, colors = col,  clinicalFeatures = "raceeth", sortByAnnotation = TRUE,
+         annotationColor = fabcolors, annotationOrder = c("White Non-Hispanic", "Hispanic", "Black"),
+         anno_height = .5, legend_height = 3, groupAnnotationBySize = FALSE
+         )
 # dev.off()
 ```
 

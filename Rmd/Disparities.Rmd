@@ -431,13 +431,27 @@ germline_patient_data %>%
               sort = list(everything() ~ "frequency")) %>% 
   bold_labels() %>% add_p() %>% bold_p(t = .05)
 
-germline_patient_data %>% 
+tbl1 <- germline_patient_data %>% 
   select(c("amp_dup_1q21", "del_1p", "del_17p", "del_13q",
               "t11_14", "t14_16", "t4_14", raceeth)) %>% 
   tbl_summary(by = raceeth, 
+              type = list(everything() ~ "categorical"),
               sort = list(everything() ~ "frequency"),
               missing = "no") %>% 
   bold_labels() %>% add_p() %>% bold_p(t = .05)
+tbl2 <- germline_patient_data %>% 
+  select(c("amp_dup_1q21", raceeth)) %>% 
+  mutate(amp_dup_1q21 = replace_na(amp_dup_1q21, "yes")) %>% 
+  mutate(amp_dup_1q21 = na_if(amp_dup_1q21, "No")) %>% 
+  mutate(amp_dup_1q21 = na_if(amp_dup_1q21, "Yes")) %>% 
+  rename("Unknown" = amp_dup_1q21) %>% 
+  tbl_summary(by = raceeth, 
+              type = list(everything() ~ "dichotomous"),
+              sort = list(everything() ~ "frequency"),
+              statistic = list(all_dichotomous() ~ "{n}"),
+              missing = "no") %>% 
+  bold_labels()
+tbl_stack(list(tbl1, tbl2))
 ```
 
 
@@ -461,6 +475,10 @@ ch_char <- patients_clean_tumor %>%
               sort = list(everything() ~ "frequency")) %>% 
   bold_labels()
 ch_char
+
+germline_patient_data %>% distinct(avatar_id, .keep_all = TRUE) %>% filter(!is.na(CH_status_TS)) %>% 
+  select(Age_at_MMonly_diagnosis, raceeth, ISS_at_MMdx, CH_status_TS) %>%
+  tbl_summary()
 ```
 <br>
 <br>
@@ -1577,6 +1595,43 @@ oncoplot(disparities_maf, colors = col,  clinicalFeatures = "raceeth", sortByAnn
          )
 # dev.off()
 ```
+
+## CH
+```{r}
+
+patients_clean_tumor_modified_barcode <- patients_clean_tumor %>% 
+  mutate(Tumor_Sample_Barcode = SLID_germline)
+
+
+maf_ch <- 
+  read.maf(maf = paste0(path, "/MM avatar/Du Dongliang/all_samples_pairFiltered_bcfIsec.hg38_multianno_filtered_normalized_filtered_intersect_annot4maf.maf"), 
+           # vc_nonSyn=c("frameshift_deletion", "frameshift_insertion",
+           #             "nonframeshift_deletion", "nonframeshift_insertion",
+           #             "splicing", "stopgain_SNV", "stoploss_SNV", "nonsynonymous_SNV"), 
+           clinicalData = patients_clean_tumor_modified_barcode)
+
+oncoplot(maf_ch, colors = col,  sortByAnnotation = TRUE,
+         annotationColor = fabcolors, annotationOrder = c("White Non-Hispanic", "Hispanic", "Black"),
+         anno_height = .5, legend_height = 3, groupAnnotationBySize = FALSE
+         )
+
+oncoplot(maf_ch, colors = col,  clinicalFeatures = "raceeth", sortByAnnotation = TRUE,
+         annotationColor = fabcolors, annotationOrder = c("White Non-Hispanic", "Hispanic", "Black"),
+         anno_height = .5, legend_height = 3, groupAnnotationBySize = FALSE
+         )
+
+maf_ch_sub <- subsetMaf(maf = maf_ch, tsb = c(germline_patient_data$SLID_germline))
+
+oncoplot(maf_ch_sub, colors = col,  clinicalFeatures = "raceeth", sortByAnnotation = TRUE,
+         annotationColor = fabcolors, annotationOrder = c("White Non-Hispanic", "Hispanic", "Black"),
+         anno_height = .5, legend_height = 3, groupAnnotationBySize = FALSE
+         )
+
+
+```
+
+
+
 
 ```{r RNA}
 mmgenes <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/mmgenes.rds")

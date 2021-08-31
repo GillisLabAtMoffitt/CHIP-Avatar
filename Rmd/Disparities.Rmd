@@ -1268,6 +1268,7 @@ gene_list <- c("KRAS", "NRAS", "FAM46C", "DIS3", "BRAF", "TP53", "RYR1", "DNAH5"
                "MAX", "RPL10", "DDX17", "SAMHD1", "PLD1", "ANKRD26", "ATM", "CCND1", "SETD2")
 
 tumor_mutation_avatar <- read_csv(paste0(path, "/TumorMuts/processed data/somatic mutation from Jamie MAF file.csv")) %>% 
+  rename(SLID_germline_jamie = SLID_germline) %>% 
   filter(Hugo_Symbol %in% gene_list) %>% 
   right_join(., tumor, by = "avatar_id")
 
@@ -1597,32 +1598,45 @@ oncoplot(disparities_maf, colors = col,  clinicalFeatures = "raceeth", sortByAnn
 ```
 
 ## CH
-```{r}
+Need to recalculatte the % sorry the total samples is 490
+```{r read maf ch, include=FALSE}
+patients_clean_tumor_modified_barcode <- tumor_mutation_avatar %>% 
+  mutate(normal = "normal") %>% 
+  unite(Tumor_Sample_Barcode, c(SLID_germline, normal)) %>% 
+  mutate(a = Tumor_Sample_Barcode)
 
-patients_clean_tumor_modified_barcode <- patients_clean_tumor %>% 
-  mutate(Tumor_Sample_Barcode = SLID_germline)
-
+# maf_file <- 
+#   read_delim(paste0(path, "/MM avatar/Du Dongliang/WES_samples_pairFiltered_bcfIsec.hg38_multianno_filtered_normalized_filtered_intersect_annot4maf[1].maf"),
+#                        delim = "\t") %>% 
+#   mutate(across(where(is.character), .fns = ~ replace_na(., "0"))) %>% 
+#     mutate(across(where(is.numeric), .fns = ~ replace_na(., 0)))
+# 
+#   # mutate(
+#   #   Variant_Classification = str_replace_na(Variant_Classification, "0"))
+# maf2 <- read.maf(maf = maf_file,
+#          # vc_nonSyn=c("Frameshift deletion", "Frameshift insertion",
+#          #             "Nonframeshift deletion", "Nonframeshift insertion",
+#          #             "Splicing", "Stopgain SNV", "Stoploss SNV", "Nonsynonymous SNV"),
+#          clinicalData = patients_clean_tumor_modified_barcode)
 
 maf_ch <- 
-  read.maf(maf = paste0(path, "/MM avatar/Du Dongliang/all_samples_pairFiltered_bcfIsec.hg38_multianno_filtered_normalized_filtered_intersect_annot4maf.maf"), 
+  read.maf(maf = paste0(path, "/MM avatar/Du Dongliang/WES_samples_pairFiltered_bcfIsec.hg38_multianno_filtered_normalized_filtered_intersect_annot4maf[1].maf"), 
            # vc_nonSyn=c("frameshift_deletion", "frameshift_insertion",
            #             "nonframeshift_deletion", "nonframeshift_insertion",
            #             "splicing", "stopgain_SNV", "stoploss_SNV", "nonsynonymous_SNV"), 
            clinicalData = patients_clean_tumor_modified_barcode)
 
-oncoplot(maf_ch, colors = col,  sortByAnnotation = TRUE,
-         annotationColor = fabcolors, annotationOrder = c("White Non-Hispanic", "Hispanic", "Black"),
-         anno_height = .5, legend_height = 3, groupAnnotationBySize = FALSE
-         )
+# oncoplot(maf_ch, clinicalFeatures = "raceeth", sortByAnnotation = TRUE,
+#          annotationColor = fabcolors, annotationOrder = c("White Non-Hispanic", "Hispanic", "Black"),
+#          anno_height = .5, legend_height = 3, groupAnnotationBySize = FALSE
+#          )
+```
 
-oncoplot(maf_ch, colors = col,  clinicalFeatures = "raceeth", sortByAnnotation = TRUE,
-         annotationColor = fabcolors, annotationOrder = c("White Non-Hispanic", "Hispanic", "Black"),
-         anno_height = .5, legend_height = 3, groupAnnotationBySize = FALSE
-         )
 
-maf_ch_sub <- subsetMaf(maf = maf_ch, tsb = c(germline_patient_data$SLID_germline))
+```{r}
+maf_ch_sub <- subsetMaf(maf = maf_ch, tsb = c(patients_clean_tumor_modified_barcode$Tumor_Sample_Barcode))
 
-oncoplot(maf_ch_sub, colors = col,  clinicalFeatures = "raceeth", sortByAnnotation = TRUE,
+oncoplot(maf_ch_sub, clinicalFeatures = "raceeth", sortByAnnotation = TRUE,
          annotationColor = fabcolors, annotationOrder = c("White Non-Hispanic", "Hispanic", "Black"),
          anno_height = .5, legend_height = 3, groupAnnotationBySize = FALSE
          )

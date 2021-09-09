@@ -1767,7 +1767,740 @@ mmgenes %>%
 
 ## Drugs (only regimen1)
 
-Ken that sometimes VCD needs to be put apart but with real explanation as when.
+## Study pop
+
+The first table include the name of the **FIRST regimen** name.  
+```{r}
+germline_patient_data %>% 
+  mutate(Whole = "MM patients with WES") %>% 
+  select(first_regimen_name, raceeth) %>% 
+  tbl_summary(
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels() 
+```
+
+
+In the next table I removed Melphalan in the line number
+```{r}
+germline_patient_data %>%
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
+  select(avatar_id, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id),
+               names_to = "line", values_to = "date") %>% 
+  filter(!is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_drug = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_drug) %>% 
+  mutate(line_bf_drug = case_when(
+    line_bf_drug > 4            ~ "more than 4",
+    TRUE                        ~ as.character(line_bf_drug)
+  )) %>% 
+  select(line_bf_drug) %>% 
+  tbl_summary(label = list(line_bf_drug ~ "Number of line received"),
+              missing_text = "No Drugs") %>% bold_labels()
+
+
+germline_patient_data %>%
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
+  select(avatar_id, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id),
+               names_to = "line", values_to = "date") %>% 
+  filter(!is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_drug = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_drug) %>% 
+  tbl_summary(label = list(line_bf_drug ~ "Number of line received"),
+              missing_text = "No Drugs") %>% bold_labels()
+
+
+
+germline_patient_data %>%
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
+  select(avatar_id, date_of_bmt_1, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id, date_of_bmt_1),
+               names_to = "line", values_to = "date") %>% 
+  filter(date < date_of_bmt_1 , !is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_drug = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_drug) %>% 
+  mutate(line_bf_drug = case_when(
+    line_bf_drug > 4         ~ "more than 4",
+    TRUE                        ~ as.character(line_bf_drug)
+  )) %>% 
+  select(line_bf_drug) %>% 
+  tbl_summary(label = list(line_bf_drug ~ "Number of line of drugs received by patients before HCT"),
+              missing_text = "No Drugs") %>% bold_labels()
+
+germline_patient_data %>%
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
+  select(avatar_id, date_of_bmt_1, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id, date_of_bmt_1),
+               names_to = "line", values_to = "date") %>% 
+  filter(date < date_of_bmt_1 , !is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_drug = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_drug) %>% 
+  tbl_summary(label = list(line_bf_drug ~ "Number of line of drugs received by patients before HCT"),
+              type = list(everything() ~ "continuous"),
+              missing_text = "No Drugs") %>% bold_labels()
+
+germline_patient_data %>%
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
+  select(avatar_id, raceeth, date_of_bmt_1, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id, raceeth, date_of_bmt_1),
+               names_to = "line", values_to = "date") %>% 
+  filter(date < date_of_bmt_1 , !is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_drug = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_drug, raceeth) %>% 
+  mutate(line_bf_drug = case_when(
+    line_bf_drug > 4         ~ "more than 4",
+    TRUE                        ~ as.character(line_bf_drug)
+  )) %>% 
+  select(line_bf_drug, raceeth) %>% 
+  tbl_summary(by = raceeth, 
+              label = list(line_bf_drug ~ "Number of line of drugs received by patients before HCT"),
+              missing_text = "No Drugs") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = 0.05)
+
+germline_patient_data %>%
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
+  select(avatar_id, raceeth, date_of_bmt_1, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id, raceeth, date_of_bmt_1),
+               names_to = "line", values_to = "date") %>% 
+  filter(date < date_of_bmt_1 , !is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_drug = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_drug, raceeth) %>% 
+  tbl_summary(by = raceeth, 
+              label = list(line_bf_drug ~ "Number of line of drugs received by patients before HCT"),
+              type = list(everything() ~ "continuous"),
+              missing_text = "No Drugs") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = 0.05)
+
+germline_patient_data %>%
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
+  select(avatar_id, raceeth, date_of_bmt_1, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id, raceeth, date_of_bmt_1),
+               names_to = "line", values_to = "date") %>% 
+  filter(date < date_of_bmt_1 , !is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_drug = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_drug, raceeth) %>% 
+  mutate(line_bf_drug = case_when(
+    line_bf_drug > 2         ~ "more than 2",
+    TRUE                        ~ as.character(line_bf_drug)
+  )) %>% 
+  select(line_bf_drug, raceeth) %>% 
+  tbl_summary(by = raceeth, 
+              label = list(line_bf_drug ~ "Number of line of drugs received by patients before HCT"),
+              missing_text = "No Drugs") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = 0.05)
+
+tbl1 <- germline_patient_data %>%
+  filter(HCT_ever == "HCT") %>% 
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
+  select(avatar_id, raceeth, date_of_bmt_1, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id, raceeth, date_of_bmt_1),
+               names_to = "line", values_to = "date") %>% 
+  filter(date < date_of_bmt_1 , !is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_drug = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_drug, raceeth) %>% 
+  mutate(line_bf_drug = case_when(
+    line_bf_drug > 4         ~ "more than 4",
+    TRUE                        ~ as.character(line_bf_drug)
+  )) %>% 
+  select(line_bf_drug, raceeth) %>% 
+  tbl_summary(by = raceeth, 
+              label = list(line_bf_drug ~ "Number of line of drugs received by patients before HCT"),
+              missing_text = "No Drugs") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = 0.05)
+
+tbl2 <- germline_patient_data %>%
+  filter(HCT_ever == "No HCT") %>% 
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
+  select(avatar_id, raceeth, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id, raceeth),
+               names_to = "line", values_to = "date") %>% 
+  filter(!is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_drug = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_drug, raceeth) %>% 
+  mutate(line_bf_drug = case_when(
+    line_bf_drug > 4         ~ "more than 4",
+    TRUE                        ~ as.character(line_bf_drug)
+  )) %>% 
+  select(line_bf_drug, raceeth) %>% 
+  tbl_summary(by = raceeth, 
+              label = list(line_bf_drug ~ "Number of line of drugs received by patients before HCT"),
+              missing_text = "No Drugs") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = 0.05)
+
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**had HCT**", "**No HCT**"))
+
+
+tbl1 <- germline_patient_data %>%
+  filter(HCT_ever == "HCT") %>% 
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
+  select(avatar_id, raceeth, date_of_bmt_1, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id, raceeth, date_of_bmt_1),
+               names_to = "line", values_to = "date") %>% 
+  filter(date < date_of_bmt_1 , !is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_drug = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_drug, raceeth) %>% 
+  tbl_summary(by = raceeth, 
+              label = list(line_bf_drug ~ "Number of line of drugs received by patients before HCT"),
+              type = list(everything() ~ "continuous"),
+              missing_text = "No Drugs") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = 0.05)
+
+tbl2 <- germline_patient_data %>%
+  filter(HCT_ever == "No HCT") %>% 
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
+  select(avatar_id, raceeth, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id, raceeth),
+               names_to = "line", values_to = "date") %>% 
+  filter(!is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_drug = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_drug, raceeth) %>% 
+  tbl_summary(by = raceeth, 
+              label = list(line_bf_drug ~ "Number of line of drugs received by patients before HCT"),
+              type = list(everything() ~ "continuous"),
+              missing_text = "No Drugs") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = 0.05)
+
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**had HCT**", "**No HCT**"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+germline_patient_data %>%
+  mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%
+  mutate(line_start_date_1 = case_when(
+    is.na(drug_name__1)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_1
+  )) %>%
+  mutate(line_start_date_2 = case_when(
+    is.na(drug_name__2)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_2
+  )) %>%
+  mutate(line_start_date_3 = case_when(
+    is.na(drug_name__3)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_3
+  )) %>%
+  mutate(line_start_date_4 = case_when(
+    is.na(drug_name__4)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_4
+  )) %>%
+  mutate(line_start_date_5 = case_when(
+    is.na(drug_name__5)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_5
+  )) %>%
+  mutate(line_start_date_6 = case_when(
+    is.na(drug_name__6)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_6
+  )) %>%
+  mutate(line_start_date_7 = case_when(
+    is.na(drug_name__7)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_7
+  )) %>%
+  mutate(line_start_date_8 = case_when(
+    is.na(drug_name__8)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_8
+  )) %>%
+  mutate(line_start_date_9 = case_when(
+    is.na(drug_name__9)           ~ NA_POSIXct_,
+    TRUE                          ~ line_start_date_9
+  )) %>%
+
+  select(avatar_id, collectiondt_germline, starts_with("line_start")) %>%
+  pivot_longer(cols = -c(avatar_id, collectiondt_germline),
+               names_to = "line", values_to = "date") %>% 
+  filter(date < collectiondt_germline , !is.na(date)) %>% 
+  arrange(avatar_id, date) %>% 
+  group_by(avatar_id) %>% 
+  mutate(line_bf_drug = n()) %>% 
+  ungroup() %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  select(line_bf_drug) %>% 
+  mutate(line_bf_drug = case_when(
+    line_bf_drug > 4         ~ "more than 4",
+    TRUE                        ~ as.character(line_bf_drug)
+  )) %>% 
+  select(line_bf_drug) %>% 
+  tbl_summary(label = list(line_bf_drug ~ "Number of line of drugs received by patients before Blood"),
+              missing_text = "No Drugs") %>% bold_labels()
+```
+<br> 
+<br>
+
+
+## In depth with patients with clean tumor
+Ken said that sometimes VCD needs to be put apart but with real explanation as when.
 VCD apart
 ```{r}
 patients_clean_tumor %>% 

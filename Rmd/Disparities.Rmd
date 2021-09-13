@@ -109,7 +109,16 @@ germline_patient_data <- germline_patient_data %>%
     time_to_hct < 314                 ~ "Early HCT",
     time_to_hct >= 314                ~ "Late HCT"
   )) %>% 
-  mutate(HCT_comparison = factor(HCT_comparison, levels = c("No HCT", "Early HCT", "Late HCT")))
+  mutate(HCT_comparison = factor(HCT_comparison, levels = c("No HCT", "Early HCT", "Late HCT"))) %>% 
+  mutate(year_at_dx = year(date_of_MM_diagnosis)) %>%
+  mutate(diagnosis_MM_year = case_when(
+    year_at_dx < 2010           ~ "< 2010",
+    year_at_dx >= 2010 &
+      year_at_dx <= 2014        ~ "2010-2014",
+    year_at_dx > 2014           ~ "> 2014"
+  )) %>% 
+  mutate(year_at_dx = factor(year_at_dx)) %>% 
+  mutate(diagnosis_MM_year = factor(diagnosis_MM_year, levels = c("< 2010", "2010-2014","> 2014")))
 
 contamination_tumor_ids <- paste("A025767", "A025771", "A007368", "A007322", "A000111", sep = "|")
 ```
@@ -119,11 +128,12 @@ contamination_tumor_ids <- paste("A025767", "A025771", "A007368", "A007322", "A0
 ```{r}
 germ_data <- germline_patient_data %>% 
   mutate(Whole = "MM patients with WES") %>% 
-  select(Age_at_MMonly_diagnosis, Sex, raceeth, Whole, ISS_at_MMdx) %>%
+  select(Age_at_MMonly_diagnosis, diagnosis_MM_year, Sex, raceeth, Whole, ISS_at_MMdx) %>%
   tbl_summary(by = Whole, 
               label = list(raceeth ~ "Race/ethnicity", Age_at_MMonly_diagnosis ~ "Age at MM diagnosis"),
               sort = list(everything() ~ "frequency", ISS_at_MMdx ~ "alphanumeric"),
-              digits = list(c(Age_at_MMonly_diagnosis) ~ 2)#,
+              # statistic = list(year_at_dx2 ~ "{mean} ({min} - {max})"),
+              digits = list(Age_at_MMonly_diagnosis ~ 2)#,
               # missing = "no"
               ) %>% 
   bold_labels()
@@ -239,7 +249,7 @@ Interestingly, we noticed a significant difference between disparities on the ag
 tbl1 <-
   germline_patient_data %>% 
   mutate(ISS_at_MMdx = str_replace(ISS_at_MMdx, "Unknown", NA_character_)) %>% 
-  select(Age_at_MMonly_diagnosis, Age_at_death, Sex, raceeth, ISS_at_MMdx,
+  select(Age_at_MMonly_diagnosis, Age_at_death, diagnosis_MM_year, Sex, raceeth, ISS_at_MMdx,
          CH_status,
          HCT_ever, regimen_categoryVCD_1) %>% 
   tbl_summary(by = raceeth, 
@@ -1329,17 +1339,18 @@ df <- tumor_mutation_avatar %>%
          "PARP4", "SETD2", 
          "ANKRD26", "RPL10", "SAMHD1", "ABI3BP", "BRWD3",
          "GRM7", "PLD1",
-         "SPEF2", "DDX17", raceeth, avatar_id) %>% 
+         "SPEF2", "DDX17", raceeth, avatar_id, 
+         month_at_os, os_event, month_at_progression_drug, drug_progression_event) %>% 
   group_by(avatar_id) %>% 
   fill(everything(), .direction = "updown") %>% 
   ungroup() %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
-  select(-avatar_id) %>% 
+  # select(-avatar_id) %>% 
   mutate(across(where(is.character), .fns = ~ replace_na(., "No"))) 
 
 # tbl <- 
   df %>% 
-  select(-raceeth) %>% 
+  select(-c(raceeth, avatar_id, month_at_os, os_event, month_at_progression_drug, drug_progression_event)) %>% 
   tbl_summary(sort = list(all_dichotomous() ~ "frequency")) %>% 
   as_gt() %>% 
   gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
@@ -1358,35 +1369,1019 @@ df <- tumor_mutation_avatar %>%
 
 # tbl <- 
   df %>% 
+  select(-c(avatar_id, month_at_os, os_event, month_at_progression_drug, drug_progression_event)) %>% 
   tbl_summary(by = raceeth,
               sort = list(everything() ~ "frequency"),
               type = list(all_categorical() ~ "dichotomous"),
               missing = "no") %>% 
-  bold_labels() %>% add_p() %>% bold_p(t = .05) %>%
+  bold_labels() %>% add_p() %>% bold_p(t = .1) %>%
   as_gt() %>% 
   gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
   
 df %>% 
+  select(-c(avatar_id, month_at_os, os_event, month_at_progression_drug, drug_progression_event)) %>% 
   mutate(raceeth = factor(raceeth, levels = c("White Non-Hispanic", "Hispanic"))) %>% 
   tbl_summary(by = raceeth,
               sort = list(everything() ~ "frequency"),
               type = list(all_categorical() ~ "dichotomous"),
               missing = "no") %>% 
-  bold_labels() %>% add_p() %>% bold_p(t = .05) %>%
+  bold_labels() %>% add_p() %>% bold_p(t = .1) %>%
   as_gt() %>% 
   gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
 
 df %>% 
+  select(-c(avatar_id, month_at_os, os_event, month_at_progression_drug, drug_progression_event)) %>% 
   mutate(raceeth = factor(raceeth, levels = c("White Non-Hispanic", "Black"))) %>% 
   tbl_summary(by = raceeth,
               sort = list(everything() ~ "frequency"),
               type = list(all_categorical() ~ "dichotomous"),
               missing = "no") %>% 
-  bold_labels() %>% add_p() %>% bold_p(t = .05) %>%
+  bold_labels() %>% add_p() %>% bold_p(t = .1) %>%
   as_gt() %>% 
   gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
+```
+
+## KM by mutation
+
+### Overall
+<div class = "row">
+<div class = "col-md-6">
+```{r km by mutation, fig.height = 7}
+mysurv <- Surv(time = df$month_at_os, event = df$os_event)
+myplot <- survfit(mysurv~SP140, data = df)
+myplot <- ggsurvplot(myplot, data = df,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df$month_at_os, event = df$os_event)
+myplot <- survfit(mysurv~IRF4, data = df)
+myplot <- ggsurvplot(myplot, data = df,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df$month_at_os, event = df$os_event)
+myplot <- survfit(mysurv~BCL7A, data = df)
+myplot <- ggsurvplot(myplot, data = df,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df$month_at_os, event = df$os_event)
+myplot <- survfit(mysurv~AUTS2, data = df)
+myplot <- ggsurvplot(myplot, data = df,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df$month_at_os, event = df$os_event)
+myplot <- survfit(mysurv~SETD2, data = df)
+myplot <- ggsurvplot(myplot, data = df,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = df$month_at_progression_drug, event = df$drug_progression_event)
+myplot <- survfit(mysurv~SP140, data = df)
+myplot <- ggsurvplot(myplot, data = df,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df$month_at_progression_drug, event = df$drug_progression_event)
+myplot <- survfit(mysurv~IRF4, data = df)
+myplot <- ggsurvplot(myplot, data = df,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df$month_at_progression_drug, event = df$drug_progression_event)
+myplot <- survfit(mysurv~BCL7A, data = df)
+myplot <- ggsurvplot(myplot, data = df,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df$month_at_progression_drug, event = df$drug_progression_event)
+myplot <- survfit(mysurv~AUTS2, data = df)
+myplot <- ggsurvplot(myplot, data = df,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df$month_at_progression_drug, event = df$drug_progression_event)
+myplot <- survfit(mysurv~SETD2, data = df)
+myplot <- ggsurvplot(myplot, data = df,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+```
+</div>
+</div>
+
+### White Non-hispanic
+<div class = "row">
+<div class = "col-md-6">
+```{r km by mutation2, fig.height = 7}
+df_wnh <- df %>% 
+  filter(raceeth == "White Non-Hispanic")
+mysurv <- Surv(time = df_wnh$month_at_os, event = df_wnh$os_event)
+myplot <- survfit(mysurv~SP140, data = df_wnh)
+myplot <- ggsurvplot(myplot, data = df_wnh,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_wnh$month_at_os, event = df_wnh$os_event)
+myplot <- survfit(mysurv~IRF4, data = df_wnh)
+myplot <- ggsurvplot(myplot, data = df_wnh,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_wnh$month_at_os, event = df_wnh$os_event)
+myplot <- survfit(mysurv~BCL7A, data = df_wnh)
+myplot <- ggsurvplot(myplot, data = df_wnh,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_wnh$month_at_os, event = df_wnh$os_event)
+myplot <- survfit(mysurv~AUTS2, data = df_wnh)
+myplot <- ggsurvplot(myplot, data = df_wnh,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_wnh$month_at_os, event = df_wnh$os_event)
+myplot <- survfit(mysurv~SETD2, data = df_wnh)
+myplot <- ggsurvplot(myplot, data = df_wnh,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = df_wnh$month_at_progression_drug, event = df_wnh$drug_progression_event)
+myplot <- survfit(mysurv~SP140, data = df_wnh)
+myplot <- ggsurvplot(myplot, data = df_wnh,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_wnh$month_at_progression_drug, event = df_wnh$drug_progression_event)
+myplot <- survfit(mysurv~IRF4, data = df_wnh)
+myplot <- ggsurvplot(myplot, data = df_wnh,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_wnh$month_at_progression_drug, event = df_wnh$drug_progression_event)
+myplot <- survfit(mysurv~BCL7A, data = df_wnh)
+myplot <- ggsurvplot(myplot, data = df_wnh,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_wnh$month_at_progression_drug, event = df_wnh$drug_progression_event)
+myplot <- survfit(mysurv~AUTS2, data = df_wnh)
+myplot <- ggsurvplot(myplot, data = df_wnh,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_wnh$month_at_progression_drug, event = df_wnh$drug_progression_event)
+myplot <- survfit(mysurv~SETD2, data = df_wnh)
+myplot <- ggsurvplot(myplot, data = df_wnh,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+```
+</div>
+</div>
+
+### Hispanic
+<div class = "row">
+<div class = "col-md-6">
+```{r km by mutation4, fig.height = 7}
+df_h <- df %>% 
+  filter(raceeth == "Hispanic")
+
+mysurv <- Surv(time = df_h$month_at_os, event = df_h$os_event)
+myplot <- survfit(mysurv~SP140, data = df_h)
+myplot <- ggsurvplot(myplot, data = df_h,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_h$month_at_os, event = df_h$os_event)
+myplot <- survfit(mysurv~IRF4, data = df_h)
+myplot <- ggsurvplot(myplot, data = df_h,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_h$month_at_os, event = df_h$os_event)
+myplot <- survfit(mysurv~BCL7A, data = df_h)
+myplot <- ggsurvplot(myplot, data = df_h,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_h$month_at_os, event = df_h$os_event)
+myplot <- survfit(mysurv~AUTS2, data = df_h)
+myplot <- ggsurvplot(myplot, data = df_h,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_h$month_at_os, event = df_h$os_event)
+myplot <- survfit(mysurv~SETD2, data = df_h)
+myplot <- ggsurvplot(myplot, data = df_h,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = df_h$month_at_progression_drug, event = df_h$drug_progression_event)
+myplot <- survfit(mysurv~SP140, data = df_h)
+myplot <- ggsurvplot(myplot, data = df_h,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_h$month_at_progression_drug, event = df_h$drug_progression_event)
+myplot <- survfit(mysurv~IRF4, data = df_h)
+myplot <- ggsurvplot(myplot, data = df_h,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_h$month_at_progression_drug, event = df_h$drug_progression_event)
+myplot <- survfit(mysurv~BCL7A, data = df_h)
+myplot <- ggsurvplot(myplot, data = df_h,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_h$month_at_progression_drug, event = df_h$drug_progression_event)
+myplot <- survfit(mysurv~AUTS2, data = df_h)
+myplot <- ggsurvplot(myplot, data = df_h,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_h$month_at_progression_drug, event = df_h$drug_progression_event)
+myplot <- survfit(mysurv~SETD2, data = df_h)
+myplot <- ggsurvplot(myplot, data = df_h,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+```
+</div>
+</div>
+
+### Black
+<div class = "row">
+<div class = "col-md-6">
+```{r km by mutation3, fig.height = 7}
+df_b <- df %>% 
+  filter(raceeth == "Black")
+
+mysurv <- Surv(time = df_b$month_at_os, event = df_b$os_event)
+myplot <- survfit(mysurv~SP140, data = df_b)
+myplot <- ggsurvplot(myplot, data = df_b,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_b$month_at_os, event = df_b$os_event)
+myplot <- survfit(mysurv~IRF4, data = df_b)
+myplot <- ggsurvplot(myplot, data = df_b,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_b$month_at_os, event = df_b$os_event)
+myplot <- survfit(mysurv~BCL7A, data = df_b)
+myplot <- ggsurvplot(myplot, data = df_b,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_b$month_at_os, event = df_b$os_event)
+myplot <- survfit(mysurv~AUTS2, data = df_b)
+myplot <- ggsurvplot(myplot, data = df_b,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_b$month_at_os, event = df_b$os_event)
+myplot <- survfit(mysurv~SETD2, data = df_b)
+myplot <- ggsurvplot(myplot, data = df_b,
+           title = "OS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+)
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+```
+</div>
+
+<div class = "col-md-6">
+```{r, fig.height = 7}
+mysurv <- Surv(time = df_b$month_at_progression_drug, event = df_b$drug_progression_event)
+myplot <- survfit(mysurv~SP140, data = df_b)
+myplot <- ggsurvplot(myplot, data = df_b,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_b$month_at_progression_drug, event = df_b$drug_progression_event)
+myplot <- survfit(mysurv~IRF4, data = df_b)
+myplot <- ggsurvplot(myplot, data = df_b,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_b$month_at_progression_drug, event = df_b$drug_progression_event)
+myplot <- survfit(mysurv~BCL7A, data = df_b)
+myplot <- ggsurvplot(myplot, data = df_b,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_b$month_at_progression_drug, event = df_b$drug_progression_event)
+myplot <- survfit(mysurv~AUTS2, data = df_b)
+myplot <- ggsurvplot(myplot, data = df_b,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+
+mysurv <- Surv(time = df_b$month_at_progression_drug, event = df_b$drug_progression_event)
+myplot <- survfit(mysurv~SETD2, data = df_b)
+myplot <- ggsurvplot(myplot, data = df_b,
+           title = "PFS",
+           font.main = c(24, "bold", "black"),
+           font.x = c(20, "bold", "black"),
+           font.y = c(20, "bold", "black"),
+           font.legend = c(20, "bold", "black"),
+           font.tickslab = c(18, "bold", "black"),
+           size = 1.5,
+           
+           xlab = "Time in months", 
+           legend = "top",
+           legend.title = "", 
+           pval = TRUE,
+           pval.coord = c(0, 0.1),
+           conf.int = FALSE,
+           xlim = c(0, 400)
+) 
+myplot$plot <- myplot$plot + 
+  scale_x_continuous(breaks = c(seq(0, 400, 100)))
+myplot$plot
+```
+</div>
+</div>
+
+<br>
+<br>
 
 
+
+
+```{r}
 gene_list2 <- c("KRAS", "NRAS", "TP53", "DIS3", "BRAF",
                "SP140", "IRF4", "BCL7A", "AUTS2", "PARP4", "SETD2")
 
@@ -1779,6 +2774,42 @@ germline_patient_data %>%
               missing = "no") %>% 
   bold_labels() 
 ```
+
+```{r}
+tbl1 <- germline_patient_data %>% 
+  filter(regimen_categoryVCD_1 == "PI + IMIDs") %>% 
+  select("PI + IMIDs" = first_regimen_name) %>% 
+  tbl_summary(
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels() 
+tbl2 <- germline_patient_data %>% 
+  filter(regimen_categoryVCD_1 == "PI") %>% 
+  select("PI" = first_regimen_name) %>% 
+  tbl_summary(
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels() 
+tbl3 <- germline_patient_data %>% 
+  filter(regimen_categoryVCD_1 == "IMIDs") %>% 
+  select("IMIDs" = first_regimen_name) %>% 
+  tbl_summary(
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels() 
+tbl4 <- germline_patient_data %>% 
+  filter(regimen_categoryVCD_1 == "Others") %>% 
+  select("Others" = first_regimen_name) %>% 
+  tbl_summary(
+              sort = list(everything() ~ "frequency"),
+              missing = "no") %>% 
+  bold_labels() 
+
+tbl_stack(list(tbl1, tbl2, tbl3, tbl4))
+```
+
+
+
 
 
 In the next table I removed Melphalan in the line number
@@ -2414,29 +3445,6 @@ tbl2 <- germline_patient_data %>%
   bold_labels() %>% add_p() %>% bold_p(t = 0.05)
 
 tbl_merge(list(tbl1, tbl2), tab_spanner = c("**had HCT**", "**No HCT**"))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 germline_patient_data %>%
   mutate(across(.cols = starts_with("drug_name_"), ~na_if(., "melphalan"))) %>%

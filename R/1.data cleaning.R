@@ -660,12 +660,12 @@ Treatment1 <- treatment1 %>%
       str_detect(drug_name_, "bortezomib") &
       str_detect(drug_name_, "daratumumab") &
       str_detect(drug_name_, "dex") &
-      str_detect(drug_name_, "lena")                ~ "D-RVd or dara-RVd",
+      str_detect(drug_name_, "lena")                ~ "D-RVd",
     drug_count == 4 &
       str_detect(drug_name_, "bortezomib") &
       str_detect(drug_name_, "cyclophosphamide") &
       str_detect(drug_name_, "dex") &
-      str_detect(drug_name_, "doxo")                ~ "D-RVd or dara-RVd",
+      str_detect(drug_name_, "doxo")                ~ "mCBAD",
     drug_count == 4 &
       str_detect(drug_name_, "bortezomib") &
       str_detect(drug_name_, "cyclophosphamide") &
@@ -773,16 +773,17 @@ Treatment1 <- treatment1 %>%
       str_detect(drug_name_, "thalidomide")         ~ "Thalidomide",
     drug_count == 1 &
       str_detect(drug_name_, "vincristine")         ~ "Vincristine",
-    TRUE                                                    ~ drug_name_
+    TRUE                                            ~ drug_name_
   )) %>% 
   mutate(regimen_name = str_replace_na(regimen_name, replacement = "No Drugs")) %>% 
   mutate(is_PI = case_when(
-    str_detect(drug_name_, "bortezomib|carfilzomib|oprozomib|ixazomib")                 ~ "PI",
+    str_detect(drug_name_, "bortezomib|carfilzomib|oprozomib|ixazomib") |
     str_detect(regimen_name, "VRd|KRd")           ~ "PI",
     TRUE                                           ~ NA_character_
   )) %>% 
   mutate(received_IMIDs = case_when(
-    str_detect(drug_name_, "lidomide")             ~ "IMIDs",
+    str_detect(drug_name_, "lidomide") |
+      str_detect(drug_name_, "ddr")                ~ "IMIDs",
     TRUE                                           ~ NA_character_
   )) %>% 
   mutate(regimen_category = case_when(

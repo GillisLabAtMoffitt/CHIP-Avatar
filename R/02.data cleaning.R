@@ -778,7 +778,8 @@ Treatment1 <- treatment1 %>%
   mutate(regimen_name = str_replace_na(regimen_name, replacement = "No Drugs")) %>% 
   mutate(is_PI = case_when(
     str_detect(drug_name_, "bortezomib|carfilzomib|oprozomib|ixazomib") |
-    str_detect(regimen_name, "VRd|KRd")           ~ "PI",
+      str_detect(regimen_name, "VRd|KRd") | 
+      str_detect(regimen_name, "mln9708|mln 9708") ~ "PI",
     TRUE                                           ~ NA_character_
   )) %>% 
   mutate(received_IMIDs = case_when(

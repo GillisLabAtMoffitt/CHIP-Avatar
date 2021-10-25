@@ -1017,6 +1017,49 @@ eth_cox_pfs
 <br>
 
 <!-- I thought it could be a year effect compare to Taiga said (maybe earlier it wasn't a difference like he said but now that Hispanic may have more access to care we can see the difference) but no. -->
+# KM by year
+
+```{r}
+mysurv <- Surv(time = patients_clean_tumor$month_at_os, event = patients_clean_tumor$os_event)
+myplot <- survfit(mysurv~diagnosis_MM_year, data = patients_clean_tumor)
+ggsurvplot(myplot, data = patients_clean_tumor,
+           title = "OS",
+           short.panel.labs = TRUE,
+           conf.int = FALSE
+)
+mysurv <- Surv(time = patients_clean_tumor$month_at_progression_drug, event = patients_clean_tumor$drug_progression_event)
+myplot <- survfit(mysurv~diagnosis_MM_year, data = patients_clean_tumor)
+ggsurvplot(myplot, data = patients_clean_tumor,
+           title = "PFS",
+           short.panel.labs = TRUE,
+           conf.int = FALSE
+)
+```
+
+```{r}
+tbl1 <- patients_clean_tumor %>% select(diagnosis_MM_year, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever, regimen_categoryVCD_1) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = patients_clean_tumor$month_at_os, 
+                             event = patients_clean_tumor$os_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent(location = "level") %>% add_n(location = "level") %>%
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = patients_clean_tumor$month_at_os, 
+             event = patients_clean_tumor$os_event) ~ diagnosis_MM_year + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + strata(HCT_ever) + regimen_categoryVCD_1, data =  patients_clean_tumor) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
+
+tbl1 <- patients_clean_tumor %>% select(diagnosis_MM_year, Age_at_MMonly_diagnosis, Sex, ISS_at_MMdx, HCT_ever, regimen_categoryVCD_1) %>% 
+  tbl_uvregression(method = survival::coxph, 
+                   y = (Surv(time = patients_clean_tumor$month_at_progression_drug, 
+                             event = patients_clean_tumor$drug_progression_event)),
+                   exponentiate = TRUE) %>% bold_p(t = .05) %>% add_nevent(location = "level") %>% add_n(location = "level") %>%
+  bold_labels() %>% italicize_levels()
+tbl2 <- coxph(Surv(time = patients_clean_tumor$month_at_progression_drug, 
+             event = patients_clean_tumor$drug_progression_event) ~ diagnosis_MM_year + Age_at_MMonly_diagnosis + Sex + ISS_at_MMdx + strata(HCT_ever) + regimen_categoryVCD_1, data =  patients_clean_tumor) %>%
+  tbl_regression(exponentiate = TRUE) %>% bold_p(t = .05)
+tbl_merge(list(tbl1, tbl2), tab_spanner = c("**Univariable**", "**Multivariable**"))
+```
+
 
 # KM by decade
 ### Raceeth
@@ -3553,6 +3596,48 @@ patients_clean_tumor %>%
   bold_labels() %>% add_p() %>% bold_p(t = .05)
 ```
 <br>
+
+```{r}
+patients_clean_tumor %>%
+  mutate(Whole = "Drugs patients") %>% 
+  select(days_blood_drugs, Whole, time_to_drug) %>% 
+  tbl_summary(by = Whole, label = list(days_blood_drugs ~ "Time to Drugs from Blood Collection (in days)", time_to_drug ~ "Time to Drugs from MM diagnosis (in days)")) %>% 
+  bold_labels() %>% as_gt() %>%  
+  gt::tab_source_note(gt::md("**Drugs happen 625 days before blood collection**")) %>%
+  gt::tab_style(style = gt::cell_text(color = "#0099CC"), locations = gt::cells_column_labels(everything()))
+
+p <- qplot(x =days_blood_drugs, data=subset(patients_clean_tumor,!is.na(days_blood_drugs)), fill=..count.., 
+           geom="histogram", 
+           binwidth = 100,
+           ) 
+p + scale_fill_viridis_c(
+  alpha = 1,
+  begin = 0,
+  end = 1,
+  direction = 1,
+  option = "D",
+  values = NULL,
+  space = "Lab",
+  na.value = "grey50",
+  guide = "colourbar",
+  aesthetics = "fill"
+) +
+  xlim(c(-8000,2500))+
+  theme_minimal(base_size = 14) +
+  labs(x="Time to Drugs from Blood Collection (in days)", y="Number of Patient", title="Number of Days Between Blood Collection and Drugs",
+       caption = "Each bar represents 100 days")+
+  
+  annotate("text", x = -3750, y = 75, # x and y coordinates of the text
+           label = "Drugs before \nblood collection", 
+           size = 4) +
+  annotate("segment", x = -8000, xend = -15, y = 75, yend = 75,
+           size = 1, colour = "steelblue")+
+  annotate("text", x = 1450, y = 75, # x and y coordinates of the text
+           label = "Drugs after \nblood collection", 
+           size = 4) +
+  annotate("segment", x = 15, xend = 2500, y = 75, yend = 75,
+           size = 1, colour = "blue") 
+```
 
 ***
 

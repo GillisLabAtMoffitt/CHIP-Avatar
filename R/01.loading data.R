@@ -403,14 +403,14 @@ SCT_V12 <-
 Radiation_V12 <-
   bind_rows(Radiation_Vlegacy, Radiation_V12)
 
-# # Combine the 2 legacy version and remove id from V1 and V2
-# uid_V <- paste(unique(Vitals_V12$avatar_id), collapse = '|')
-# uid_A <- paste(unique(Alc_Smo_V12$avatar_id), collapse = '|')
-# uid_MM <- paste(unique(MM_history_V12$avatar_id), collapse = '|')
-# uid_T <- paste(unique(Treatment_V12$avatar_id), collapse = '|')
-# uid_P <- paste(c(unique(Progression_V12$avatar_id), unique(Progr_V12$avatar_id)), collapse = '|')
-# uid_S <- paste(unique(SCT_V12$avatar_id), collapse = '|')
-# uid_R <- paste(unique(Radiation_V12$avatar_id), collapse = '|')
+# Combine the 2 legacy version and remove id from V1 and V2
+uid_V <- paste(unique(Vitals_V12$avatar_id), collapse = '|')
+uid_A <- paste(unique(Alc_Smo_V12$avatar_id), collapse = '|')
+uid_MM <- paste(unique(MM_history_V12$avatar_id), collapse = '|')
+uid_T <- paste(unique(Treatment_V12$avatar_id), collapse = '|')
+uid_P <- paste(c(unique(Progression_V12$avatar_id), unique(Progr_V12$avatar_id)), collapse = '|')
+uid_S <- paste(unique(SCT_V12$avatar_id), collapse = '|')
+uid_R <- paste(unique(Radiation_V12$avatar_id), collapse = '|')
 
 # V1 ----
 # ClinicalCap_V1 <-
@@ -445,15 +445,15 @@ Radiation_V12 <-
 # #---
 # # Comorbidities <-
 # #   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
-# #                     sheet = "Comorbidities") #%>% 
+# #                     sheet = "Comorbidities") #%>%
 # #select(c("avatar_id","smoking_status", "alcohol_use"))
 # #---
 # Treatment <-
 #   readxl::read_xlsx((paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx")),
 #                     sheet = "Treatment") %>%
 #   select(c("avatar_id", drug_start_date = "regimen_start_date", drug_stop_date =  "regimen_end_date",
-#            "drug1_regimen", "drug2_regimen", "drug3_regimen", 
-#            "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) %>% 
+#            "drug1_regimen", "drug2_regimen", "drug3_regimen",
+#            "drug4_regimen", "drug5_regimen", "drug6_regimen", "drug7_regimen")) %>%
 #   unite(drug_name_, drug1_regimen:drug7_regimen, sep = "; ", na.rm = TRUE, remove = TRUE)
 # 
 # Qcd_Treatment <-
@@ -477,7 +477,7 @@ Radiation_V12 <-
 # SCT <- SCT[(!grepl(uid_S, SCT$avatar_id)),]
 # #---
 # RadiationV1 <- readxl::read_xlsx(paste0(ClinicalCap_V1, "/Radiation_Version1_Patients.xlsx")) %>%
-#   select(c("Avatar_ID", "Radiation Start Date", "Radiation End Date")) %>% 
+#   select(c("Avatar_ID", "Radiation Start Date", "Radiation End Date")) %>%
 #   `colnames<-`(c("avatar_id", "rad_start_date", "rad_stop_date"))
 # RadiationV1 <- RadiationV1[(!grepl(uid_R, RadiationV1$avatar_id)),]
 # #---
@@ -491,22 +491,22 @@ Radiation_V12 <-
 #                     sheet = "Biopsy") %>%
 #   select(c("avatar_id", biopsy_date = "date_bonemarrow_biopsy_results"))
 # #---
-# Staging <- 
+# Staging <-
 #   readxl::read_xlsx(paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx"),
 #                     sheet = "Biopsy") %>%
 #   select(c("avatar_id", "date_staging_results", iss = "international_staging_system"))
 # #---
-# Imaging <- 
+# Imaging <-
 #   readxl::read_xlsx(paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx"),
 #                     sheet = "Biopsy") %>%
 #   select(c("avatar_id", imaging_date = "date_radiologicexam"))
 # #---
-# LabsV1 <- 
+# LabsV1 <-
 #   readxl::read_xlsx(paste0(ClinicalCap_V1, "/Avatar_MM_Clinical_Data_V1_modif_04292020.xlsx"),
 #                     sheet = "Biopsy") %>%
 #   select(c("avatar_id", "date_upep", "date_spep", "date_paraprotein_results",
 #            "date_flowcytometry_dna_"))
-# V2 ----
+# # V2 ----
 # ClinicalCap_V2 <-
 #   fs::path(
 #     "",
@@ -524,7 +524,7 @@ Radiation_V12 <-
 #                     sheet = "Vitals") %>%
 #   select(c("avatar_id","vital_status","date_death"))
 # VitalsV2 <- VitalsV2[(!grepl(uid_V, VitalsV2$avatar_id)),]
-# 
+# # 
 # Alc_Smo_V2 <-
 #   readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
 #                     sheet = "Vitals") %>%
@@ -564,7 +564,7 @@ Radiation_V12 <-
 # #---
 # RadiationV2 <- readxl::read_xlsx((paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx")),
 #                                  sheet = "Radiation") %>%
-#   select(c("avatar_id", "rad_start_date_v2", "rad_stop_date_v2")) %>% 
+#   select(c("avatar_id", "rad_start_date_v2", "rad_stop_date_v2")) %>%
 #   `colnames<-`(c("avatar_id", "rad_start_date", "rad_stop_date"))
 # RadiationV2 <- RadiationV2[(!grepl(uid_R, RadiationV2$avatar_id)),]
 # #---
@@ -573,22 +573,22 @@ Radiation_V12 <-
 #                     sheet = "Biopsy") %>%
 #   select(c("avatar_id", biopsy_date = "date_bonemarrow_biopsy_results"))
 # #---
-# PerformanceV2 <- 
+# PerformanceV2 <-
 #   readxl::read_xlsx(paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx"),
 #                     sheet = "Performance") %>%
 #   select(c("avatar_id", date_perf_status_dx = "date_perf_status"))
 # #---
-# ImagingV2 <- 
+# ImagingV2 <-
 #   readxl::read_xlsx(paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx"),
 #                     sheet = "Imaging") %>%
 #   select(c("avatar_id", imaging_date = "date_radiologicexam"))
 # #---
-# StagingV2 <- 
+# StagingV2 <-
 #   readxl::read_xlsx(paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx"),
 #                     sheet = "Staging") %>%
 #   select(c("avatar_id", "date_staging_results", "iss"))
 # #---
-# LabsV2 <- 
+# LabsV2 <-
 #   readxl::read_xlsx(paste0(ClinicalCap_V2, "/Avatar_MM_Clinical_Data_V2_modif_05042020.xlsx"),
 #                     sheet = "Biopsy") %>%
 #   select(c("avatar_id", "date_upep", "date_spep", "date_paraprotein_results"))
@@ -798,32 +798,32 @@ Cytogenetics <- readxl::read_xlsx(paste0(path, "/Raghu MM/Cytogenetics/FISH_QC'd
 
 # Plot data recorded ---
 # jpeg(paste0(path, "/barplot1.jpg"), width = 350, height = 350)
-par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
-par(cex.sub = .7)
-barplot(
-  height = cbind(
-    "Clinical Data" = c(NROW(MM_history), NROW(MM_historyV2), NROW(MM_historyV4)),
-    "Vitals" = c(NROW(Vitals), NROW(VitalsV2), NROW(VitalsV4)),
-    "BMT" = c(NROW(SCT), NROW(SCTV2), NROW(SCTV4)),
-    "Radiation" = c(NROW(RadiationV1), NROW(RadiationV2), NROW(RadiationV4)),
-    "Treatment" = c(NROW(Treatment), NROW(TreatmentV2), NROW(TreatmentV4)),
-    "Qc'd Treatment" = c(NROW(Qcd_Treatment), NROW(Qcd_TreatmentV2), 0)
-  ),horiz=TRUE, 
-  las = 1,
-  main = "Total records per version",
-  sub = "A single patient can present multiple record ", col.sub = "red",
-  xlab = "Number records",
-  beside = FALSE,
-  # width = 1,
-  xlim = c(0, 3000),
-  col = c("purple", "orange", "yellow"),
-  #legend.text = c("version1", "version2", "version4"),
-  #args.legend = list(x = "bottomright"),
-  cex.axis = .8,
-  cex.names = .8,
-  xpd = TRUE
-)
-legend("bottomright", legend = c("version1", "version2", "version4"),
-       col = c("purple", "orange", "yellow"),
-       bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(0.05, 0.05)) # horiz, vert
+# par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
+# par(cex.sub = .7)
+# barplot(
+#   height = cbind(
+#     "Clinical Data" = c(NROW(MM_history), NROW(MM_historyV2), NROW(MM_historyV4)),
+#     "Vitals" = c(NROW(Vitals), NROW(VitalsV2), NROW(VitalsV4)),
+#     "BMT" = c(NROW(SCT), NROW(SCTV2), NROW(SCTV4)),
+#     "Radiation" = c(NROW(RadiationV1), NROW(RadiationV2), NROW(RadiationV4)),
+#     "Treatment" = c(NROW(Treatment), NROW(TreatmentV2), NROW(TreatmentV4)),
+#     "Qc'd Treatment" = c(NROW(Qcd_Treatment), NROW(Qcd_TreatmentV2), 0)
+#   ),horiz=TRUE, 
+#   las = 1,
+#   main = "Total records per version",
+#   sub = "A single patient can present multiple record ", col.sub = "red",
+#   xlab = "Number records",
+#   beside = FALSE,
+#   # width = 1,
+#   xlim = c(0, 3000),
+#   col = c("purple", "orange", "yellow"),
+#   #legend.text = c("version1", "version2", "version4"),
+#   #args.legend = list(x = "bottomright"),
+#   cex.axis = .8,
+#   cex.names = .8,
+#   xpd = TRUE
+# )
+# legend("bottomright", legend = c("version1", "version2", "version4"),
+#        col = c("purple", "orange", "yellow"),
+#        bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(0.05, 0.05)) # horiz, vert
 # dev.off()

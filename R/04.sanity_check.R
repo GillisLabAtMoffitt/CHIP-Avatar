@@ -1,3 +1,16 @@
+mrn1 <-
+  read_csv(paste0(path, "/M2GEN/Garrick_raw data/10R20000134_2020-05-05_avatar_v2_clinical-with-events/MRN.csv")) %>% 
+  rename(avatar_id = "AvatarKey")
+mrn2 <-
+  read_csv(paste0(path, "/M2GEN/Garrick_raw data/10R20000134_2020-05-05_avatar_v4_clinical-with-events/MRN.csv")) %>% 
+  rename(avatar_id = "AvatarKey")
+mrn <- bind_rows(mrn1, mrn2, Demo_linkage) %>% 
+  distinct() %>% 
+  mutate(MRN = as.character(MRN)) %>% 
+  arrange(MRN) %>% 
+  distinct(avatar_id, .keep_all = TRUE)
+
+
 # Radiation
 radiation <- radiation %>% 
   mutate(radiation_check = case_when(

@@ -170,7 +170,7 @@ id <- paste("A022604","A027407","A029244","A007364","A000238",
 Dx_date <- Diagnosis_ISS %>% select("avatar_id", "last_mrn", date_of_diagnosis = "MM_date_dx") %>% 
   mutate(disease_stage = "active")
 
-mm_history <- bind_rows(MM_history_V12, MM_history, MM_historyV2,
+mm_history <- bind_rows(MM_history_V12, #MM_history, MM_historyV2,
                         MM_historyV4, MM_historyV4.1,
                         Dx_date) %>%
   drop_na("date_of_diagnosis") %>%
@@ -306,10 +306,12 @@ MM_history <- dcast(setDT(mm_history),
 
 
 # Staging ISS
-ISS_temp <- bind_rows(Staging_V12, StagingV12_L_2, StagingV4, StagingV4.1, .id = "verso") %>% 
+ISS_temp <- bind_rows(Staging_V12, StagingV4, StagingV4.1, .id = "verso") %>% 
   filter(staging_type == "iss") %>% select(avatar_id, date_staging_results, iss = staging_value)
 
-ISS_df <- bind_rows(Staging %>% mutate(iss = as.character(iss)), StagingV2, ISS_temp) %>% 
+ISS_df <- 
+  # bind_rows(Staging %>% mutate(iss = as.character(iss)), StagingV2, ISS_temp) %>% 
+  ISS_temp %>% 
   left_join(., MM_history %>% select(avatar_id, date_of_MM_diagnosis),
             by = "avatar_id") %>% 
   drop_na(iss) %>% 
@@ -368,7 +370,8 @@ Cytogenetics <- Cytogenetics %>%
 
 # Vitals ----
 # Bind and arrange to have dates in order within each Alive, Dead, and Lost
-Vitals <- bind_rows(Vitals_V12, Vitals, VitalsV2, VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
+Vitals <- bind_rows(Vitals_V12, #Vitals, VitalsV2, 
+                    VitalsV4, VitalsV4.1, .id = "versionVit") %>% 
   # mutate(vital_status_rec = case_when(
   #   vital_status == 2         ~ "Dead",
   #   vital_status == 1         ~ "Alive",
@@ -449,12 +452,13 @@ Vitals <- full_join(Vitals, Contact_lost, by= "avatar_id") %>%
 # happen before or equal death
 
 # Bone marrow transplant ----
-SCT <- SCT %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt, date_of_third_bmt),
-                             values_to = "date_of_bmt", values_drop_na = TRUE)
-SCTV2 <- SCTV2 %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt, date_of_third_bmt),
-                             values_to = "date_of_bmt", values_drop_na = TRUE)
+# SCT <- SCT %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt, date_of_third_bmt),
+#                              values_to = "date_of_bmt", values_drop_na = TRUE)
+# SCTV2 <- SCTV2 %>% pivot_longer(cols = c(date_of_first_bmt, date_of_second_bmt, date_of_third_bmt),
+#                              values_to = "date_of_bmt", values_drop_na = TRUE)
 
-sct <- bind_rows(SCT_V12, SCT, SCTV2, SCTV4, SCTV4.1, .id = "versionSCT") %>% 
+sct <- bind_rows(SCT_V12, #SCT, SCTV2, 
+                 SCTV4, SCTV4.1, .id = "versionSCT") %>% 
   distinct(avatar_id, date_of_bmt) %>% 
   arrange(date_of_bmt)
 SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), 
@@ -476,47 +480,47 @@ IMIDS_maintenance <- IMIDS_maintenance %>%
   select("avatar_id", "imids_maintenance")
 
 # remove NA row in QC'd data
-Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
-Qcd_TreatmentV2 <- Qcd_TreatmentV2 %>% drop_na("drug_start_date", "drug_name_") %>%
-  arrange(drug_start_date) %>% 
-  group_by(avatar_id) %>% 
-  mutate(treatment_line_1 = as.character(dense_rank(interaction(avatar_id, drug_start_date)))) %>% 
-  mutate(treatment_line_ = coalesce(treatment_line, treatment_line_1)) %>% select(-treatment_line, -treatment_line_1)
-# remove the Ids found in Qc'd from the Treatment 
-uid <- paste(unique(Qcd_Treatment$avatar_id), collapse = '|')
-Treatment <- Treatment[(!grepl(uid, Treatment$avatar_id)),]
-uid <- paste(unique(Qcd_TreatmentV2$avatar_id), collapse = '|')
-TreatmentV2 <- TreatmentV2[(!grepl(uid, TreatmentV2$avatar_id)),]
+# Qcd_Treatment <- Qcd_Treatment %>% drop_na("drug_start_date", "drug_name_")
+# Qcd_TreatmentV2 <- Qcd_TreatmentV2 %>% drop_na("drug_start_date", "drug_name_") %>%
+#   arrange(drug_start_date) %>% 
+#   group_by(avatar_id) %>% 
+#   mutate(treatment_line_1 = as.character(dense_rank(interaction(avatar_id, drug_start_date)))) %>% 
+#   mutate(treatment_line_ = coalesce(treatment_line, treatment_line_1)) %>% select(-treatment_line, -treatment_line_1)
+# # remove the Ids found in Qc'd from the Treatment 
+# uid <- paste(unique(Qcd_Treatment$avatar_id), collapse = '|')
+# Treatment <- Treatment[(!grepl(uid, Treatment$avatar_id)),]
+# uid <- paste(unique(Qcd_TreatmentV2$avatar_id), collapse = '|')
+# TreatmentV2 <- TreatmentV2[(!grepl(uid, TreatmentV2$avatar_id)),]
 # Bind QC'd and Treatment for each version
 # Need to pivot longer Treatment from V1 (and V2) because not same formatting
 # Having one drug per row will help to remove duplicate in drugs after binding all version together
-Treatment <- bind_rows(Qcd_Treatment, Treatment) %>% 
-  filter(drug_name_ != "Non-MM drugs") %>% 
-  group_by(avatar_id) %>% 
-  arrange(drug_start_date) %>% 
-  mutate(treatment_line_ = as.character(row_number())) %>% 
-  # mutate_at(("drug_name_"), ~ str_replace_all(., "/", ": ")) %>% 
-  separate(col = drug_name_, paste("drug_name_", 1:10, sep=""), sep = "; |;", extra = "warn", 
-           fill = "right") %>% 
-  purrr::keep(~!all(is.na(.))) %>%
-  pivot_longer(cols = starts_with("drug_name_"),
-               names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
-
-
-TreatmentV2 <- TreatmentV2 %>% 
-  group_by(avatar_id, drug_start_date) %>% 
-  arrange(drug_start_date, treatment_line_) %>% 
-  fill(treatment_line_, .direction = "updown") %>% 
-  # group_by(avatar_id) %>% 
-  # # mutate(treatment_line = dense_rank(interaction(avatar_id, drug_start_date))) %>% 
-  # fill(treatment_line, .direction = "downup") %>%  # is not the best way, could do a 30 days rule
-  ungroup() %>% 
-  bind_rows(Qcd_TreatmentV2, .) %>% 
-  separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "; |;", extra = "warn", 
-           fill = "right") %>% 
-  purrr::keep(~!all(is.na(.))) %>%
-  pivot_longer(cols = starts_with("drug_name_"),
-               names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
+# Treatment <- bind_rows(Qcd_Treatment, Treatment) %>% 
+#   filter(drug_name_ != "Non-MM drugs") %>% 
+#   group_by(avatar_id) %>% 
+#   arrange(drug_start_date) %>% 
+#   mutate(treatment_line_ = as.character(row_number())) %>% 
+#   # mutate_at(("drug_name_"), ~ str_replace_all(., "/", ": ")) %>% 
+#   separate(col = drug_name_, paste("drug_name_", 1:10, sep=""), sep = "; |;", extra = "warn", 
+#            fill = "right") %>% 
+#   purrr::keep(~!all(is.na(.))) %>%
+#   pivot_longer(cols = starts_with("drug_name_"),
+#                names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
+# 
+# 
+# TreatmentV2 <- TreatmentV2 %>% 
+#   group_by(avatar_id, drug_start_date) %>% 
+#   arrange(drug_start_date, treatment_line_) %>% 
+#   fill(treatment_line_, .direction = "updown") %>% 
+#   # group_by(avatar_id) %>% 
+#   # # mutate(treatment_line = dense_rank(interaction(avatar_id, drug_start_date))) %>% 
+#   # fill(treatment_line, .direction = "downup") %>%  # is not the best way, could do a 30 days rule
+#   ungroup() %>% 
+#   bind_rows(Qcd_TreatmentV2, .) %>% 
+#   separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "; |;", extra = "warn", 
+#            fill = "right") %>% 
+#   purrr::keep(~!all(is.na(.))) %>%
+#   pivot_longer(cols = starts_with("drug_name_"),
+#                names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
 
 Treatment_V12 <- Treatment_V12 %>% 
   separate(col = drug_name_, paste("drug_name_", 1:7, sep=""), sep = "\\+", extra = "warn", # Just for 1 row
@@ -526,7 +530,8 @@ Treatment_V12 <- Treatment_V12 %>%
                names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
 
 # ready to bind
-treatment <- bind_rows(Treatment_V12, Treatment, TreatmentV2, TreatmentV4, TreatmentV4.1, .id = "versionTreat") %>%
+treatment <- bind_rows(Treatment_V12, #Treatment, TreatmentV2, 
+                       TreatmentV4, TreatmentV4.1, .id = "versionTreat") %>%
   filter(!str_detect(treatment_site, "moldering") | is.na(treatment_site)) %>% 
   mutate(treatment_line_ = case_when(
     str_detect(treatment_line_, "Tenth|10") ~ 10,
@@ -861,12 +866,13 @@ rm(migration_patients, IMIDS_maintenance)
 
 # Radiation ----
 # Radiation V1 doesn't have a date format
-RadiationV1$rad_start_date <- as.POSIXct(strptime(RadiationV1$rad_start_date, 
-                                                  format = "%m/%d/%Y", tz = "UTC"))
-RadiationV1$rad_stop_date <- as.POSIXct(strptime(RadiationV1$rad_stop_date, 
-                                                 format = "%m/%d/%Y", tz = "UTC"))
+# RadiationV1$rad_start_date <- as.POSIXct(strptime(RadiationV1$rad_start_date, 
+#                                                   format = "%m/%d/%Y", tz = "UTC"))
+# RadiationV1$rad_stop_date <- as.POSIXct(strptime(RadiationV1$rad_stop_date, 
+#                                                  format = "%m/%d/%Y", tz = "UTC"))
 
-radiation <- bind_rows(Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1, .id = "versionRad") %>% 
+radiation <- bind_rows(Radiation_V12, #RadiationV1, RadiationV2, 
+                       RadiationV4, RadiationV4.1, .id = "versionRad") %>% 
   drop_na("rad_start_date") %>% 
   filter(!str_detect(rad_start_date, "3013")) %>% 
   filter(!str_detect(rad_stop_date, "2300")) %>% 
@@ -893,7 +899,8 @@ Progression_V12 <- Progression_V12[(!grepl(uid_P12, Progression_V12$avatar_id)),
 
 Progression <- 
   bind_rows(Progr_V12, Progression_V12, 
-            Progression, ProgressionV2, Progression_V4, Progression_V4.1) %>%
+            # Progression, ProgressionV2, 
+            Progression_V4, Progression_V4.1) %>%
   distinct() %>% drop_na(progression_date) %>% 
   # Taking the dates of progression after the first Dx_date_closest_germline => For OS
   # (either if are MM and progressed or if are MGUS/SM and progressed to MM)
@@ -988,7 +995,7 @@ Progression_hct <- Progression_hct %>% # Remove progression < hct and keep earli
 
 
 # Metastasis
-metastasis <- bind_rows(Metastasis_V12, MetastasisV12_L_2, MetastasisV4, MetastasisV4.1) %>% 
+metastasis <- bind_rows(Metastasis_V12, MetastasisV4, MetastasisV4.1) %>% 
   mutate(have_metastasis = ifelse(have_metastasis == 3, "No Metastasis", "Metastasis")) %>% 
   mutate(metastasis_date = case_when(
     have_metastasis == "No Metastasis"      ~ NA_POSIXct_,
@@ -997,39 +1004,39 @@ metastasis <- bind_rows(Metastasis_V12, MetastasisV12_L_2, MetastasisV4, Metasta
 
 
 # Cleaning
-rm(Demo_HRI, Demo_linkage, MM_history_V12, MM_historyV2, MM_historyV4, MM_historyV4.1,
-   Vitals_V12, VitalsV2, VitalsV4, VitalsV4.1, SCT_V12, SCTV2, SCTV4, SCTV4.1,
-   Treatment_V12, TreatmentV2, TreatmentV4, Qcd_Treatment, Qcd_TreatmentV2, TreatmentV4.1)
+rm(Demo_HRI, Demo_linkage, MM_history_V12, MM_historyV4, MM_historyV4.1,
+   Vitals_V12, VitalsV4, VitalsV4.1, SCT_V12, SCTV4, SCTV4.1,
+   Treatment_V12, TreatmentV4, TreatmentV4.1)
 
 # Lab dates and biopsy to fill up last date of contact when not furnished ----
-LabsV1 <- gather(LabsV1, key = "event", value = "labs_last_date", 2:ncol(LabsV1)) %>% 
-  drop_na(labs_last_date)
-LabsV2 <- gather(LabsV2, key = "event", value = "labs_last_date", 2:ncol(LabsV2)) %>% 
-  drop_na(labs_last_date)
+# LabsV1 <- gather(LabsV1, key = "event", value = "labs_last_date", 2:ncol(LabsV1)) %>% 
+#   drop_na(labs_last_date)
+# LabsV2 <- gather(LabsV2, key = "event", value = "labs_last_date", 2:ncol(LabsV2)) %>% 
+#   drop_na(labs_last_date)
 Labs_V12 <- gather(Labs_V12, key = "event", value = "labs_last_date", 2) %>% 
   drop_na(labs_last_date)
 LabsV4 <- gather(LabsV4, key = "event", value = "labs_last_date", 2) %>% 
   drop_na(labs_last_date)
 LabsV4.1 <- gather(LabsV4.1, key = "event", value = "labs_last_date", 2) %>% 
   drop_na(labs_last_date)
-labs_dates <- bind_rows(LabsV1, LabsV2, Labs_V12, LabsV4, LabsV4.1)
-rm(LabsV1, LabsV2, Labs_V12, LabsV4, LabsV4.1)
+labs_dates <- bind_rows(Labs_V12, LabsV4, LabsV4.1)
+rm(Labs_V12, LabsV4, LabsV4.1)
 
-biopsy <- bind_rows(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1) %>% 
+biopsy <- bind_rows(Biopsy_V12, BiopsyV4, BiopsyV4.1) %>% 
   drop_na(biopsy_date) %>% 
   gather(., key = "event", value = "labs_last_date", 2)
-imaging <- bind_rows(Imaging, Imaging_V12, ImagingV2, ImagingV4, ImagingV4.1) %>% 
+imaging <- bind_rows(Imaging_V12, ImagingV4, ImagingV4.1) %>% 
   drop_na() %>% 
   gather(., key = "event", value = "labs_last_date", 2)
 metastasis2 <- bind_rows(Metastasis_V12, MetastasisV4, MetastasisV4.1) %>%
   drop_na() %>%
   gather(., key = "event", value = "labs_last_date", 2)
-performance <- bind_rows(Performance_V12, PerformanceV2, PerformanceV4, PerformanceV4.1) %>% 
+performance <- bind_rows(Performance_V12, PerformanceV4, PerformanceV4.1) %>% 
   drop_na() %>% 
   gather(., key = "event", value = "labs_last_date", 2)
-staging <- bind_rows(Staging %>% select("avatar_id", "date_staging_results"), 
+staging <- bind_rows(# Staging %>% select("avatar_id", "date_staging_results"), 
                      Staging_V12 %>% select("avatar_id", "date_staging_results"), 
-                     StagingV2 %>% select("avatar_id", "date_staging_results"), 
+                     # StagingV2 %>% select("avatar_id", "date_staging_results"), 
                      StagingV4 %>% select("avatar_id", "date_staging_results"), 
                      StagingV4.1 %>% select("avatar_id", "date_staging_results")) %>% 
   drop_na() %>% 
@@ -1037,11 +1044,11 @@ staging <- bind_rows(Staging %>% select("avatar_id", "date_staging_results"),
 tumormarker <- bind_rows(TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1) %>% 
   drop_na() %>% 
   gather(., key = "event", value = "labs_last_date", 2)
-rm(Biopsy_V12, Biopsy, BiopsyV2, BiopsyV4, BiopsyV4.1,
-   Imaging, Imaging_V12, ImagingV2, ImagingV4, ImagingV4.1,
+rm(Biopsy_V12, BiopsyV4, BiopsyV4.1,
+   Imaging_V12, ImagingV4, ImagingV4.1,
    Metastasis_V12, MetastasisV4, MetastasisV4.1,
-   Performance_V12, PerformanceV2, PerformanceV4, PerformanceV4.1,
-   Staging, Staging_V12, StagingV2, StagingV4, StagingV4.1,
+   Performance_V12, PerformanceV4, PerformanceV4.1,
+   Staging_V12, StagingV4, StagingV4.1,
    TumorMarker_V12, TumorMarkerV4, TumorMarkerV4.1)
 
 Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis2, performance, staging, tumormarker) %>% 
@@ -1063,16 +1070,16 @@ rm(labs_dates, biopsy, imaging, metastasis2, performance, staging, tumormarker)
 
 
 # Cleaning
-rm(ClinicalCap_V12, ClinicalCap_V1, ClinicalCap_V2, ClinicalCap_V4, 
+rm(ClinicalCap_V12, ClinicalCap_V4, 
    uid, uid_A, uid_MM, uid_R, uid_S, uid_T, uid_V, uid_P, uid_P12,
-   Alc_Smo, Alc_Smo_V12, Alc_Smo_V2, Alc_SmoV4, Alc_SmoV4.1, 
-   Radiation_V12, RadiationV1, RadiationV2, RadiationV4, RadiationV4.1,
-   Progr_V12, Progression_V12, ProgressionV2, Progression_V4, Progression_V4.1,
+   Alc_Smo_V12, Alc_SmoV4, Alc_SmoV4.1, 
+   Radiation_V12, RadiationV4, RadiationV4.1,
+   Progr_V12, Progression_V12, Progression_V4, Progression_V4.1,
    #Contact_lost
-   Alc_SmoV12_L_2, BiopsyV12_L_2, ImagingV12_L_2,
-   LabsV12_L_2, MetastasisV12_L_2, MM_historyV12_L_2, PerformanceV12_L_2, 
-   ProgressionV12_L_2, SCTV12_L_2, StagingV12_L_2, TreatmentV12_L_2, 
-   VitalsV12_L_2, TumorMarkerV12_L_2, RadiationV12_L_2, ProgrV12_L_2,
+   # Alc_SmoV12_L_2, BiopsyV12_L_2, ImagingV12_L_2,
+   # LabsV12_L_2, MetastasisV12_L_2, MM_historyV12_L_2, PerformanceV12_L_2, 
+   # ProgressionV12_L_2, SCTV12_L_2, StagingV12_L_2, TreatmentV12_L_2, 
+   # VitalsV12_L_2, TumorMarkerV12_L_2, RadiationV12_L_2, ProgrV12_L_2,
    Dx_date
    )
 

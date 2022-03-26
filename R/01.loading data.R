@@ -21,76 +21,58 @@ Demo_linkage <-
   readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Demographics_HRI_Export.xlsx"),
                     sheet = "Sheet1")
 # 1.2.Load Germline with disease status --------------------------------------------------------------------------
-Germline <- readxl::read_xlsx(paste0(path, 
-                                     "/Raghu MM/Germline data/Avatar_MM_03162021_OUT.xlsx")) %>% 
-  filter(DiseaseType == "Not applicable (germline)") %>% 
-  select(c("avatar_id", SLID_germline = "DNASequencingLibraryID", collectiondt_germline = "collectiondt", 
-           moffittSampleId_germline = "ORIENSpecimenID", Disease_Status_germline = "disease_status"))
-# uid <- paste(unique(Germline$avatar_id), collapse = '|')
-# Germ <- 
-#   readxl::read_xlsx(paste0(path, 
-#                            "/Raghu MM/Germline data/Moffitt_Germl_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
-#   select(c("avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status"))
-# Germ <- Germ[(!grepl(uid, Germ$avatar_id)),]
-# Germ2 <-
-#   readxl::read_xlsx(paste0(path,
-#                            "/Raghu MM/Germline data/Moffitt_Germl_Disease_Classification_2patient_from_2nd_sequencingfile.xlsx")) %>%
-#   select(-moffitt_sample_id)
-# Germ2 <- Germ2[(!grepl(uid, Germ2$avatar_id)),]
-# Germ3 <-
-#   readxl::read_xlsx(paste0(path,
-#                            "/Raghu MM/Germline data/Germline_MM_Disease_Status_05052020_OUT .xlsx")) %>% 
-#   select(c(avatar_id = "Avatar_id", "collectiondt", "WES_HUDSON_ALPHA", "Disease_Status"))
-# Germ3 <- Germ3[(!grepl(uid, Germ3$avatar_id)),]
-# Germ4 <-
-#   readxl::read_xlsx(paste0(path,
-#                            "/Raghu MM/Germline data/Moffitt_Germl_v0.4.5_Disease_Classification_OUT_07272020.xlsx")) %>% 
-#   select(c("avatar_id", "SLID_germline", "Disease_Status"))
-# Germ4 <- Germ4[(!grepl(uid, Germ4$avatar_id)),]
-# 1.3.Load Sequencing data ---------------------------------------------------------------------------------------
-WES_tumor <-
-  readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/Moffitt_WES_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
-  select(c("avatar_id", "moffitt_sample_id", "collectiondt")) %>% 
-  `colnames<-`(c("avatar_id", "moffitt_sample_id_tumor", "collectiondt_tumor"))
+# Germline <- readxl::read_xlsx(paste0(path, 
+#                                      "/Raghu MM/Germline data/Avatar_MM_03162021_OUT.xlsx")) %>% 
+#   filter(DiseaseType == "Not applicable (germline)") %>% 
+#   select(c("avatar_id", SLID_germline = "DNASequencingLibraryID", collectiondt_germline = "collectiondt", 
+#            moffittSampleId_germline = "ORIENSpecimenID", Disease_Status_germline = "disease_status"))
+# 
+# # 1.3.Load Sequencing data ---------------------------------------------------------------------------------------
+# WES_tumor <-
+#   readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/Moffitt_WES_v0.4.3_Disease_Classification_OUT01312020.xlsx")) %>% 
+#   select(c("avatar_id", "moffitt_sample_id", "collectiondt")) %>% 
+#   `colnames<-`(c("avatar_id", "moffitt_sample_id_tumor", "collectiondt_tumor"))
 
-#---
-Sequencing <-
-  read.delim(paste0(path, "/Jamie/v0.4.3.MM.samples.WESdata01.31.20.txt")) %>% 
-  select(c(
-    "SLID_germline", 
-    "SLID_tumor" , "moffitt_sample_id_tumor", 
-    "moffitt_sample_id_germline",
-    "BaitSet"))
-# Sequencing$moffitt_sample_id_tumor == Sequencing$moffitt_sample_id # yes so remove one var
-# Sequencing$subject == Sequencing$avatar_id # yes so remove one var
-#---
-Seq_WES_Raghu <- 
-  readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/MM_Metadata_WES_V044.xlsx")) %>% 
-  select(c(avatar_id = "subject", 
-           "SLID_germline", "moffitt_sample_id_germline", "collectiondt_germline", 
-           "SLID_tumor" , "moffitt_sample_id_tumor", "collectiondt_tumor", 
-           "BaitSet"))
-# Keep
-# Seq_WES_Raghu$moffitt_sample_id_tumor == Seq_WES_Raghu$moffitt_sample_id # yes so rename and remove one var
-# Seq_WES_Raghu$SLID_tumor == Seq_WES_Raghu$ClinicalSpecimenLinkage_WES # yes
-# Seq_WES_Raghu$SLID_tumor == Seq_WES_Raghu$SLID # yes
-# Seq_WES_Raghu$subject == Seq_WES_Raghu$ClinicalSpecimenLinkage_subject # yes
-# Seq_WES_R$collectiondt_germline == Seq_WES_R$collectiondt_tumor # No -> That's good
-#---
-Sequencing2 <- # warning message due to a TRUE added in a num var by Raghu (he copy paste an extra patient)
-  readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/MM_Metadata_WES_V0441.xlsx")) %>% 
-  select(c(avatar_id = "subject",
-           "SLID_germline", "moffittSampleId_germline",
-           "collectiondt_germline",
-           "SLID_tumor" , moffitt_sample_id_tumor = "moffittSampleId_tumor", "collectiondt_tumor",
-           BaitSet = "baitSet"))
-#---
-Seq_WES_Raghu2 <- 
-  readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/MM_Metadata_WES_V045.xlsx")) %>% 
-  select(c(avatar_id = "subject", 
-           "SLID_germline", "moffittSampleId_germline", "collectiondt_germline", 
-           "SLID_tumor" , moffitt_sample_id_tumor = "moffittSampleId_tumor", "collectiondt_tumor", 
-           "BaitSet"))
+# #---
+# Sequencing <-
+#   read.delim(paste0(path, "/Jamie/v0.4.3.MM.samples.WESdata01.31.20.txt")) %>% 
+#   select(c(
+#     "SLID_germline", 
+#     "SLID_tumor" , "moffitt_sample_id_tumor", 
+#     "moffitt_sample_id_germline",
+#     "BaitSet"))
+# #---
+# Seq_WES_Raghu <- 
+#   readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/MM_Metadata_WES_V044.xlsx")) %>% 
+#   select(c(avatar_id = "subject", 
+#            "SLID_germline", "moffitt_sample_id_germline", "collectiondt_germline", 
+#            "SLID_tumor" , "moffitt_sample_id_tumor", "collectiondt_tumor", 
+#            "BaitSet"))
+# # Keep
+# # Seq_WES_Raghu$moffitt_sample_id_tumor == Seq_WES_Raghu$moffitt_sample_id # yes so rename and remove one var
+# # Seq_WES_Raghu$SLID_tumor == Seq_WES_Raghu$ClinicalSpecimenLinkage_WES # yes
+# # Seq_WES_Raghu$SLID_tumor == Seq_WES_Raghu$SLID # yes
+# # Seq_WES_Raghu$subject == Seq_WES_Raghu$ClinicalSpecimenLinkage_subject # yes
+# # Seq_WES_R$collectiondt_germline == Seq_WES_R$collectiondt_tumor # No -> That's good
+# #---
+# Sequencing2 <- # warning message due to a TRUE added in a num var by Raghu (he copy paste an extra patient)
+#   readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/MM_Metadata_WES_V0441.xlsx")) %>% 
+#   select(c(avatar_id = "subject",
+#            "SLID_germline", "moffittSampleId_germline",
+#            "collectiondt_germline",
+#            "SLID_tumor" , moffitt_sample_id_tumor = "moffittSampleId_tumor", "collectiondt_tumor",
+#            BaitSet = "baitSet"))
+# #---
+# Seq_WES_Raghu2 <- 
+#   readxl::read_xlsx(paste0(path, "/Raghu MM/Germline data/MM_Metadata_WES_V045.xlsx")) %>% 
+#   select(c(avatar_id = "subject", 
+#            "SLID_germline", "moffittSampleId_germline", "collectiondt_germline", 
+#            "SLID_tumor" , moffitt_sample_id_tumor = "moffittSampleId_tumor", "collectiondt_tumor", 
+#            "BaitSet"))
+
+WES_jan2022 <- readxl::read_xlsx(paste0(path, 
+                                        "/MM avatar/data/WES/Moffitt_WES_V046_All.xlsx")) %>% 
+  select(c("avatar_id", SLID_germline, collectiondt_germline))
 
 # 1.4.Load Clinical data------------------------------------------------------------------------------------------
 # V1 and V2 in V4 format----

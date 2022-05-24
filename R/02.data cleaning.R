@@ -1,11 +1,39 @@
 #######################################################################################  Somatic mutations
+WES_jan2022 <- WES_jan2022 %>% 
+  arrange(avatar_id, collectiondt_germline, collectiondt_tumor)
 
+# Select the disease status closest to germline
+WES_jan2022 <- WES_jan2022 %>% 
+  mutate(int = interval(start = collectiondt_germline, 
+                        end = collectiondt_tumor) /
+           duration(n=1, units = "days")) %>% 
+  group_by(avatar_id) %>% 
+  mutate(min = min(int)) %>% 
+  mutate(Disease_Status_germline = case_when(
+    min == int               ~ Disease_Status,
+    TRUE                     ~ NA_character_
+  )) %>% 
+  fill(Disease_Status_germline, .direction = "updown") %>% 
+  ungroup()
 
+# Pivot wider
+Germline <- dcast(setDT(WES_jan2022), 
+                  avatar_id+mrn+SLID_germline+moffittSampleId_germline+collectiondt_germline+Disease_Status_germline ~ 
+                    rowid(avatar_id),
+                  value.var = c(
+                    "SLID_tumor",
+                    "moffittSampleId_tumor",
+                    "collectiondt_tumor",
+                    "moffittSampleId",
+                    "DNASequencingLibraryID",
+                    "Disease_Status"
+                  )
+)
 
+####################################################################
+########## NOT USED ANYMORE SINCE WE ONLY HAVE 1 FILE NOW ########## 
+####################################################################
 
-#######################################################################################  III  # Merge WES and Sequencing----
-#######################################################################################  III  # For 1st sequencing file
-# ### Bind Germline
 # Germline <- Germline %>% 
 #   distinct()
 # 
@@ -18,23 +46,23 @@
 #   full_join(
 #     Sequencing,
 #     WES_tumor,
-#     by = "moffitt_sample_id_tumor")
+#     by = "moffittSampleId_tumor")
 # # Bind Sequencing
 # Seq_WES <- bind_rows(Seq_WES_Raghu, Sequencing2, Seq_WES_Raghu2, Sequencing, .id = "vers") %>% 
 #   arrange(collectiondt_germline) %>% 
-#   distinct(SLID_tumor, moffitt_sample_id_tumor, SLID_germline, .keep_all = TRUE)
+#   distinct(SLID_tumor, moffittSampleId_tumor, SLID_germline, .keep_all = TRUE)
 # 
-# # duplicated(WES_seq$moffitt_sample_id_tumor) # No duplicate
+# # duplicated(WES_seq$moffittSampleId_tumor) # No duplicate
 # # duplicated(WES_seq$avatar_id) # has duplicate so
 # # Reshape to have duplicate ID on same row (per date) but
 # # Really important to order by dates otherwise cannot find the duplicated lines
 # Seq_WES <- Seq_WES[order(Seq_WES$collectiondt_tumor), ]
 # # pivot wider
 # WES_seq <-
-#   dcast(setDT(Seq_WES), avatar_id+SLID_germline+moffitt_sample_id_germline+collectiondt_germline ~ rowid(avatar_id),
+#   dcast(setDT(Seq_WES), avatar_id+SLID_germline+moffittSampleId_germline+collectiondt_germline ~ rowid(avatar_id),
 #         value.var = c(
 #           "SLID_tumor",
-#           "moffitt_sample_id_tumor",
+#           "moffittSampleId_tumor",
 #           "collectiondt_tumor",
 #           "BaitSet"
 #         )
@@ -51,10 +79,10 @@
 # # # Really important to order by dates otherwise cannot find the duplicated lines
 # # Seq_WES_Raghu <- Seq_WES_Raghu[order(Seq_WES_Raghu$collectiondt_tumor), ]
 # # Seq_WES_Raghu <-
-# #   dcast(setDT(Seq_WES_Raghu), avatar_id+SLID_germline+moffitt_sample_id_germline ~ rowid(avatar_id),
+# #   dcast(setDT(Seq_WES_Raghu), avatar_id+SLID_germline+moffittSampleId_germline ~ rowid(avatar_id),
 # #         value.var = c(
 # #           "SLID_tumor",
-# #           "moffitt_sample_id_tumor",
+# #           "moffittSampleId_tumor",
 # #           "collectiondt_tumor",
 # #           "BaitSet"
 # #         )
@@ -72,10 +100,10 @@
 # # # Really important to order by dates otherwise cannot find the duplicated lines
 # # Seq_WES_Raghu2 <- Seq_WES_Raghu2[order(Seq_WES_Raghu2$collectiondt_tumor), ]
 # # Seq_WES_Raghu2 <-
-# #   dcast(setDT(Seq_WES_Raghu2), avatar_id+SLID_germline+moffitt_sample_id_germline+collectiondt_germline ~ rowid(avatar_id),
+# #   dcast(setDT(Seq_WES_Raghu2), avatar_id+SLID_germline+moffittSampleId_germline+collectiondt_germline ~ rowid(avatar_id),
 # #         value.var = c(
 # #           "SLID_tumor",
-# #           "moffitt_sample_id_tumor",
+# #           "moffittSampleId_tumor",
 # #           "collectiondt_tumor",
 # #           "BaitSet"
 # #         )
@@ -116,7 +144,7 @@
 
 
 # Cleaning
-rm(Sequencing, Sequencing2, WES_tumor, WES_seq, Seq_WES_Raghu, Seq_WES, Seq_WES_Raghu2)
+rm(WES_jan2022)
 
 
 #######################################################################################  II  ## Bind Version, Clean----
@@ -851,24 +879,6 @@ Treatment <- dcast(setDT(Treatment1), mrn+avatar_id ~ rowid(avatar_id),
 regimen_changed_id <- c("A000180", "A000414", "A014308", "A014310", "A015461", "A022588", "A025760")
 Treatment <- Treatment %>% 
   purrr::keep(~!all(is.na(.))) %>% 
-  # mutate(received_IMIDs = case_when(
-  #   str_detect(drug_name__1, "lidomide") |
-  #     str_detect(drug_name__2, "lidomide") |
-  #     str_detect(drug_name__3, "lidomide") |
-  #     str_detect(drug_name__4, "lidomide") |
-  #     str_detect(drug_name__5, "lidomide") |
-  #     str_detect(drug_name__6, "lidomide") |
-  #     str_detect(drug_name__7, "lidomide") |
-  #     str_detect(drug_name__8, "lidomide") |
-  #     str_detect(drug_name__9, "lidomide") |
-  #     str_detect(drug_name__10, "lidomide") |
-  #     str_detect(drug_name__11, "lidomide") |
-  #     str_detect(drug_name__12, "lidomide") |
-  #     str_detect(drug_name__13, "lidomide") |
-  #     str_detect(drug_name__14, "lidomide") |
-  #     str_detect(drug_name__15, "lidomide")    ~ "IMIDs",
-  #   TRUE ~ "No IMIDs"
-  # )) %>% 
   full_join(., IMIDS_maintenance, by = "avatar_id") %>% 
   rename(first_regimen_name = regimen_name_1) %>% 
   mutate(first_regimen_name = ifelse((str_detect(avatar_id, paste0(regimen_changed_id, collapse = "|"))), "VRd", first_regimen_name))
@@ -1124,10 +1134,10 @@ barplot(
 
 ##################################################################################################  IV  ## Merge----
 patients_removed_nonMM <- c("A000428", "A000456")
-Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffitt_sample_id_germline", "SLID_germline",
+Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffittSampleId_germline", "SLID_germline",
                              "collectiondt_germline", "Disease_Status_germline", 
                              starts_with("SLID_tumor"), starts_with("collectiondt_tumor_", 
-                             starts_with("moffitt_sample_id_tumor")))),
+                             starts_with("moffittSampleId_tumor")))),
                MM_history, by = "avatar_id") %>% 
   full_join(., Vitals, by = "avatar_id") %>% 
   full_join(., SCT, by = "avatar_id") %>% 

@@ -9,7 +9,7 @@ library(survival)
 library(survminer)
 
 #######################################################################################  I  ### Load data----
-path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
+path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar", "MM avatar")
 # 1.1.Load Demographics data -------------------------------------------------------------------------------------
 Demo_RedCap_V4ish <-
   readxl::read_xlsx(paste0(path, "/Raghu MM/extracted Avatar V124 data and dict/Avatar_Demographics_All_MM_modif_06292020.xlsx")) %>%
@@ -71,8 +71,11 @@ Demo_linkage <-
 #            "BaitSet"))
 
 WES_jan2022 <- readxl::read_xlsx(paste0(path, 
-                                        "/MM avatar/data/WES/Moffitt_WES_V046_All.xlsx")) %>% 
-  select(c("avatar_id", SLID_germline, collectiondt_germline))
+                                        "/data/WES/Moffitt_WES_V046_All.xlsx")) %>% 
+  select(c(avatar_id, SLID_germline, collectiondt_germline, SLID_tumor, collectiondt_tumor,
+           moffittSampleId_germline, moffittSampleId_tumor, moffittSampleId,
+           DNASequencingLibraryID,
+           mrn, Disease_Status))
 
 # 1.4.Load Clinical data------------------------------------------------------------------------------------------
 # V1 and V2 in V4 format----
@@ -83,6 +86,7 @@ Clinical_V12_legacy <-
     "Gillis_Research",
     "Christelle Colin-Leitzinger",
     "CHIP in Avatar",
+    "MM avatar",
     "Raghu MM",
     "extracted Avatar V124 data and dict",
     "V1V2 legacy V4"
@@ -178,6 +182,7 @@ ClinicalCap_V12 <-
     "Gillis_Research",
     "Christelle Colin-Leitzinger",
     "CHIP in Avatar",
+    "MM avatar",
     "Raghu MM",
     "extracted Avatar V124 data and dict",
     "V1V2 verified by CIOX in V4 format"
@@ -582,6 +587,7 @@ ClinicalCap_V4 <-
     "Gillis_Research",
     "Christelle Colin-Leitzinger",
     "CHIP in Avatar",
+    "MM avatar",
     "Raghu MM",
     "extracted Avatar V124 data and dict",
     "V4"
@@ -776,36 +782,10 @@ migration_patients <- readxl::read_xlsx(paste0(path, "/Raghu MM/Avatar List For 
 Cytogenetics <- readxl::read_xlsx(paste0(path, "/Raghu MM/Cytogenetics/FISH_QC'd_Data_07282021.xlsx"))
 # Somatic mutations
 # load(file = paste0(path, "/TumorMuts/Nancy650AF.DP.AF.rda"))
+MMA <- readxl::read_xlsx(paste0(path, "/Raghu MM/Other raw data/MMA in Avatar patients.xlsx"))
+VitB12 <- readxl::read_xlsx(paste0(path, "/Raghu MM/Other raw data/Vit b12 in Avatar patients.xlsx"))
 
 
-# Plot data recorded ---
-# jpeg(paste0(path, "/barplot1.jpg"), width = 350, height = 350)
-# par(mar=c(5, 6.1, 2.1, 3.1)) # bottom left top right
-# par(cex.sub = .7)
-# barplot(
-#   height = cbind(
-#     "Clinical Data" = c(NROW(MM_history), NROW(MM_historyV2), NROW(MM_historyV4)),
-#     "Vitals" = c(NROW(Vitals), NROW(VitalsV2), NROW(VitalsV4)),
-#     "BMT" = c(NROW(SCT), NROW(SCTV2), NROW(SCTV4)),
-#     "Radiation" = c(NROW(RadiationV1), NROW(RadiationV2), NROW(RadiationV4)),
-#     "Treatment" = c(NROW(Treatment), NROW(TreatmentV2), NROW(TreatmentV4)),
-#     "Qc'd Treatment" = c(NROW(Qcd_Treatment), NROW(Qcd_TreatmentV2), 0)
-#   ),horiz=TRUE, 
-#   las = 1,
-#   main = "Total records per version",
-#   sub = "A single patient can present multiple record ", col.sub = "red",
-#   xlab = "Number records",
-#   beside = FALSE,
-#   # width = 1,
-#   xlim = c(0, 3000),
-#   col = c("purple", "orange", "yellow"),
-#   #legend.text = c("version1", "version2", "version4"),
-#   #args.legend = list(x = "bottomright"),
-#   cex.axis = .8,
-#   cex.names = .8,
-#   xpd = TRUE
-# )
-# legend("bottomright", legend = c("version1", "version2", "version4"),
-#        col = c("purple", "orange", "yellow"),
-#        bty = "n", pch=20 , pt.cex = 2, cex = 0.8, inset = c(0.05, 0.05)) # horiz, vert
-# dev.off()
+
+
+## End Loading

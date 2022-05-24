@@ -1091,6 +1091,41 @@ Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis2, performan
   distinct(avatar_id, .keep_all = TRUE)
 rm(labs_dates, biopsy, imaging, metastasis2, performance, staging, tumormarker)
 
+MMA3 <- MMA %>% 
+  select(avatar_id, LAB_RESULT, LAB_UNIT, ORDER_DTM#ends_with("_DTM")
+         ) %>% 
+  filter(!is.na(LAB_RESULT)) %>% 
+  inner_join(., MM_history %>% 
+              select(avatar_id, date_of_MM_diagnosis),
+            by = "avatar_id") %>% 
+  mutate(int = abs(interval(start = ORDER_DTM, 
+                        end = date_of_MM_diagnosis) /
+           duration(n=1, units = "days"))) %>% 
+  group_by(avatar_id) %>% 
+  mutate(min = min(int)) %>% 
+  ungroup() %>% 
+  mutate(MMA_MMdx_results = case_when(
+    min == int               ~ LAB_RESULT,
+    TRUE                     ~ NA_character_
+  )) %>% 
+  
+  inner_join(., Germline %>% 
+              select(avatar_id, collectiondt_germline),
+            by = "avatar_id") %>% 
+  mutate(int = abs(interval(start = ORDER_DTM, 
+                            end = collectiondt_germline) /
+                     duration(n=1, units = "days"))) %>% 
+  group_by(avatar_id,collectiondt_germline) %>% 
+  mutate(min = min(int)) %>% 
+  mutate(MMA_germline_results = case_when(
+    min == int               ~ LAB_RESULT,
+    TRUE                     ~ NA_character_
+  )) %>% 
+  fill(MMA_MMdx_results, MMA_germline_results, .direction = "updown") %>% 
+  ungroup() %>% 
+  # select(-c(int, min, date_of_MM_diagnosis, collectiondt_germline)) %>% 
+  distinct(avatar_id, MMA_germline_results, .keep_all = TRUE)
+
 
 # Cleaning
 rm(ClinicalCap_V12, ClinicalCap_V4, 

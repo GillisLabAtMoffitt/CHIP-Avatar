@@ -1,0 +1,297 @@
+---
+title: "Investigate MMA"
+author: "Christelle Colin-Leitzinger"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_collapsed: no
+    theme: cerulean
+    highlight: pygments
+editor_options:
+  chunk_output_type: console
+---
+
+<style type="text/css">
+h1.title {
+  font-size: 25px;
+}
+.figure {
+   margin-top: 25px;
+   margin-bottom: 25px;
+}
+
+table {
+    margin-top: 25px;
+    margin-bottom: 25px !important;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      cache = FALSE,
+                      fig.align='center'
+                      )
+options(gtsummary.print_engine = "gt")
+options(gtsummary.as_gt.addl_cmds = "gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1))")
+```
+
+
+<style>
+div.blue { background-color:#0099CC; border-radius: 5px; padding: 20px; font-size: 38px}
+</style>
+<div class = "blue">
+
+<span style="color: white;">Investigate MMA</span>
+
+</div>
+<br>
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(VennDiagram)
+library(viridis)
+library(lubridate)
+library(gtsummary)
+library(survival)
+library(survminer)
+```
+
+```{r load}
+# Global_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/Global_data.rds")
+germline_patient_data <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/germline_patient_data.rds")
+
+germline_patient_data <- germline_patient_data %>% 
+  # Remove 1 duplicate patient 180
+  distinct(avatar_id, .keep_all = TRUE) %>% 
+  
+  mutate_at(c("MMA_MMdx_results", "MMA_germline_results"), 
+            ~ case_when(
+    str_detect(., "<")                 ~ 0.05,
+    TRUE                               ~ as.numeric(.)
+  ))
+```
+<br>
+<br>
+
+
+***
+
+# I. MMA levels distribution
+
+```{r summ table}
+germline_patient_data %>% 
+  mutate(Whole = "MM patients with WES") %>% 
+  select(MMA_MMdx_results, MMA_germline_results, Age_at_MMonly_diagnosis, Sex, raceeth, Whole, ISS_at_MMdx) %>%
+  tbl_summary(by = Whole, 
+              label = list(raceeth ~ "Race/ethnicity", Age_at_MMonly_diagnosis ~ "Age at MM diagnosis"),
+              sort = list(everything() ~ "frequency", ISS_at_MMdx ~ "alphanumeric"),
+              digits = list(Age_at_MMonly_diagnosis ~ 2)#,
+              # missing = "no"
+              ) %>% 
+  bold_labels()
+```
+
+```{r}
+germline_patient_data %>% 
+  filter(!is.na(MMA_MMdx_results)) %>% 
+  ggplot(aes(x= MMA_MMdx_results))+
+  geom_bar(stat = "count")+
+  theme_classic()
+```
+
+```{r}
+germline_patient_data %>% 
+  filter(!is.na(MMA_germline_results)) %>% 
+  ggplot(aes(x= MMA_germline_results))+
+  geom_bar(stat = "count")+
+  theme_classic()
+```
+<br>
+
+
+# II. MMA levels by CH_status
+
+```{r}
+contamination_tumor_ids <- paste("A025767", "A025771", "A007368", "A007322", "A000111", sep = "|")
+
+patients_clean_tumor <- germline_patient_data %>% 
+  filter(!str_detect(avatar_id, contamination_tumor_ids))
+```
+
+```{r}
+patients_clean_tumor %>%
+  select(MMA_MMdx_results, MMA_germline_results,
+         CH_status) %>% 
+  tbl_summary(by = CH_status, 
+              label = list(CH_status ~ "CH status"),
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
+```
+
+```{r}
+patients_clean_tumor %>% 
+  filter(!is.na(MMA_MMdx_results) & !is.na(CH_status)) %>%
+  ggplot(aes(x= CH_status, y=MMA_MMdx_results))+
+  geom_boxplot()+
+  theme_classic()+
+  stat_compare_means()
+```
+
+```{r}
+patients_clean_tumor %>% 
+  filter(!is.na(MMA_germline_results) & !is.na(CH_status)) %>%
+  ggplot(aes(x= CH_status, y=MMA_germline_results))+
+  geom_boxplot()+
+  theme_classic()+
+  stat_compare_means()
+```
+<br>
+
+# III. MMA levels by CH_status classes
+
+```{r}
+path <- fs::path("","Volumes","Gillis_Research","Christelle Colin-Leitzinger", "CHIP in Avatar")
+
+ch_genes <- read_csv(paste0(path, "/MM avatar/Nancy's working files/CH calls_WES_genes_12.10.20.csv")) %>% 
+  mutate(patient_id = str_remove(patient_id, "_normal")) %>% 
+  distinct(patient_id, GENE, .keep_all = TRUE)
+
+ch_wide <- ch_genes %>% 
+  mutate(ARID1B = ifelse(GENE == "ARID1B", "Yes", NA_character_)) %>% 
+  mutate(ASXL1 = ifelse(GENE == "ASXL1", "Yes", NA_character_)) %>% 
+  mutate(ATM = ifelse(GENE == "ATM", "Yes", NA_character_)) %>% 
+  mutate(CBL = ifelse(GENE == "CBL", "Yes", NA_character_)) %>% 
+  mutate(CHEK2 = ifelse(GENE == "CHEK2", "Yes", NA_character_)) %>% 
+  mutate(DNMT3A = ifelse(GENE == "DNMT3A", "Yes", NA_character_)) %>% 
+  mutate(FLT3 = ifelse(GENE == "FLT3", "Yes", NA_character_)) %>% 
+  mutate(IDH1 = ifelse(GENE == "IDH1", "Yes", NA_character_)) %>%
+  mutate(JAK1 = ifelse(GENE == "JAK1", "Yes", NA_character_)) %>%
+  mutate(JAK2 = ifelse(GENE == "JAK2", "Yes", NA_character_)) %>%
+  mutate(KMT2D = ifelse(GENE == "KMT2D", "Yes", NA_character_)) %>%
+  mutate(NOTCH1 = ifelse(GENE == "NOTCH1", "Yes", NA_character_)) %>%
+  mutate(PPM1D = ifelse(GENE == "PPM1D", "Yes", NA_character_)) %>%
+  mutate(RUNX1 = ifelse(GENE == "RUNX1", "Yes", NA_character_)) %>%
+  mutate(SF3B1 = ifelse(GENE == "SF3B1", "Yes", NA_character_)) %>%
+  mutate(STAG2 = ifelse(GENE == "STAG2", "Yes", NA_character_)) %>%
+  mutate(STAT5B = ifelse(GENE == "STAT5B", "Yes", NA_character_)) %>%
+  mutate(TET2 = ifelse(GENE == "TET2", "Yes", NA_character_)) %>%
+  mutate(TP53 = ifelse(GENE == "TP53", "Yes", NA_character_)) %>%
+  mutate(ZRSR2 = ifelse(GENE == "ZRSR2", "Yes", NA_character_)) %>%
+  select(patient_id, ARID1B : ZRSR2) %>% 
+  group_by(patient_id) %>% 
+  fill(everything(), .direction = "updown") %>% 
+  ungroup() %>% 
+  distinct(patient_id, .keep_all = TRUE) %>% 
+  mutate(across(where(is.character), .fns = ~ replace_na(., "No"))) %>% 
+  # Create gene classes
+  # DNA damage response genes (TP53, PPM1D, CHEK2)
+  mutate(DNA_damage_class = case_when(
+    TP53 == "Yes" |
+      PPM1D == "Yes" |
+      CHEK2 == "Yes"             ~ "Yes",
+    TRUE                         ~ "No"
+  )) %>% 
+  right_join(., patients_clean_tumor, by = c("patient_id" = "SLID_germline"))
+  
+ch_wide %>% 
+  select("ASXL1", "DNMT3A", "TET2", "TP53", "PPM1D",
+         "SF3B1", "CBL", "JAK1", "STAT5B", 
+         "ATM", "CHEK2",
+         "FLT3", 
+         "JAK2", "KMT2D", "NOTCH1", "RUNX1",
+         "ZRSR2",
+         "ARID1B", "IDH1", "STAG2",
+         DNA_damage_class
+         ) %>% 
+  tbl_summary(type = list(all_categorical() ~ "dichotomous"),
+              missing = "no") %>% 
+  as_gt() %>% 
+  gt::tab_source_note(gt::md("**Each gene is counted once per patient**"))
+```
+
+```{r}
+ch_wide %>%
+  select(MMA_MMdx_results, MMA_germline_results,
+         DNA_damage_class) %>% 
+  tbl_summary(by = DNA_damage_class, 
+              # label = list(CH_status ~ "CH status"),
+              sort = list(everything() ~ "frequency"),
+              percent = "row") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
+```
+
+Sensitivity analysis - DNA damage genes only
+```{r}
+ch_wide %>%
+  filter(DNA_damage_class == "Yes" | CH_status == "No CH") %>% 
+  select(MMA_MMdx_results, MMA_germline_results,
+         CH_status) %>% 
+  tbl_summary(by = CH_status, 
+              # label = list(CH_status ~ "CH status"),
+              type = list(c(MMA_MMdx_results, MMA_germline_results) ~ "continuous"),
+              sort = list(everything() ~ "frequency"),
+              percent = "row") %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
+```
+<br>
+
+# IV. MMA level and VAF
+```{r}
+ch_genes %>% 
+  left_join(., patients_clean_tumor, by = c("patient_id" = "SLID_germline")) %>% 
+  ggplot(aes(x= MMA_MMdx_results, y= VAF_normal))+
+  geom_point()+
+  theme_classic()
+```
+
+# V. Stratified by Gender
+
+```{r}
+male <- patients_clean_tumor %>%
+  filter(Sex == "Male") %>% 
+  select(MMA_MMdx_results, MMA_germline_results,
+         CH_status) %>% 
+  tbl_summary(by = CH_status, 
+              label = list(CH_status ~ "CH status"),
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
+
+female <- patients_clean_tumor %>%
+  filter(Sex == "Female") %>% 
+  select(MMA_MMdx_results, MMA_germline_results,
+         CH_status) %>% 
+  tbl_summary(by = CH_status, 
+              label = list(CH_status ~ "CH status"),
+              sort = list(everything() ~ "frequency")) %>% 
+  bold_labels() %>% add_p() %>% bold_p(t = .05)
+
+tbl_merge(list(male, female), tab_spanner = c("Male", "Female"))
+```
+
+```{r}
+patients_clean_tumor %>% 
+  filter(!is.na(MMA_MMdx_results) & !is.na(CH_status)) %>%
+  ggplot(aes(x= Sex, y=MMA_MMdx_results, color= CH_status))+
+  geom_boxplot()+
+  theme_classic()+
+  stat_compare_means()
+```
+
+```{r}
+patients_clean_tumor %>% 
+  filter(!is.na(MMA_germline_results) & !is.na(CH_status)) %>%
+  ggplot(aes(x= Sex, y=MMA_germline_results, color= CH_status))+
+  geom_boxplot()+
+  theme_classic()+
+  stat_compare_means()
+```
+
+
+<br>
+<br>
+

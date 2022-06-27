@@ -563,7 +563,12 @@ germline_patient_data <- germline_patient_data %>%
   )) %>% 
   mutate(ntile_at_firsthct = ntile(days_at_firsthct, 2)) %>% 
   group_by(ntile_at_firsthct) %>% 
-  mutate(min_ntile = min(days_at_firsthct)) %>% ungroup()
+  mutate(min_ntile = min(days_at_firsthct)) %>% ungroup() %>% 
+  rename(Sex = Gender) %>% 
+  mutate(raceeth = factor(raceeth, levels=c("White Non-Hispanic", "Hispanic", "Black", "Others"))) %>%
+  mutate(regimen_categoryVCD_1 = factor(regimen_categoryVCD_1, levels = c(
+    "PI + IMIDs", "PI", "IMIDs", "Others"
+  )))
 
 write_rds(germline_patient_data, file = "germline_patient_data.rds")
 # # write.csv(germline_patient_data, paste0(path, "/compared germline dates and Demographics.csv"))

@@ -568,7 +568,8 @@ Treatment_V12 <- Treatment_V12 %>%
            fill = "right") %>% 
   purrr::keep(~!all(is.na(.))) %>%
   pivot_longer(cols = starts_with("drug_name_"),
-               names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE)
+               names_to = "drug", values_to = "drug_name_", values_drop_na = TRUE) %>% 
+  filter(!is.na(avatar_id))
 
 # ready to bind
 treatment <- bind_rows(Treatment_V12, #Treatment, TreatmentV2, 
@@ -1023,7 +1024,9 @@ metastasis <- bind_rows(Metastasis_V12, MetastasisV4, MetastasisV4.1) %>%
   mutate(metastasis_date = case_when(
     have_metastasis == "No Metastasis"      ~ NA_POSIXct_,
     have_metastasis == "Metastasis"         ~ metastasis_date
-  ))
+  )) %>% 
+  arrange(avatar_id, metastasis_date) %>% 
+  distinct(avatar_id, .keep_all = TRUE)
 
 
 # Cleaning
@@ -1091,10 +1094,11 @@ Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis2, performan
   distinct(avatar_id, .keep_all = TRUE)
 rm(labs_dates, biopsy, imaging, metastasis2, performance, staging, tumormarker)
 
-MMA3 <- MMA %>% 
+MMA <- MMA %>% 
   select(avatar_id, LAB_RESULT, LAB_UNIT, ORDER_DTM#ends_with("_DTM")
          ) %>% 
   filter(!is.na(LAB_RESULT)) %>% 
+  # Create var closest MMA results to diagnosis
   inner_join(., MM_history %>% 
               select(avatar_id, date_of_MM_diagnosis),
             by = "avatar_id") %>% 
@@ -1108,7 +1112,7 @@ MMA3 <- MMA %>%
     min == int               ~ LAB_RESULT,
     TRUE                     ~ NA_character_
   )) %>% 
-  
+  # Create var closest MMA results to germline
   inner_join(., Germline %>% 
               select(avatar_id, collectiondt_germline),
             by = "avatar_id") %>% 
@@ -1121,9 +1125,11 @@ MMA3 <- MMA %>%
     min == int               ~ LAB_RESULT,
     TRUE                     ~ NA_character_
   )) %>% 
+  # Pick 1 value per patient
   fill(MMA_MMdx_results, MMA_germline_results, .direction = "updown") %>% 
   ungroup() %>% 
-  # select(-c(int, min, date_of_MM_diagnosis, collectiondt_germline)) %>% 
+  select(avatar_id, MMA_MMdx_results, MMA_germline_results, 
+         MMA_unit = LAB_UNIT) %>%
   distinct(avatar_id, MMA_germline_results, .keep_all = TRUE)
 
 
@@ -1169,11 +1175,15 @@ barplot(
 
 ##################################################################################################  IV  ## Merge----
 patients_removed_nonMM <- c("A000428", "A000456")
-Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffittSampleId_germline", "SLID_germline",
-                             "collectiondt_germline", "Disease_Status_germline", 
-                             starts_with("SLID_tumor"), starts_with("collectiondt_tumor_", 
-                             starts_with("moffittSampleId_tumor")))),
-               MM_history, by = "avatar_id") %>% 
+Global_data <- 
+  # Do full join to keep extra patients we don't have germline for mow
+  full_join(Germline %>%
+              select(c("avatar_id", "mrn",
+                       "moffittSampleId_germline", "SLID_germline",
+                       "collectiondt_germline", "Disease_Status_germline", 
+                       starts_with("SLID_tumor"), starts_with("collectiondt_tumor_"), 
+                       starts_with("moffittSampleId_tumor"))),
+            MM_history, by = "avatar_id") %>% 
   full_join(., Vitals, by = "avatar_id") %>% 
   full_join(., SCT, by = "avatar_id") %>% 
   full_join(., Treatment, by = "avatar_id") %>% 
@@ -1189,8 +1199,9 @@ Global_data <- full_join(Germline %>%  select(c("avatar_id", "moffittSampleId_ge
   full_join(., Diagnosis_ISS, by = c("avatar_id")) %>% 
   full_join(., metastasis, by = "avatar_id") %>% 
   full_join(Demo_RedCap_V4ish %>% select(-TCC_ID), ., by = "avatar_id") %>% 
-  full_join(., Cytogenetics, by = "avatar_id")
-# # write.csv(Global_data, paste0(path, "/Global_data.csv"))
+  full_join(., Cytogenetics, by = "avatar_id") %>% 
+  full_join(., MMA, by = "avatar_id")
+# write.csv(Global_data, paste0(path, "/Global_data.csv"))
 Global_data <- 
   left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id")) %>% 
   left_join(., CHIP_tageted_seq, by = c("SLID_germline" = "patient_id")) %>% 

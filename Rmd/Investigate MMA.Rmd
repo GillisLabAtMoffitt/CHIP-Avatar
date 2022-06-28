@@ -241,18 +241,58 @@ ch_wide %>%
 <br>
 
 # IV. MMA level and VAF
+
+<div class = "row">
+<div class = "col-md-6">
 ```{r}
 ch_genes %>% 
   left_join(., patients_clean_tumor, by = c("patient_id" = "SLID_germline")) %>% 
   ggplot(aes(x= MMA_MMdx_results, y= VAF_normal))+
   geom_point()+
   geom_smooth(method = "lm") +
-  stat_cor(#label.y = 40
-    )+ 
-  stat_regline_equation(label.x = 0.65#label.y = 45
-    )+
+  stat_cor(size=5)+ 
+  stat_regline_equation(label.x = 0.65, size=5)+
+  theme_classic()
+
+ch_genes %>% 
+  left_join(., patients_clean_tumor, by = c("patient_id" = "SLID_germline")) %>% 
+  ggplot(aes(x= MMA_germline_results, y= VAF_normal))+
+  geom_point()+
+  geom_smooth(method = "lm") +
+  stat_cor(size=5)+ 
+  stat_regline_equation(label.x = 0.65, size=5)+
   theme_classic()
 ```
+</div>
+
+<div class = "col-md-6">
+```{r}
+ch_genes %>% 
+  left_join(., patients_clean_tumor, by = c("patient_id" = "SLID_germline")) %>% 
+  mutate(VAF_cat = case_when(
+    VAF_normal < 0.1            ~ "<10%",
+    VAF_normal >= 0.1           ~ "≥10%"
+  )) %>% 
+  ggplot(aes(x= VAF_cat, y= MMA_MMdx_results, color= VAF_cat))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()+
+  stat_compare_means(size=5)
+
+ch_genes %>% 
+  left_join(., patients_clean_tumor, by = c("patient_id" = "SLID_germline")) %>% 
+  mutate(VAF_cat = case_when(
+    VAF_normal < 0.1            ~ "<10%",
+    VAF_normal >= 0.1           ~ "≥10%"
+  )) %>% 
+  ggplot(aes(x= VAF_cat, y= MMA_germline_results, color= VAF_cat))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()+
+  stat_compare_means(size=5)
+```
+</div>
+</div>
 
 # V. Stratified by Gender
 

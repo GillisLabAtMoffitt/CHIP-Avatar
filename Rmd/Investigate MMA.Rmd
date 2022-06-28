@@ -246,6 +246,11 @@ ch_genes %>%
   left_join(., patients_clean_tumor, by = c("patient_id" = "SLID_germline")) %>% 
   ggplot(aes(x= MMA_MMdx_results, y= VAF_normal))+
   geom_point()+
+  geom_smooth(method = "lm") +
+  stat_cor(#label.y = 40
+    )+ 
+  stat_regline_equation(label.x = 0.65#label.y = 45
+    )+
   theme_classic()
 ```
 
@@ -290,8 +295,7 @@ patients_clean_tumor %>%
   theme_classic()+
   stat_compare_means()
 ```
-
-
 <br>
 <br>
+
 

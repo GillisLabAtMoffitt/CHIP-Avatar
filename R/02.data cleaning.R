@@ -1125,11 +1125,16 @@ MMA <- MMA %>%
     min == int               ~ LAB_RESULT,
     TRUE                     ~ NA_character_
   )) %>% 
+  mutate(MMA_date = case_when(
+    min == int               ~ ORDER_DTM,
+    TRUE                     ~ NA_POSIXct_
+  )) %>% 
   # Pick 1 value per patient
-  fill(MMA_MMdx_results, MMA_germline_results, .direction = "updown") %>% 
+  fill(MMA_MMdx_results, MMA_germline_results, MMA_date,
+       .direction = "updown") %>% 
   ungroup() %>% 
   select(avatar_id, MMA_MMdx_results, MMA_germline_results, 
-         MMA_unit = LAB_UNIT) %>%
+         MMA_date, MMA_unit = LAB_UNIT) %>%
   distinct(avatar_id, MMA_germline_results, .keep_all = TRUE)
 
 

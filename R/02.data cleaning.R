@@ -2,34 +2,6 @@
 WES_jan2022 <- WES_jan2022 %>% 
   arrange(avatar_id, collectiondt_germline, collectiondt_tumor)
 
-# Select the disease status closest to germline
-WES_jan2022 <- WES_jan2022 %>% 
-  mutate(int = interval(start = collectiondt_germline, 
-                        end = collectiondt_tumor) /
-           duration(n=1, units = "days")) %>% 
-  group_by(avatar_id) %>% 
-  mutate(min = min(int)) %>% 
-  mutate(Disease_Status_germline = case_when(
-    min == int               ~ Disease_Status,
-    TRUE                     ~ NA_character_
-  )) %>% 
-  fill(Disease_Status_germline, .direction = "updown") %>% 
-  ungroup()
-
-# Pivot wider
-Germline <- dcast(setDT(WES_jan2022), 
-                  avatar_id+mrn+SLID_germline+moffittSampleId_germline+collectiondt_germline+Disease_Status_germline ~ 
-                    rowid(avatar_id),
-                  value.var = c(
-                    "SLID_tumor",
-                    "moffittSampleId_tumor",
-                    "collectiondt_tumor",
-                    "moffittSampleId",
-                    "DNASequencingLibraryID",
-                    "Disease_Status"
-                  )
-)
-
 ####################################################################
 ########## NOT USED ANYMORE SINCE WE ONLY HAVE 1 FILE NOW ########## 
 ####################################################################
@@ -144,7 +116,7 @@ Germline <- dcast(setDT(WES_jan2022),
 
 
 # Cleaning
-rm(WES_jan2022)
+# rm(WES_jan2022)
 
 
 #######################################################################################  II  ## Bind Version, Clean----
@@ -219,7 +191,7 @@ mm_history <- bind_rows(MM_history_V12, #MM_history, MM_historyV2,
   group_by(avatar_id) %>% 
   fill(mrn, .direction = "downup") %>% 
   ungroup() %>% 
-  distinct(avatar_id, date_of_diagnosis, disease_stage, .keep_all = TRUE) %>% 
+  distinct(avatar_id, mrn, date_of_diagnosis, disease_stage) %>% 
   arrange(avatar_id, date_of_diagnosis) %>% 
   # Change status for patients that Nancy checked
   mutate(disease_stage = case_when(
@@ -227,10 +199,6 @@ mm_history <- bind_rows(MM_history_V12, #MM_history, MM_historyV2,
       disease_stage == "active"   ~ "wrongly classified", 
     TRUE                          ~ disease_stage
     )) %>% 
-  # mutate(date_of_diagnosis = case_when(
-  #   str_detect(avatar_id, id) &
-  #     disease_stage == "wrongly classified"   ~ NA_POSIXct_, 
-  #   TRUE                                      ~ date_of_diagnosis)) %>% 
 
   # code smoldering diagnosis date
   group_by(avatar_id) %>% 
@@ -259,27 +227,6 @@ mm_history <- bind_rows(MM_history_V12, #MM_history, MM_historyV2,
     is.na(date_of_MM_diagnosis)            ~ "No"
   )) %>% 
   
-  # Create Dx_date_closest_blood date (general diagnosis, in not specific MM)
-  left_join(., Germline %>% select("avatar_id", "collectiondt_germline"), # For only 1 date of Dx when multiple germline collection
-            by = "avatar_id") %>% 
-  # For 180
-  mutate(closest_date_180_cleaning = date_of_diagnosis-collectiondt_germline) %>% 
-  group_by(avatar_id, date_of_diagnosis, disease_stage) %>% 
-  arrange(closest_date_180_cleaning) %>% 
-  distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
-  ungroup() %>% 
-  
-  mutate(interval = (interval(start= .$collectiondt_germline, end= .$date_of_diagnosis)/duration(n=1, unit="days"))) %>% 
-  mutate(interval = if_else(interval>100, NA_real_, interval)) %>% 
-  mutate(interval1 = abs(interval)) %>% 
-  arrange(interval1) %>% 
-  group_by(avatar_id) %>% mutate(id = 1:n()) %>% ungroup() %>%
-  mutate(Dx_date_closest_germline = if_else(id == 1, date_of_diagnosis, NA_POSIXct_)) %>% 
-  distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
-  group_by(avatar_id) %>% fill(Dx_date_closest_germline, .direction = "updown") %>% 
-  arrange(avatar_id, date_of_diagnosis) %>% 
-  ungroup() %>% 
-  
   # code actual status
   mutate(smoldering_status = case_when(
     !is.na(date_of_MM_diagnosis) &
@@ -291,10 +238,8 @@ mm_history <- bind_rows(MM_history_V12, #MM_history, MM_historyV2,
     TRUE                               ~ NA_character_
   ))
 
-
 MM_history <- dcast(setDT(mm_history), 
-                    avatar_id+collectiondt_germline+date_of_MM_diagnosis+is_patient_MM+
-                      Dx_date_closest_germline+
+                    avatar_id+mrn+date_of_MM_diagnosis+is_patient_MM+
                       sm_date_diagnosis+smoldering_status ~ 
                       rowid(avatar_id), 
                     value.var = c("date_of_diagnosis", "disease_stage")) %>% 
@@ -309,41 +254,89 @@ MM_history <- dcast(setDT(mm_history),
   # mutate(date_of_MMonly_diagnosis = case_when(
   #   str_detect(disease_stage_1, "active|relapse")          ~ date_of_diagnosis_1
   # )) %>% 
-  # mutate(date_of_MMonly_diagnosis2 = case_when(
-  #   str_detect(disease_stage_2, "active|relapse")          ~ date_of_diagnosis_2
-  # )) %>% 
-  # mutate(date_of_MMonly_diagnosis3 = case_when(
-  #   str_detect(disease_stage_3, "active|relapse")          ~ date_of_diagnosis_3
-  # )) %>% 
-  # mutate(date_of_MMonly_diagnosis4 = case_when(
-  #   str_detect(disease_stage_4, "active|relapse")          ~ date_of_diagnosis_4
-  # )) %>% 
-  # mutate(date_of_MMonly_diagnosis = coalesce(date_of_MMonly_diagnosis, date_of_MMonly_diagnosis2, date_of_MMonly_diagnosis3, date_of_MMonly_diagnosis4)) %>% 
-  
+# mutate(date_of_MMonly_diagnosis2 = case_when(
+#   str_detect(disease_stage_2, "active|relapse")          ~ date_of_diagnosis_2
+# )) %>% 
+# mutate(date_of_MMonly_diagnosis3 = case_when(
+#   str_detect(disease_stage_3, "active|relapse")          ~ date_of_diagnosis_3
+# )) %>% 
+# mutate(date_of_MMonly_diagnosis4 = case_when(
+#   str_detect(disease_stage_4, "active|relapse")          ~ date_of_diagnosis_4
+# )) %>% 
+# mutate(date_of_MMonly_diagnosis = coalesce(date_of_MMonly_diagnosis, date_of_MMonly_diagnosis2, date_of_MMonly_diagnosis3, date_of_MMonly_diagnosis4)) %>% 
 
-  mutate(date_of_MMSMMGUSdiagnosis = case_when(
-    disease_stage_1 == "smoldering"      ~ date_of_diagnosis_1,
-    disease_stage_2 == "smoldering"      ~ date_of_diagnosis_2,
-    disease_stage_3 == "smoldering"      ~ date_of_diagnosis_3,
-    disease_stage_4 == "smoldering"      ~ date_of_diagnosis_4,
-    disease_stage_1 == "mgus"            ~ date_of_diagnosis_1,
-    disease_stage_2 == "mgus"            ~ date_of_diagnosis_2,
-    disease_stage_3 == "mgus"            ~ date_of_diagnosis_3,
-    disease_stage_4 == "mgus"            ~ date_of_diagnosis_4
-  )) %>% 
-  mutate(date_of_MMSMMGUSdiagnosis = coalesce(date_of_MM_diagnosis, date_of_MMSMMGUSdiagnosis)) %>% 
-  mutate(interval_MM = interval(start= date_of_MM_diagnosis, end= collectiondt_germline)/duration(n=1, unit="days")) %>% 
+
+mutate(date_of_MMSMMGUSdiagnosis = case_when(
+  disease_stage_1 == "mgus"            ~ date_of_diagnosis_1,
+  disease_stage_2 == "mgus"            ~ date_of_diagnosis_2,
+  disease_stage_3 == "mgus"            ~ date_of_diagnosis_3,
+  disease_stage_4 == "mgus"            ~ date_of_diagnosis_4
+)) %>% 
+  mutate(date_of_MMSMMGUSdiagnosis = 
+           coalesce(date_of_MM_diagnosis, 
+                    sm_date_diagnosis, 
+                    date_of_MMSMMGUSdiagnosis)) %>% 
+  
+  # Select germline closest to Dx of interest (MM, then Sm, then Mgus)
+  left_join(., WES_jan2022 %>% 
+              select("avatar_id", "collectiondt_germline", 
+                     "SLID_germline", "moffittSampleId_germline", 
+                     Disease_Status_germline = "Disease_Status") %>% 
+              distinct(), # For only 1 date of Dx when multiple germline collection
+            by = "avatar_id") %>% 
+  mutate(interval_germline_dx = interval(start= collectiondt_germline, 
+                             end= date_of_MMSMMGUSdiagnosis)/
+           duration(n=1, unit="days")) %>% 
+  arrange(interval_germline_dx) %>% 
+  distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(is_MMDx_close_to_blood = case_when(
     is_patient_MM == "Yes" &
-      interval_MM < -60                  ~ "No",
+      interval_germline_dx < 60          ~ "No",
     is_patient_MM == "Yes"               ~ "Yes",
     TRUE                                 ~ NA_character_
   )) %>% 
-  select(c("avatar_id", "Dx_date_closest_germline", "date_of_MM_diagnosis", "is_patient_MM", 
-           "sm_date_diagnosis", "smoldering_status", "date_of_MMSMMGUSdiagnosis", 
-           interval_MM, is_MMDx_close_to_blood, everything(), -collectiondt_germline))
+  # Select tumor closest to germline
+  left_join(., WES_jan2022 %>% 
+              select("avatar_id", "collectiondt_tumor",
+                     "SLID_tumor", "moffittSampleId_tumor", 
+                     Disease_Status_tumor = "Disease_Status") %>% 
+              distinct(),
+            by = "avatar_id") %>% 
+  mutate(interval_germline_tummor = interval(start = collectiondt_germline, 
+                        end = collectiondt_tumor) /
+           duration(n=1, units = "days")) %>% 
+  arrange(interval_germline_tummor) %>% 
+  distinct(avatar_id, .keep_all = TRUE)
 
 # write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
+
+
+
+
+
+  
+  
+  
+  
+  
+  
+  # For 180
+  # mutate(closest_date_180_cleaning = date_of_diagnosis-collectiondt_germline) %>% 
+  # group_by(avatar_id, date_of_diagnosis, disease_stage) %>% 
+  # arrange(closest_date_180_cleaning) %>% 
+  # distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
+  # ungroup() %>% 
+  # 
+  # mutate(interval = (interval(start= .$collectiondt_germline, end= .$date_of_diagnosis)/duration(n=1, unit="days"))) %>% 
+  # mutate(interval = if_else(interval>100, NA_real_, interval)) %>% 
+  # mutate(interval1 = abs(interval)) %>% 
+  # arrange(interval1) %>% 
+  # group_by(avatar_id) %>% mutate(id = 1:n()) %>% ungroup() %>%
+  # mutate(Dx_date_closest_germline = if_else(id == 1, date_of_diagnosis, NA_POSIXct_)) %>% 
+  # distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
+  # group_by(avatar_id) %>% fill(Dx_date_closest_germline, .direction = "updown") %>% 
+  # arrange(avatar_id, date_of_diagnosis) %>% 
+  # ungroup()
 
 
 # Staging ISS
@@ -926,12 +919,12 @@ Progression <-
             # Progression, ProgressionV2, 
             Progression_V4, Progression_V4.1) %>%
   distinct() %>% drop_na(progression_date) %>% 
-  # Taking the dates of progression after the first Dx_date_closest_germline => For OS
+  # Taking the dates of progression after the first date_of_MMSMMGUSdiagnosis => For OS
   # (either if are MM and progressed or if are MGUS/SM and progressed to MM)
-  left_join(., MM_history %>% select(c("avatar_id", "Dx_date_closest_germline")), by = "avatar_id") %>% 
+  left_join(., MM_history %>% select(c("avatar_id", "date_of_MMSMMGUSdiagnosis")), by = "avatar_id") %>% 
   mutate(prog_after_diag = case_when(
-    progression_date <= Dx_date_closest_germline         ~ "removed", # 7 are removed as they become MM
-    progression_date > Dx_date_closest_germline          ~ "good" # No NA in date of Dx
+    progression_date <= date_of_MMSMMGUSdiagnosis         ~ "removed", # 7 are removed as they become MM
+    progression_date > date_of_MMSMMGUSdiagnosis          ~ "good" # No NA in date of Dx
   )) %>% 
   filter(prog_after_diag == "good") %>% 
   select(1:2) %>% 
@@ -1081,11 +1074,11 @@ Last_labs_dates <- bind_rows(labs_dates, biopsy, imaging, metastasis2, performan
   filter(!str_detect(labs_last_date, "9999|2816|2077")) %>% # Remove mistakes and missing dates
   # remove if its <= to date_of_diagnosis (before MM diagnosis)
   # remove if its => to date_contact_lost 
-  left_join(., MM_history %>% select(c("avatar_id", "Dx_date_closest_germline")), by = "avatar_id") %>% 
+  left_join(., MM_history %>% select(c("avatar_id", "date_of_MMSMMGUSdiagnosis")), by = "avatar_id") %>% 
   # left_join(., Contact_lost %>% select(c("avatar_id", "date_contact_lost")), by = "avatar_id") %>% 
   left_join(., Vitals %>% select(c("avatar_id", "date_contact_lost", "date_last_follow_up")), by = "avatar_id") %>% 
   mutate(labs_before_diag = case_when(
-    labs_last_date <= Dx_date_closest_germline             ~ "removed",
+    labs_last_date <= date_of_MMSMMGUSdiagnosis       ~ "removed",
     labs_last_date >= date_contact_lost               ~ "removed",
     labs_last_date >= date_last_follow_up             ~ "removed"
   )) %>% 
@@ -1113,7 +1106,7 @@ MMA <- MMA %>%
     TRUE                     ~ NA_character_
   )) %>% 
   # Create var closest MMA results to germline
-  inner_join(., Germline %>% 
+  inner_join(., MM_history %>% 
               select(avatar_id, collectiondt_germline),
             by = "avatar_id") %>% 
   mutate(int = abs(interval(start = ORDER_DTM, 
@@ -1153,6 +1146,23 @@ rm(ClinicalCap_V12, ClinicalCap_V4,
    )
 
 
+# Pivot wider sequencing
+Germline <- dcast(setDT(WES_jan2022), 
+                  avatar_id+mrn ~ 
+                    rowid(avatar_id),
+                  value.var = c(
+                    "SLID_germline",
+                    "moffittSampleId_germline",
+                    "collectiondt_germline",
+                    "SLID_tumor",
+                    "moffittSampleId_tumor",
+                    "collectiondt_tumor",
+                    "moffittSampleId",
+                    "DNASequencingLibraryID",
+                    "Disease_Status"
+                  )
+)
+
 #######################################################################################  II  ## Plot---
 # jpeg(paste0(path, "/barplot2.jpg"), width = 350, height = 350)
 par(mar=c(3.5, 7.1, 4.1, 2.1)) # bottom left top right
@@ -1182,12 +1192,7 @@ barplot(
 patients_removed_nonMM <- c("A000428", "A000456")
 Global_data <- 
   # Do full join to keep extra patients we don't have germline for mow
-  full_join(Germline %>%
-              select(c("avatar_id", "mrn",
-                       "moffittSampleId_germline", "SLID_germline",
-                       "collectiondt_germline", "Disease_Status_germline", 
-                       starts_with("SLID_tumor"), starts_with("collectiondt_tumor_"), 
-                       starts_with("moffittSampleId_tumor"))),
+  full_join(Germline,
             MM_history, by = "avatar_id") %>% 
   full_join(., Vitals, by = "avatar_id") %>% 
   full_join(., SCT, by = "avatar_id") %>% 

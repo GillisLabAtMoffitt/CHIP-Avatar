@@ -244,34 +244,12 @@ MM_history <- dcast(setDT(mm_history),
                       rowid(avatar_id), 
                     value.var = c("date_of_diagnosis", "disease_stage")) %>% 
   
-  
-  # unite(Dx_date_closest_germline, starts_with("Dx_date_closest_germline"), na.rm = TRUE, remove = TRUE) %>% 
-  # mutate(Dx_date_closest_germline = as.POSIXct(.$Dx_date_closest_germline, format = "%Y-%m-%d")) %>% 
-  # select(-collectiondt_germline) %>% 
-  # Create var = first date of Dx for MM diagnostic aka "active" (not for mgus or smoldering)
-  # Then when not "active" take the first date of Dx available (mgus or smoldering or NA without regarding order- 
-  # usually mgus before smoldering)
-  # mutate(date_of_MMonly_diagnosis = case_when(
-  #   str_detect(disease_stage_1, "active|relapse")          ~ date_of_diagnosis_1
-  # )) %>% 
-# mutate(date_of_MMonly_diagnosis2 = case_when(
-#   str_detect(disease_stage_2, "active|relapse")          ~ date_of_diagnosis_2
-# )) %>% 
-# mutate(date_of_MMonly_diagnosis3 = case_when(
-#   str_detect(disease_stage_3, "active|relapse")          ~ date_of_diagnosis_3
-# )) %>% 
-# mutate(date_of_MMonly_diagnosis4 = case_when(
-#   str_detect(disease_stage_4, "active|relapse")          ~ date_of_diagnosis_4
-# )) %>% 
-# mutate(date_of_MMonly_diagnosis = coalesce(date_of_MMonly_diagnosis, date_of_MMonly_diagnosis2, date_of_MMonly_diagnosis3, date_of_MMonly_diagnosis4)) %>% 
-
-
-mutate(date_of_MMSMMGUSdiagnosis = case_when(
-  disease_stage_1 == "mgus"            ~ date_of_diagnosis_1,
-  disease_stage_2 == "mgus"            ~ date_of_diagnosis_2,
-  disease_stage_3 == "mgus"            ~ date_of_diagnosis_3,
-  disease_stage_4 == "mgus"            ~ date_of_diagnosis_4
-)) %>% 
+  mutate(date_of_MMSMMGUSdiagnosis = case_when(
+    disease_stage_1 == "mgus"            ~ date_of_diagnosis_1,
+    disease_stage_2 == "mgus"            ~ date_of_diagnosis_2,
+    disease_stage_3 == "mgus"            ~ date_of_diagnosis_3,
+    disease_stage_4 == "mgus"            ~ date_of_diagnosis_4
+  )) %>% 
   mutate(date_of_MMSMMGUSdiagnosis = 
            coalesce(date_of_MM_diagnosis, 
                     sm_date_diagnosis, 
@@ -284,9 +262,18 @@ mutate(date_of_MMSMMGUSdiagnosis = case_when(
                      Disease_Status_germline = "Disease_Status") %>% 
               distinct(), # For only 1 date of Dx when multiple germline collection
             by = "avatar_id") %>% 
-  mutate(interval_germline_dx = interval(start= collectiondt_germline, 
+  
+  
+  mutate(remove_germline = case_when(
+    collectiondt_germline > date_of_MMSMMGUSdiagnosis     ~ "remove"
+  )) %>% 
+  filter(is.na(remove_germline)) %>% 
+  select(-remove_germline) %>% 
+  
+  
+  mutate(interval_germline_dx = abs(interval(start= collectiondt_germline, 
                              end= date_of_MMSMMGUSdiagnosis)/
-           duration(n=1, unit="days")) %>% 
+           duration(n=1, unit="days"))) %>% 
   arrange(interval_germline_dx) %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   mutate(is_MMDx_close_to_blood = case_when(
@@ -302,9 +289,17 @@ mutate(date_of_MMSMMGUSdiagnosis = case_when(
                      Disease_Status_tumor = "Disease_Status") %>% 
               distinct(),
             by = "avatar_id") %>% 
-  mutate(interval_germline_tummor = interval(start = collectiondt_germline, 
+  
+  mutate(remove_tumor = case_when(
+    collectiondt_tumor > date_of_MMSMMGUSdiagnosis     ~ "remove"
+  )) %>% 
+  filter(is.na(remove_tumor)) %>% 
+  select(-remove_tumor) %>% 
+  
+  
+  mutate(interval_germline_tummor = abs(interval(start = collectiondt_germline, 
                         end = collectiondt_tumor) /
-           duration(n=1, units = "days")) %>% 
+           duration(n=1, units = "days"))) %>% 
   arrange(interval_germline_tummor) %>% 
   distinct(avatar_id, .keep_all = TRUE)
 
@@ -1158,7 +1153,6 @@ Germline <- dcast(setDT(WES_jan2022),
                     "moffittSampleId_tumor",
                     "collectiondt_tumor",
                     "moffittSampleId",
-                    "DNASequencingLibraryID",
                     "Disease_Status"
                   )
 )

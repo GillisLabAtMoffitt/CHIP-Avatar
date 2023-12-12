@@ -11,6 +11,7 @@ data*
 *.jpeg
 *.jpg
 *.csv
+*.xlsx
 *.rds
 
 # Ignore data directory or data dir if it is a symlink

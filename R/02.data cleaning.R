@@ -238,6 +238,88 @@ mm_history <- bind_rows(MM_history_V12, #MM_history, MM_historyV2,
     TRUE                               ~ NA_character_
   ))
 
+# OLDER VERSION
+mm_history <- bind_rows(MM_history_V12, #MM_history, MM_historyV2,
+                        MM_historyV4, MM_historyV4.1,
+                        Dx_date) %>%
+  drop_na("date_of_diagnosis") %>%
+  mutate(mrn = coalesce(mrn, last_mrn)) %>% 
+  group_by(avatar_id) %>% 
+  fill(mrn, .direction = "downup") %>% 
+  ungroup() %>% 
+  distinct(avatar_id, date_of_diagnosis, disease_stage, .keep_all = TRUE) %>% 
+  arrange(avatar_id, date_of_diagnosis) %>% 
+  # Change status for patients that Nancy checked
+  mutate(disease_stage = case_when(
+    str_detect(avatar_id, id) &
+      disease_stage == "active"   ~ "wrongly classified", 
+    TRUE                          ~ disease_stage
+  )) %>% 
+  # mutate(date_of_diagnosis = case_when(
+  #   str_detect(avatar_id, id) &
+  #     disease_stage == "wrongly classified"   ~ NA_POSIXct_, 
+  #   TRUE                                      ~ date_of_diagnosis)) %>% 
+  
+  # code smoldering diagnosis date
+  group_by(avatar_id) %>% 
+  mutate(sm_date_diagnosis = case_when(
+    disease_stage == "smoldering"           ~ date_of_diagnosis,
+    TRUE                                    ~ NA_POSIXct_
+  )) %>% 
+  arrange(avatar_id, sm_date_diagnosis) %>% 
+  mutate(sm_date_diagnosis = first(sm_date_diagnosis)) %>% 
+  ungroup() %>% 
+  
+  # Code the first active/relapse date of diagnosis as MM diagnosis
+  arrange(avatar_id, date_of_diagnosis) %>% 
+  group_by(avatar_id) %>% 
+  mutate(date_of_MM_diagnosis = case_when(
+    str_detect(disease_stage, "active|relapse")        ~ date_of_diagnosis,
+    TRUE                                               ~ NA_POSIXct_
+  )) %>% 
+  arrange(avatar_id, date_of_MM_diagnosis) %>% 
+  mutate(date_of_MM_diagnosis = first(date_of_MM_diagnosis)) %>% 
+  ungroup() %>% 
+  arrange(avatar_id, date_of_diagnosis) %>% 
+  
+  mutate(is_patient_MM = case_when(
+    !is.na(date_of_MM_diagnosis)           ~ "Yes",
+    is.na(date_of_MM_diagnosis)            ~ "No"
+  )) %>% 
+  
+  # Create Dx_date_closest_blood date (general diagnosis, in not specific MM)
+  left_join(., Germline %>% select("avatar_id", "collectiondt_germline"), # For only 1 date of Dx when multiple germline collection
+            by = "avatar_id") %>% 
+  # For 180
+  mutate(closest_date_180_cleaning = date_of_diagnosis-collectiondt_germline) %>% 
+  group_by(avatar_id, date_of_diagnosis, disease_stage) %>% 
+  arrange(closest_date_180_cleaning) %>% 
+  distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
+  ungroup() %>% 
+  
+  mutate(interval = (interval(start= .$collectiondt_germline, end= .$date_of_diagnosis)/duration(n=1, unit="days"))) %>% 
+  mutate(interval = if_else(interval>100, NA_real_, interval)) %>% 
+  mutate(interval1 = abs(interval)) %>% 
+  arrange(interval1) %>% 
+  group_by(avatar_id) %>% mutate(id = 1:n()) %>% ungroup() %>%
+  mutate(Dx_date_closest_germline = if_else(id == 1, date_of_diagnosis, NA_POSIXct_)) %>% 
+  distinct(avatar_id, date_of_diagnosis, .keep_all = TRUE) %>% 
+  group_by(avatar_id) %>% fill(Dx_date_closest_germline, .direction = "updown") %>% 
+  arrange(avatar_id, date_of_diagnosis) %>% 
+  ungroup() %>% 
+  
+  # code actual status
+  mutate(smoldering_status = case_when(
+    !is.na(date_of_MM_diagnosis) &
+      !is.na(sm_date_diagnosis)        ~ "Progressed from Smoldering",
+    !is.na(date_of_MM_diagnosis) &
+      is.na(sm_date_diagnosis)         ~ "Never Smoldering",
+    is.na(date_of_MM_diagnosis) &
+      !is.na(sm_date_diagnosis)        ~ "Is Smoldering", 
+    TRUE                               ~ NA_character_
+  ))
+
+
 MM_history <- dcast(setDT(mm_history), 
                     avatar_id+mrn+date_of_MM_diagnosis+is_patient_MM+
                       sm_date_diagnosis+smoldering_status ~ 
@@ -253,55 +335,55 @@ MM_history <- dcast(setDT(mm_history),
   mutate(date_of_MMSMMGUSdiagnosis = 
            coalesce(date_of_MM_diagnosis, 
                     sm_date_diagnosis, 
-                    date_of_MMSMMGUSdiagnosis)) %>% 
+                    date_of_MMSMMGUSdiagnosis)) #%>% 
   
   # Select germline closest to Dx of interest (MM, then Sm, then Mgus)
-  left_join(., WES_jan2022 %>% 
-              select("avatar_id", "collectiondt_germline", 
-                     "SLID_germline", "moffittSampleId_germline", 
-                     Disease_Status_germline = "Disease_Status") %>% 
-              distinct(), # For only 1 date of Dx when multiple germline collection
-            by = "avatar_id") %>% 
-  
-  
-  mutate(remove_germline = case_when(
-    collectiondt_germline > date_of_MMSMMGUSdiagnosis     ~ "remove"
-  )) %>% 
-  filter(is.na(remove_germline)) %>% 
-  select(-remove_germline) %>% 
-  
-  
-  mutate(interval_germline_dx = abs(interval(start= collectiondt_germline, 
-                             end= date_of_MMSMMGUSdiagnosis)/
-           duration(n=1, unit="days"))) %>% 
-  arrange(interval_germline_dx) %>% 
-  distinct(avatar_id, .keep_all = TRUE) %>% 
-  mutate(is_MMDx_close_to_blood = case_when(
-    is_patient_MM == "Yes" &
-      interval_germline_dx < 60          ~ "No",
-    is_patient_MM == "Yes"               ~ "Yes",
-    TRUE                                 ~ NA_character_
-  )) %>% 
-  # Select tumor closest to germline
-  left_join(., WES_jan2022 %>% 
-              select("avatar_id", "collectiondt_tumor",
-                     "SLID_tumor", "moffittSampleId_tumor", 
-                     Disease_Status_tumor = "Disease_Status") %>% 
-              distinct(),
-            by = "avatar_id") %>% 
-  
-  mutate(remove_tumor = case_when(
-    collectiondt_tumor > date_of_MMSMMGUSdiagnosis     ~ "remove"
-  )) %>% 
-  filter(is.na(remove_tumor)) %>% 
-  select(-remove_tumor) %>% 
-  
-  
-  mutate(interval_germline_tummor = abs(interval(start = collectiondt_germline, 
-                        end = collectiondt_tumor) /
-           duration(n=1, units = "days"))) %>% 
-  arrange(interval_germline_tummor) %>% 
-  distinct(avatar_id, .keep_all = TRUE)
+  # left_join(., WES_jan2022 %>% 
+  #             select("avatar_id", "collectiondt_germline", 
+  #                    "SLID_germline", "moffittSampleId_germline", 
+  #                    Disease_Status_germline = "Disease_Status") %>% 
+  #             distinct(), # For only 1 date of Dx when multiple germline collection
+  #           by = "avatar_id") %>% 
+  # 
+  # 
+  # mutate(remove_germline = case_when(
+  #   collectiondt_germline > date_of_MMSMMGUSdiagnosis     ~ "remove"
+  # )) %>% 
+  # filter(is.na(remove_germline)) %>% 
+  # select(-remove_germline) %>% 
+  # 
+  # 
+  # mutate(interval_germline_dx = abs(interval(start= collectiondt_germline, 
+  #                            end= date_of_MMSMMGUSdiagnosis)/
+  #          duration(n=1, unit="days"))) %>% 
+  # arrange(interval_germline_dx) %>% 
+  # distinct(avatar_id, .keep_all = TRUE) %>% 
+  # mutate(is_MMDx_close_to_blood = case_when(
+  #   is_patient_MM == "Yes" &
+  #     interval_germline_dx < 60          ~ "No",
+  #   is_patient_MM == "Yes"               ~ "Yes",
+  #   TRUE                                 ~ NA_character_
+  # )) %>% 
+  # # Select tumor closest to germline
+  # left_join(., WES_jan2022 %>% 
+  #             select("avatar_id", "collectiondt_tumor",
+  #                    "SLID_tumor", "moffittSampleId_tumor", 
+  #                    Disease_Status_tumor = "Disease_Status") %>% 
+  #             distinct(),
+  #           by = "avatar_id") %>% 
+  # 
+  # mutate(remove_tumor = case_when(
+  #   collectiondt_tumor > date_of_MMSMMGUSdiagnosis     ~ "remove"
+  # )) %>% 
+  # filter(is.na(remove_tumor)) %>% 
+  # 
+  # 
+  # mutate(interval_germline_tummor = abs(interval(start = collectiondt_germline, 
+  #                       end = collectiondt_tumor) /
+  #          duration(n=1, units = "days"))) %>% 
+  # arrange(interval_germline_tummor) %>% 
+  # select(-remove_tumor, -collectiondt_germline, -collectiondt_tumor) %>% 
+  # distinct(avatar_id, .keep_all = TRUE)
 
 # write.csv(MM_history,paste0(path, "/simplified files/MM_history simplify.csv"))
 
@@ -333,6 +415,35 @@ MM_history <- dcast(setDT(mm_history),
   # arrange(avatar_id, date_of_diagnosis) %>% 
   # ungroup()
 
+# OLDER version
+MM_history <- dcast(setDT(mm_history), 
+                    avatar_id+collectiondt_germline+date_of_MM_diagnosis+is_patient_MM+
+                      Dx_date_closest_germline+
+                      sm_date_diagnosis+smoldering_status ~ 
+                      rowid(avatar_id), 
+                    value.var = c("date_of_diagnosis", "disease_stage")) %>% 
+  
+  mutate(date_of_MMSMMGUSdiagnosis = case_when(
+    disease_stage_1 == "smoldering"      ~ date_of_diagnosis_1,
+    disease_stage_2 == "smoldering"      ~ date_of_diagnosis_2,
+    disease_stage_3 == "smoldering"      ~ date_of_diagnosis_3,
+    disease_stage_4 == "smoldering"      ~ date_of_diagnosis_4,
+    disease_stage_1 == "mgus"            ~ date_of_diagnosis_1,
+    disease_stage_2 == "mgus"            ~ date_of_diagnosis_2,
+    disease_stage_3 == "mgus"            ~ date_of_diagnosis_3,
+    disease_stage_4 == "mgus"            ~ date_of_diagnosis_4
+  )) %>% 
+  mutate(date_of_MMSMMGUSdiagnosis = coalesce(date_of_MM_diagnosis, date_of_MMSMMGUSdiagnosis)) %>% 
+  mutate(interval_MM = interval(start= date_of_MM_diagnosis, end= collectiondt_germline)/duration(n=1, unit="days")) %>% 
+  mutate(is_MMDx_close_to_blood = case_when(
+    is_patient_MM == "Yes" &
+      interval_MM < -60                  ~ "No",
+    is_patient_MM == "Yes"               ~ "Yes",
+    TRUE                                 ~ NA_character_
+  )) %>% 
+  select(c("avatar_id", "Dx_date_closest_germline", "date_of_MM_diagnosis", "is_patient_MM", 
+           "sm_date_diagnosis", "smoldering_status", "date_of_MMSMMGUSdiagnosis", 
+           interval_MM, is_MMDx_close_to_blood, everything(), -collectiondt_germline))
 
 # Staging ISS
 ISS_temp <- bind_rows(Staging_V12, StagingV4, StagingV4.1, .id = "verso") %>% 
@@ -1180,6 +1291,12 @@ barplot(
 # dev.off()
 
 
+# Reload old germline data
+Germline <- readRDS("/Users/colinccm/Documents/GitHub/CHIP-Avatar/germline_patient_data.rds")
+
+Germline <- Germline %>% 
+  select(avatar_id, SLID_germline, collectiondt_germline,
+         moffittSampleId_germline, Disease_Status_germline)
 
 
 ##################################################################################################  IV  ## Merge----

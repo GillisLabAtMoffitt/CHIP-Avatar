@@ -177,8 +177,8 @@ MM_historyV4 <- history_disease(MM_historyV4)
 MM_historyV4.1 <- history_disease(MM_historyV4.1)
 
 # Change status for patients that Nancy checked
-id <- paste("A022604","A027407","A029244","A007364","A000238",
-            "A000530","A007146","A010533","A016764", sep = "|")
+id <- paste0(status_change$id, collapse = "|")
+rm(status_change)
 # Add last Raghu date of MM diagnosis
 Dx_date <- Diagnosis_ISS %>% select("avatar_id", "last_mrn", date_of_diagnosis = "MM_date_dx") %>% 
   mutate(disease_stage = "active")
@@ -976,12 +976,11 @@ Treatment <- dcast(setDT(Treatment1), mrn+avatar_id ~ rowid(avatar_id),
                                  "regimen_name", "regimen_category", "regimen_categoryVCD",
                                  "line_stop_date", "drug_start_date", "drug_stop_date"))
 
-regimen_changed_id <- c("A000180", "A000414", "A014308", "A014310", "A015461", "A022588", "A025760")
 Treatment <- Treatment %>% 
   purrr::keep(~!all(is.na(.))) %>% 
   full_join(., IMIDS_maintenance, by = "avatar_id") %>% 
   rename(first_regimen_name = regimen_name_1) %>% 
-  mutate(first_regimen_name = ifelse((str_detect(avatar_id, paste0(regimen_changed_id, collapse = "|"))), "VRd", first_regimen_name))
+  mutate(first_regimen_name = ifelse((str_detect(avatar_id, paste0(regimen_changed_id$id, collapse = "|"))), "VRd", first_regimen_name))
 
 
 rm(migration_patients, IMIDS_maintenance)
@@ -1300,7 +1299,7 @@ Germline <- Germline %>%
 
 
 ##################################################################################################  IV  ## Merge----
-patients_removed_nonMM <- c("A000428", "A000456")
+patients_removed_nonMM <- paste0(patients_removed_nonMM$id, collapse = "|")
 Global_data <- 
   # Do full join to keep extra patients we don't have germline for mow
   full_join(Germline,

@@ -785,6 +785,10 @@ Cytogenetics <- readxl::read_xlsx(paste0(path, "/Raghu MM/Cytogenetics/FISH_QC'd
 MMA <- readxl::read_xlsx(paste0(path, "/Raghu MM/Other raw data/MMA in Avatar patients.xlsx"))
 VitB12 <- readxl::read_xlsx(paste0(path, "/Raghu MM/Other raw data/Vit b12 in Avatar patients.xlsx"))
 
+status_change <- read_csv((paste0(here::here(), "/data/patients need to change status_2020.csv")))
+regimen_changed_id <- read_csv((paste0(here::here(), "/data/patients with a change of regimen name to VRd_2020.csv")))
+
+patients_removed_nonMM <- read_csv((paste0(here::here(), "/data/ids to remove as not MM patients.csv")))
 
 
 

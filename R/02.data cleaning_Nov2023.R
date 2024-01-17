@@ -399,7 +399,7 @@ Vitals <- Vitals %>%
 #   distinct() %>%
 #   select(c(mrn, avatar_id, was_contact_lost, date_contact_lost = "date_last_follow_up"))
 
-write.csv(Vitals,paste0(path, "/simplified files/Vitals_clean_Dec2023.csv"))
+write.csv(Vitals,paste0(path, "/cleaned output files/Dec2023/Vitals_clean_Dec2023.csv"))
 
 # For BMI, we may need to keep both if want to see evolution but for now keep the earliest (closest to diagnisis)
 # then fill-up with second column when the first is NA using coalesce
@@ -439,7 +439,7 @@ sct <- SCT %>%
 SCT <- dcast(setDT(sct), avatar_id ~ rowid(avatar_id), 
              value.var = c("date_of_bmt", "type_of_bmt",
                            "bmt_cell_source"))
-write.csv(SCT,paste0(path, "/simplified files/SCT_clean_Dec2023.csv"))
+write.csv(SCT,paste0(path, "/cleaned output files/Dec2023/SCT_clean_Dec2023.csv"))
 
 # Treatment ----
 IMIDS_maintenance <- IMIDS_maintenance %>% 
@@ -543,7 +543,7 @@ treatment <- Treatment %>%
   filter(drug_name != "non-mm drugs") %>%
   arrange(avatar_id, regimen_num, drug_name, drug_start_date, drug_stop_date) %>%
   distinct()
-write.csv(treatment,paste0(path, "/simplified files/treatment_long_clean_Dec2023.csv"))
+write.csv(treatment,paste0(path, "/cleaned output files/Dec2023/treatment_long_clean_Dec2023.csv"))
 
 flag_data <- treatment %>% 
   mutate(treatment_dates_check = case_when(
@@ -778,7 +778,7 @@ Treatment <- Treatment %>%
   rename(first_regimen_name = regimen_name_1) %>% 
   mutate(first_regimen_name = ifelse((str_detect(avatar_id, paste0(regimen_changed_id$id, collapse = "|"))), "VRd", first_regimen_name))
 
-write.csv(Treatment,paste0(path, "/simplified files/treatment_wide_clean_Dec2023.csv"))
+write.csv(Treatment,paste0(path, "/cleaned output files/Dec2023/treatment_wide_clean_Dec2023.csv"))
 
 rm(migration_patients, IMIDS_maintenance)
 
@@ -789,7 +789,7 @@ radiation <- Radiation %>%
 # pivot wider
 Radiation <- dcast(setDT(radiation), mrn+avatar_id ~ rowid(avatar_id), value.var = 
                      c("rad_start_date", "rad_stop_date", "radiation_line", "rad_dose"))
-write.csv(Radiation,paste0(path, "/simplified files/Radiation_wide_clean_Dec2023.csv"))
+write.csv(Radiation,paste0(path, "/cleaned output files/Dec2023/Radiation_wide_clean_Dec2023.csv"))
 
 # Progression----
 Prog <- Prog %>% 
@@ -836,7 +836,7 @@ Progression <- Progression %>%
   arrange(progression_date) %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   rename(progression_date_from_dx = "progression_date")
-write.csv(Progression, paste0(path, "/simplified files/Progression_from_dx_clean_Dec2023.csv"))
+write.csv(Progression, paste0(path, "/cleaned output files/Dec2023/Progression_from_dx_clean_Dec2023.csv"))
 
 Progression_drugs <- Progression_drugs %>% 
   # Remove progression date before drug and keep earliest progression_drug_date
@@ -859,7 +859,7 @@ Progression_drugs <- Progression_drugs %>%
   arrange(avatar_id, progression_date) %>% 
   distinct(avatar_id, .keep_all = TRUE) %>% 
   rename(progression_date_from_drug = "progression_date")
-write.csv(Progression_drugs, paste0(path, "/simplified files/Progression clean used for survivals from drugs date_Dec2023.csv"))
+write.csv(Progression_drugs, paste0(path, "/cleaned output files/Dec2023/Progression clean used for survivals from drugs date_Dec2023.csv"))
 
 Progression_rad <- Progression_rad %>% 
   # Remove progression < rad and keep earliest progression_rad_date
@@ -1103,8 +1103,8 @@ Global_data <-
   left_join(Global_data, CHIP_status, by = c("SLID_germline" = "patient_germline_id")) %>% 
   left_join(., CHIP_tageted_seq, by = c("SLID_germline" = "patient_id")) %>% 
   filter(!str_detect(avatar_id, patients_removed_nonMM))
-write_rds(Global_data, file = "Global_data_pre.rds")
-write_rds(Treatment1, "Treatment1.rds")
+write_rds(Global_data, file = "Global_data_pre_Dec2023.rds")
+write_rds(Treatment1, "Treatment1_Dec2023.rds")
 #--
 # avatar_no_germline <- Global_data %>% filter(is.na(Global_data$Disease_Status_germline)) %>% 
 #   select("avatar_id")

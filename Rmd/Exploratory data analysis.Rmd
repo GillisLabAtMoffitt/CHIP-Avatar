@@ -1,0 +1,148 @@
+---
+title: "Exploratory data analysis"
+author: "Christelle Colin-Leitzinger"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_collapsed: no
+    theme: cerulean
+    highlight: pygments
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+<style type="text/css">
+h1.title {
+  font-size: 25px;
+}
+.figure {
+   margin-top: 25px;
+   margin-bottom: 25px;
+}
+
+table {
+    margin-top: 25px;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      cache = FALSE,
+                      fig.align='center'
+                      )
+```
+
+
+<style>
+div.blue { background-color:#0099CC; border-radius: 5px; padding: 20px; font-size: 38px}
+</style>
+<div class = "blue">
+
+<span style="color: white;">Exploratory data analysis - clonal hematopoiesis</span>
+
+</div>
+<br>
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(gtsummary)
+
+theme_gtsummary_compact()
+theme_set(theme_classic())
+```
+
+```{r load}
+germline_patient_data <- read_rds(paste0(here::here(), "/germline_patient_data_Dec2023.rds"))
+```
+
+# Active MM patients
+```{r}
+active_MM <- germline_patient_data %>% 
+  filter(is_patient_MM == "Yes"# & is_MMDx_close_to_blood == "Yes"
+         ) %>% 
+  distinct(avatar_id, .keep_all = TRUE)
+```
+
+## Patients characteristic
+```{r}
+active_MM %>% 
+  select(CH_status, CH_status_TS) %>% 
+  tbl_summary() %>% 
+  bold_labels()
+
+active_MM %>% 
+  select(CH_status,
+         Age_at_MMonly_diagnosis, MM_age_cat, MM_age_group,
+         Sex, Ethnicity, Race, raceeth,
+         Disease_Status_germline, Disease_Status_facet,
+         is_patient_MM, smoldering_status, 
+         ISSdx_grp,
+         vital_status
+         ) %>% 
+  tbl_summary(by = CH_status) %>% 
+  bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t=0.05) %>% 
+  modify_header(list(label ~ "**Patient characteristics**", 
+                     all_stat_cols() ~ "**{level}**, N = {n}"))
+```
+
+## Treatment
+```{r}
+active_MM %>% 
+  select(CH_status,
+         Drugs_ever,
+         first_regimen_name, imids_maintenance,
+         HCT_ever, Radiation_ever,
+         time_to_hct, time_to_drug
+         ) %>% 
+  tbl_summary(by = CH_status) %>% 
+  bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t=0.05) %>% 
+  modify_header(list(label ~ "**Treatment**", 
+                     all_stat_cols() ~ "**{level}**, N = {n}"))
+```
+
+## Response
+```{r}
+active_MM %>% 
+  select(CH_status,
+         starts_with("response_"),
+         have_metastasis
+         ) %>% 
+  tbl_summary(by = CH_status) %>% 
+  bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t=0.05) %>% 
+  modify_header(list(label ~ "**Response**", 
+                     all_stat_cols() ~ "**{level}**, N = {n}"))
+```
+
+## Cytogenetics
+```{r}
+active_MM %>% 
+  select(CH_status,
+         cytogenetics,
+         fish_igh : speicify_other_abnormality
+         ) %>% 
+  tbl_summary(by = CH_status) %>% 
+  bold_labels() %>% add_overall() %>% add_p() %>% bold_p(t=0.05) %>% 
+  modify_header(list(label ~ "**Cytogenetics**", 
+                     all_stat_cols() ~ "**{level}**, N = {n}"))
+```
+
+# Progressed from Smoldering patients
+```{r}
+sm_patient_data <- germline_patient_data %>% 
+  filter(smoldering_status == "Progressed from Smoldering") %>% 
+  distinct(avatar_id, .keep_all = TRUE)
+```
+
+
+
+
+
+
+
+
+
